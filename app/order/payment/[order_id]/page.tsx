@@ -1,15 +1,20 @@
 import { CalendarDaysIcon, CreditCardIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { createClient } from '@/utils/supabase/server';
+import { Order } from '@/utils/types';
 
 export default async function PaymentPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
   const supabase = createClient();
   const { data } = await supabase.from('orders').select().eq('order_id', order_id);
-  let order = {
+  let order:Order = {
     total: 0,
+    created_at: '',
+    confirmed_at: '',
     confirmed: false,
     paid: false,
-    created_at: '',
+    paid_at: '',
+    items: [],
+    order_id: '',
   };
   if (data && data.length > 0) {
     [order] = data;
@@ -36,11 +41,11 @@ export default async function PaymentPage({ params }: { params: { order_id: stri
               <span className="sr-only">Client</span>
               <UserCircleIcon className="h-6 w-5 text-gray-400" aria-hidden="true" />
             </dt>
-            <dd className="text-sm font-medium leading-6 text-gray-900">Alex Curren</dd>
+            <dd className="text-sm font-medium leading-6 text-gray-900">Supranormal-天母店</dd>
           </div>
           <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
             <dt className="flex-none">
-              <span className="sr-only">Due date</span>
+              <span className="sr-only">Create date</span>
               <CalendarDaysIcon className="h-6 w-5 text-gray-400" aria-hidden="true" />
             </dt>
             <dd className="text-sm leading-6 text-gray-500">
@@ -52,7 +57,9 @@ export default async function PaymentPage({ params }: { params: { order_id: stri
               <span className="sr-only">Status</span>
               <CreditCardIcon className="h-6 w-5 text-gray-400" aria-hidden="true" />
             </dt>
-            <dd className="text-sm leading-6 text-gray-500">Paid with Line Pay</dd>
+            {order.items.map(item => (
+              <dd key={item.item} className="text-sm leading-6 text-gray-500">{item.item} x {item.units}</dd>
+            ))}
           </div>
         </dl>
         <div className="mt-6 border-t border-gray-900/5 px-6 py-6">
