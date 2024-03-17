@@ -1,4 +1,3 @@
-import { Text } from '@mantine/core';
 import { CalendarDaysIcon, CreditCardIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { createClient } from '@/utils/supabase/server';
 
@@ -6,8 +5,16 @@ export default async function PaymentPage({ params }: { params: { order_id: stri
   const { order_id } = params;
   const supabase = createClient();
   const { data } = await supabase.from('orders').select().eq('order_id', order_id);
-  console.log(data);
-  const order = data[0];
+  let order = {
+    total: 0,
+    confirmed: false,
+    paid: false,
+    created_at: '',
+  };
+  if (data && data.length > 0) {
+    [order] = data;
+  }
+  console.log(order);
 
   return (
     <div className="lg:col-start-3 lg:row-end-1">

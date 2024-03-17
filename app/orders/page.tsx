@@ -1,18 +1,17 @@
 'use client';
 
-import cx from 'clsx';
 import { useState, useEffect } from 'react';
 import { Table } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
-
+import { OrderItem } from '@/utils/types';
 
 export default function OrdersPage() {
   const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
 
   useEffect(() => {
-    const formatOrders = (orders) => {
+    const formatOrders = (orders:OrderItem[]) => {
       let str = '';
       orders.forEach((order) => {
         if (str.length > 0) {
