@@ -12,5 +12,6 @@ export interface Order {
   paid: boolean
   paid_at: string
   total: number
-  items: OrderItem[]
+  items: OrderItem[],
+  line_id: string
 }
