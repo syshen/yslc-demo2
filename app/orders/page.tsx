@@ -29,7 +29,7 @@ export default function OrdersPage() {
       if (data) {
         const rs = data.map((row) => (
           <Table.Tr key={row.order_id}>
-            <Table.Td>{row.created_at}</Table.Td>
+            <Table.Td>{new Date(row.created_at).toLocaleDateString()}</Table.Td>
             <Table.Td>{row.confirmed ? 'Yes' : 'No'}</Table.Td>
             <Table.Td>{row.paid ? 'Yes' : 'No'}</Table.Td>
             <Table.Td>{formatOrders(row.items)}</Table.Td>
