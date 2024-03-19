@@ -1,8 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
 import { IconBrandTwitter, IconBrandYoutube, IconBrandInstagram } from '@tabler/icons-react';
-import { MantineLogo } from '@mantinex/mantine-logo';
+// import { MantineLogo } from '@mantinex/mantine-logo';
+import Logo from './yslc.png';
+
 import classes from './footer.module.css';
 
 const links = [
@@ -30,7 +33,9 @@ export function FooterCentered() {
   return (
     <div className={classes.footer}>
       <div className={classes.inner}>
-        <MantineLogo size={28} />
+        <Group>
+          <Image src={Logo} width={30} height={30} alt="YSLC" />詠鑠生活YSLC
+        </Group>
 
         <Group className={classes.links}>{items}</Group>
 
