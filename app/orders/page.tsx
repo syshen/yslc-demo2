@@ -1,5 +1,6 @@
 'use client';
 
+import { redirect, RedirectType } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Table } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
@@ -39,7 +40,14 @@ export default function OrdersPage() {
         setRows(rs);
       }
     };
-    getData();
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        return getData();
+      }
+      redirect('/login', RedirectType.push);
+      return null;
+    });
   }, []);
 
   return (
