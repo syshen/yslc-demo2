@@ -12,20 +12,23 @@ export default function OrdersPage() {
   const [rows, setRows] = useState<JSX.Element[]>([]);
 
   useEffect(() => {
-    const formatOrders = (orders:OrderItem[]) => {
+    const formatOrder = (order:OrderItem) => {
       let str = '';
-      orders.forEach((order) => {
-        if (str.length > 0) {
-          str += ', ';
-        }
+      if (str.length > 0) {
+        str += ', ';
+      }
+      if (order.quantity !== undefined) {
+        str += `${order.item} x ${order.quantity}${order.unit}`;
+      } else {
         str += `${order.item} x ${order.units}`;
-      });
+      }
+
       return str;
     };
     const getData = async () => {
       const { data } = await supabase
         .from('orders')
-        .select('*');
+        .select('*').order('created_at', { ascending: false });
 
       if (data) {
         const rs = data.map((row) => (
@@ -33,7 +36,13 @@ export default function OrdersPage() {
             <Table.Td>{new Date(row.created_at).toLocaleDateString()}</Table.Td>
             <Table.Td>{row.confirmed ? 'Yes' : 'No'}</Table.Td>
             <Table.Td>{row.paid ? 'Yes' : 'No'}</Table.Td>
-            <Table.Td>{formatOrders(row.items)}</Table.Td>
+            <Table.Td>
+              <ul>
+                {row.items.map((item:OrderItem) => (
+                  <li>{formatOrder(item)}</li>
+                ))}
+              </ul>
+            </Table.Td>
             <Table.Td>{row.total}</Table.Td>
           </Table.Tr>
         ));

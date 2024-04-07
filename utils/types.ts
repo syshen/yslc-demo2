@@ -1,6 +1,8 @@
 export interface OrderItem {
   item: string
   units: number,
+  quantity: number,
+  unit: string,
   subtotal: number,
 }
 
