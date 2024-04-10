@@ -34,6 +34,7 @@ export default function OrdersPage() {
         const rs = data.map((row) => (
           <Table.Tr key={row.order_id}>
             <Table.Td>{new Date(row.created_at).toLocaleDateString()}</Table.Td>
+            <Table.Td>詠鑠生活</Table.Td>
             <Table.Td>{row.confirmed ? 'Yes' : 'No'}</Table.Td>
             <Table.Td>{row.paid ? 'Yes' : 'No'}</Table.Td>
             <Table.Td>
@@ -64,6 +65,7 @@ export default function OrdersPage() {
         <Table.Thead className={classes.header}>
           <Table.Tr>
             <Table.Th>Date</Table.Th>
+            <Table.Th>Customer</Table.Th>
             <Table.Th>Confirmed</Table.Th>
             <Table.Th>Paid</Table.Th>
             <Table.Th>Orders</Table.Th>
