@@ -17,3 +17,14 @@ export interface Order {
   items: OrderItem[],
   line_id: string
 }
+export interface Customer {
+  id: number
+  created_at: string
+  customer_id: string
+  name: string
+  line_id: string
+  payment_term: string
+  contact_phone_1: string
+  contact_phone_2: string
+  shipping_address: string
+}
