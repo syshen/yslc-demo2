@@ -22,19 +22,21 @@ export function NavMenu() {
     <Box>
       <header className={classes.header}>
         <Group justify="space-between" h="100%">
-          <Group>
-            <Image src={Logo} width={30} height={30} alt="YSLC" />詠鑠生活YSLC
-          </Group>
+          <a href="/">
+            <Group>
+              <Image src={Logo} width={30} height={30} alt="YSLC" />詠鑠生活YSLC
+            </Group>
+          </a>
 
           <Group h="100%" gap={0} visibleFrom="sm">
             <a href="/" className={classes.link}>
-              Home
+              首頁
             </a>
             <a href="/orders" className={classes.link}>
-              Orders
+              所有訂單
             </a>
             <a href="/customers" className={classes.link}>
-              Customers
+              所有客戶
             </a>
           </Group>
           <SignInButton />
@@ -55,13 +57,13 @@ export function NavMenu() {
           <Divider my="sm" />
 
           <a href="/" className={classes.link}>
-            Home
+            首頁
           </a>
           <a href="/orders" className={classes.link}>
-            Orders
+            所有訂單
           </a>
           <a href="/customers" className={classes.link}>
-            Customers
+            所有客戶
           </a>
 
           <Divider my="sm" />

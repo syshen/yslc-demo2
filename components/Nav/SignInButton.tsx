@@ -16,13 +16,13 @@ export function SignInButton() {
   return currentUser ? (
     <Group visibleFrom="sm">
         <Text>{currentUser.email}</Text>
-        <Button variant="default" onClick={() => supabase.auth.signOut()}>Log out</Button>
+        <Button variant="default" onClick={() => supabase.auth.signOut()}>登出</Button>
     </Group>
   ) : (
     <div>
       <Group visibleFrom="sm">
         <Link href="/login">
-          <Button variant="default">Log in</Button>
+          <Button variant="default">登入</Button>
         </Link>
       </Group>
     </div>

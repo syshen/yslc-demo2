@@ -1,9 +1,11 @@
 export interface OrderItem {
   item: string
-  units: number,
-  quantity: number,
-  unit: string,
-  subtotal: number,
+  id: number
+  units: number
+  quantity: number
+  unit: string
+  unit_price: number
+  subtotal: number
 }
 
 export interface Order {

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Table } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
-import { Order, OrderItem } from '@/utils/types';
+import { Order } from '@/utils/types';
 // import { Customer } from '@/utils/types';
 
 export default function OrdersPage() {
@@ -68,13 +68,13 @@ export default function OrdersPage() {
     <Table miw={700}>
       <Table.Thead className={classes.header}>
         <Table.Tr>
-          <Table.Th>Customer ID</Table.Th>
-          <Table.Th>Name</Table.Th>
-          <Table.Th>Phone</Table.Th>
-          <Table.Th>Shipping Address</Table.Th>
-          <Table.Th>Pending Orders</Table.Th>
-          <Table.Th>Total Fee Received</Table.Th>
-          <Table.Th>Outstanding Payment</Table.Th>
+          <Table.Th>客戶代號</Table.Th>
+          <Table.Th>客戶簡稱</Table.Th>
+          <Table.Th>聯絡電話</Table.Th>
+          <Table.Th>出貨地址</Table.Th>
+          <Table.Th>未確認訂單數</Table.Th>
+          <Table.Th>總收款額</Table.Th>
+          <Table.Th>代付款項</Table.Th>
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>{rows}</Table.Tbody>
