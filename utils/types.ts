@@ -6,6 +6,8 @@ export interface OrderItem {
   unit: string
   unit_price: number
   subtotal: number
+  payment_option: string
+  account_number: string
 }
 
 export interface Order {
