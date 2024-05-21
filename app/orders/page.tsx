@@ -7,7 +7,7 @@ import { MantineProvider, Table, Checkbox, Select, Group } from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
-import { Order, OrderItem } from '@/utils/types';
+import { OrderItem } from '@/utils/types';
 
 export default function OrdersPage() {
   const supabase = createClient();
