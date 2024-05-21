@@ -7,7 +7,7 @@ import { MantineProvider, Table, Checkbox, Select, Group } from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
-import { OrderItem, Customer } from '@/utils/types';
+import { Order, OrderItem } from '@/utils/types';
 
 export default function OrdersPage() {
   const supabase = createClient();
@@ -69,7 +69,7 @@ export default function OrdersPage() {
     }
     func = func.order('created_at', { ascending: false });
 
-    const { data } = await func.returns();
+    const { data } = await func;
 
     if (data) {
       const rs = data.map((row:any) => {
