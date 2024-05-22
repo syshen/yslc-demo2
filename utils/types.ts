@@ -6,8 +6,6 @@ export interface OrderItem {
   unit: string
   unit_price: number
   subtotal: number
-  payment_option: string
-  account_number: string
 }
 
 export interface Order {
@@ -18,8 +16,10 @@ export interface Order {
   paid: boolean
   paid_at: string
   total: number
-  items: OrderItem[],
+  items: OrderItem[]
   line_id: string
+  payment_option: string
+  account_number: string
 }
 export interface Customer {
   id: number

@@ -3,11 +3,12 @@
 import { redirect, RedirectType } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
-import { MantineProvider, Table, Checkbox, Select, Group } from '@mantine/core';
+import { MantineProvider, Table, Checkbox, Select, Group, Button } from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
-import { OrderItem } from '@/utils/types';
+import { Order, OrderItem } from '@/utils/types';
+import { confirmOrder } from '@/app/actions';
 
 export default function OrdersPage() {
   const supabase = createClient();
@@ -22,7 +23,7 @@ export default function OrdersPage() {
       color: 'teal',
     });
   };
-  const paymentOption = (order:OrderItem) => {
+  const paymentOption = (order:Order) => {
     if (order.payment_option === 'bankTransfer') {
       if (order.account_number) {
         return `銀行轉帳，帳號後五碼: ${order.account_number}`;
@@ -30,6 +31,18 @@ export default function OrdersPage() {
       return '銀行轉帳，尚未提供帳號';
     }
     return '貨到付款';
+  };
+
+  const paymentStatus = (order:Order) => {
+    if (!order.paid) {
+      if (order.payment_option === 'bankTransfer') {
+        if (order.account_number) {
+          return (<Button onClick={() => confirmOrder(order.order_id)}>確認付款完成</Button>);
+        }
+      }
+      return '待付款';
+    }
+    return '已付款';
   };
   const getCustomers = async () => {
     const { data } = await supabase.from('customers')
@@ -124,8 +137,8 @@ export default function OrdersPage() {
               {item.unit_price.toLocaleString()}
             </Table.Td>
             <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentOption(row)}</Table.Td>
-            <Table.Td className={row.cancelled ? 'line-through' : ''}>{row.paid ? '已付款' : '待付款'}</Table.Td>
             <Table.Td className={row.cancelled ? 'line-through' : ''}>{Number(row.total).toLocaleString()}</Table.Td>
+            <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentStatus(row)}</Table.Td>
           </Table.Tr>
         ));
       });
@@ -186,8 +199,8 @@ export default function OrdersPage() {
             <Table.Th>銷貨數量</Table.Th>
             <Table.Th>訂單單價</Table.Th>
             <Table.Th>付款方式</Table.Th>
-            <Table.Th>付款狀態</Table.Th>
             <Table.Th>訂單總額</Table.Th>
+            <Table.Th>付款狀態</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
