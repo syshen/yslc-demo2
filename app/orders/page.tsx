@@ -34,9 +34,9 @@ export default function OrdersPage() {
   };
 
   const paymentStatus = (order:Order) => {
-    if (!order.paid) {
+    if (order.paid === false) {
       if (order.payment_option === 'bankTransfer') {
-        if (order.account_number) {
+        if (order.account_number && order.account_number.length > 1) {
           return (<Button onClick={() => confirmOrder(order.order_id)}>確認付款完成</Button>);
         }
       }
