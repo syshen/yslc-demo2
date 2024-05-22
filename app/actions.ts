@@ -4,7 +4,7 @@ export const confirmOrder = async (order_id:string) => {
   'use server';
 
   console.log('confirmOrder', process.env.NEXT_PUBLIC_BACKEND_URL);
-  await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/payment/confirm`, {
+  const resp = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}payment/confirm`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -14,4 +14,5 @@ export const confirmOrder = async (order_id:string) => {
       order_id,
     }),
   });
+  console.log(resp);
 };
