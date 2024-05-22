@@ -17,6 +17,8 @@ export default async function PaymentPage({ params }: { params: { order_id: stri
     items: [],
     order_id: '',
     line_id: '',
+    payment_option: '',
+    account_number: '',
   };
   if (data && data.length > 0) {
     [order] = data;
