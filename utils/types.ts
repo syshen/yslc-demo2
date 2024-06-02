@@ -44,3 +44,8 @@ export interface Product {
   stock_status?: string
   stock_quantity?: number
 }
+
+export interface Cart {
+  product_id: string
+  quantity: number
+}
