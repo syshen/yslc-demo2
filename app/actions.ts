@@ -22,8 +22,7 @@ export const shopCarts = async (carts: Cart[]) => {
   'use server';
 
   console.log(carts);
-  console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
-  const resp = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/yslc/shop`, {
+  const resp = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/shop`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
