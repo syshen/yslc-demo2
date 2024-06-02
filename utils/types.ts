@@ -32,3 +32,15 @@ export interface Customer {
   contact_phone_2: string
   shipping_address: string
 }
+
+export interface Product {
+  id?: number
+  created_at?: string
+  product_id: string
+  name: string
+  unit: string
+  unit_price?: number
+  spec?: string
+  stock_status?: string
+  stock_quantity?: number
+}
