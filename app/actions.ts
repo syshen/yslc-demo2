@@ -18,17 +18,19 @@ export const confirmOrder = async (order_id:string) => {
   console.log(resp);
 };
 
-export const shopCarts = async (carts: Cart[]) => {
+export const shopCarts = async (customer_id:string, carts: Cart[]) => {
   'use server';
 
-  console.log(carts);
   const resp = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/shop`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
     },
-    body: JSON.stringify(carts),
+    body: JSON.stringify({
+      customer_id,
+      carts,
+    }),
   });
   console.log(resp);
 };
