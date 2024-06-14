@@ -15,7 +15,6 @@ export default function OrderPage({ params }: { params: { mode: string, customer
   }
   const [cart, setCart] = useState<Cart>({});
 
-  console.log(mode);
   const getProducts = async () => {
     const { data } = await supabase.from('products').select('name,product_id,unit,spec');
     if (data) {
@@ -74,6 +73,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
           disabled={!(Object.values(cart).some(value => value > 0))}
           onClick={() =>
             shopCarts(
+              mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
             )
@@ -87,6 +87,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
           disabled={!(Object.values(cart).some(value => value > 0))}
           onClick={() =>
             shopCarts(
+              mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
             )
