@@ -6,8 +6,8 @@ import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
 
-export default function OrderPage({ params }: { params: { customer_id: string } }) {
-  const { customer_id } = params;
+export default function OrderPage({ params }: { params: { mode: string, customer_id: string } }) {
+  const { mode, customer_id } = params;
   const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   interface Cart {
@@ -15,6 +15,7 @@ export default function OrderPage({ params }: { params: { customer_id: string } 
   }
   const [cart, setCart] = useState<Cart>({});
 
+  console.log(mode);
   const getProducts = async () => {
     const { data } = await supabase.from('products').select('name,product_id,unit,spec');
     if (data) {
