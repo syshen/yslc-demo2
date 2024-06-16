@@ -17,6 +17,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
     line_id: '',
     payment_option: '',
     account_number: '',
+    customer_id: '',
   };
   if (data && data.length > 0) {
     [order] = data;
