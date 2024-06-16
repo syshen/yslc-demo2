@@ -83,7 +83,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
               mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
-            ).then(() => open);
+            ).then(() => open());
           }
         }
         >送出
