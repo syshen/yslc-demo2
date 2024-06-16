@@ -20,6 +20,7 @@ export interface Order {
   line_id: string
   payment_option: string
   account_number: string
+  customer_id: string
 }
 export interface Customer {
   id: number

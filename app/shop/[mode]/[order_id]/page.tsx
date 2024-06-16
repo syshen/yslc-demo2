@@ -7,8 +7,8 @@ import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
 
-export default function OrderPage({ params }: { params: { mode: string, customer_id: string } }) {
-  const { mode, customer_id } = params;
+export default function OrderPage({ params }: { params: { mode: string, order_id: string } }) {
+  const { mode, order_id } = params;
   const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   interface Cart {
@@ -87,7 +87,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
           onClick={() => {
             shopCarts(
               mode,
-              customer_id,
+              order_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
             ).then(() => open());
           }
@@ -104,7 +104,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
           onClick={() => {
             shopCarts(
               mode,
-              customer_id,
+              order_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
             ).then(() => open());
           }}
