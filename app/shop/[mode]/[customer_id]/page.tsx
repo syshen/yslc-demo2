@@ -33,6 +33,8 @@ export default function OrderPage({ params }: { params: { mode: string, customer
             <p className="font-sm">({product.spec})</p>
             <div className="grid grap-x-8 grid-cols-2">
               <Button
+                variant="outline"
+                radius="xl"
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center mr-3"
                 onClick={
                   () =>
@@ -44,6 +46,8 @@ export default function OrderPage({ params }: { params: { mode: string, customer
                 }>+
               </Button>
               <Button
+                variant="outline"
+                radius="xl"
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center"
                 disabled={cart[product.product_id] === 0 || cart[product.product_id] === undefined}
                 onClick={
@@ -77,6 +81,8 @@ export default function OrderPage({ params }: { params: { mode: string, customer
       <div className="flex justify-between py-5 items-center">
         <h2 className="font-bold">選擇商品</h2>
         <Button
+          variant="light"
+          radius="xl"
           disabled={!(Object.values(cart).some(value => value > 0))}
           onClick={() => {
             shopCarts(
@@ -92,15 +98,16 @@ export default function OrderPage({ params }: { params: { mode: string, customer
       {rows}
       <div className="flex justify-end py-5 items-center">
         <Button
+          variant="light"
+          radius="xl"
           disabled={!(Object.values(cart).some(value => value > 0))}
           onClick={() => {
             shopCarts(
               mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
-            ).then(() => open);
-          }
-          }
+            ).then(() => open());
+          }}
         >送出
         </Button>
       </div>
