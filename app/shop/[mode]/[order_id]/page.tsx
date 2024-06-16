@@ -73,7 +73,14 @@ export default function OrderPage({ params }: { params: { mode: string, order_id
 
   return (
     <>
-    <Modal opened={opened} onClose={close}>
+    <Modal
+      opened={opened}
+      onClose={close}
+      closeOnClickOutside={false}
+      closeOnEscape={false}
+      withCloseButton={false}
+      centered
+    >
       <h2>訂單已送出</h2>
       <p>請關閉視窗回到 Line 做最後的確認</p>
     </Modal>
