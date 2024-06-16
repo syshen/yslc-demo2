@@ -28,7 +28,7 @@ export const shopCarts = async (mode: string, customer_id:string, carts: Cart[])
     url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/shop`;
   }
 
-  const resp = await fetch(url, {
+  await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,5 +39,5 @@ export const shopCarts = async (mode: string, customer_id:string, carts: Cart[])
       carts,
     }),
   });
-  console.log(resp);
+  window.close();
 };
