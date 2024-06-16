@@ -39,5 +39,5 @@ export const shopCarts = async (mode: string, customer_id:string, carts: Cart[])
       carts,
     }),
   });
-  window.close();
+  // window.close();
 };
