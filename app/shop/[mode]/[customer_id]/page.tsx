@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { Button, Modal } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
@@ -14,6 +15,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
     [productId:string]: number
   }
   const [cart, setCart] = useState<Cart>({});
+  const [opened, { open, close }] = useDisclosure(false);
 
   const getProducts = async () => {
     const { data } = await supabase.from('products').select('name,product_id,unit,spec');
@@ -66,6 +68,11 @@ export default function OrderPage({ params }: { params: { mode: string, customer
   }, [cart]);
 
   return (
+    <>
+    <Modal opened={opened} onClose={close}>
+      <h2>訂單已送出</h2>
+      <p>請關閉視窗回到 Line 做最後的確認</p>
+    </Modal>
     <ul className="divide-y divide-gray-100 mx-2">
       <div className="flex justify-between py-5 items-center">
         <h2 className="font-bold">選擇商品</h2>
@@ -76,7 +83,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
               mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
-            )
+            ).then(() => open())
         }
         >送出
         </Button>
@@ -90,11 +97,12 @@ export default function OrderPage({ params }: { params: { mode: string, customer
               mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
-            )
+            ).then(() => open())
           }
         >送出
         </Button>
       </div>
     </ul>
+    </>
   );
 }
