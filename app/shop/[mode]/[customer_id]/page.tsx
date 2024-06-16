@@ -78,12 +78,13 @@ export default function OrderPage({ params }: { params: { mode: string, customer
         <h2 className="font-bold">選擇商品</h2>
         <Button
           disabled={!(Object.values(cart).some(value => value > 0))}
-          onClick={() =>
+          onClick={() => {
             shopCarts(
               mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
-            ).then(() => open())
+            ).then(() => open);
+          }
         }
         >送出
         </Button>
@@ -92,12 +93,13 @@ export default function OrderPage({ params }: { params: { mode: string, customer
       <div className="flex justify-end py-5 items-center">
         <Button
           disabled={!(Object.values(cart).some(value => value > 0))}
-          onClick={() =>
+          onClick={() => {
             shopCarts(
               mode,
               customer_id,
               Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
-            ).then(() => open())
+            ).then(() => open);
+          }
           }
         >送出
         </Button>
