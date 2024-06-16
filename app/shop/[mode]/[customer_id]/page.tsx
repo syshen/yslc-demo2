@@ -28,7 +28,7 @@ export default function OrderPage({ params }: { params: { mode: string, customer
             <p className="py-2">{product.name}</p>
           </div>
           <div className="flex justify-between items-center">
-            <p>數量: {cart[product.product_id] ? cart[product.product_id] : 0} {product.unit}
+            <p>數量:<b> {cart[product.product_id] ? cart[product.product_id] : 0} {product.unit} </b>
             </p>
             <p className="font-sm">({product.spec})</p>
             <div className="grid grap-x-8 grid-cols-2">
