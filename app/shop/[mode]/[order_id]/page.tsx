@@ -84,7 +84,7 @@ export default function OrderPage({ params }: { params: { mode: string, order_id
       <h2>訂單已送出</h2>
       <p>請關閉視窗回到 Line 做最後的確認</p>
     </Modal>
-    <ul className="divide-y divide-gray-100 mx-2">
+    <ul className="divide-y divide-gray-100 mx-2 sticky top-0">
       <div className="flex justify-between py-5 items-center">
         <h2 className="font-bold">選擇商品</h2>
         <Button

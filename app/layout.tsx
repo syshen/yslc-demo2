@@ -5,8 +5,8 @@ import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { theme } from '../theme';
 
 export const metadata = {
-  title: '詠鑠',
-  description: '詠鑠 Demo 網站',
+  title: '詠鑠生活 YSLC',
+  description: '詠鑠生活 YSLC',
 };
 
 export default function RootLayout({ children }: { children: any }) {
