@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
-import { Order } from '@/utils/types';
+import { Order, OrderState } from '@/utils/types';
 
 export default async function OrderPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
@@ -18,6 +18,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
     payment_option: '',
     account_number: '',
     customer_id: '',
+    state: OrderState.NONE,
     tax: 0.0,
   };
   let untax_total = 0;
@@ -28,6 +29,22 @@ export default async function OrderPage({ params }: { params: { order_id: string
       untax_total += item.subtotal;
     });
   }
+  const getStatus = (state:string) => {
+    switch (state) {
+      case OrderState.CONFIRMED:
+        return '已確認';
+      case OrderState.PENDING_PAYMENT:
+        return '待付款';
+      case OrderState.CANCELLED:
+        return '已取消';
+      case OrderState.PENDING_VERIFY:
+        return '待確認付款';
+      case OrderState.COMPLETED:
+        return '訂單已完成';
+      default:
+        return '未處理';
+    }
+  };
 
   return (
     <div className="p-6 border border-gray-200 rounded-3xl w-full group transition-all duration-500 hover:border-gray-400 ">
@@ -35,6 +52,9 @@ export default async function OrderPage({ params }: { params: { order_id: string
         className="font-manrope font-bold text-3xl leading-10 text-black pb-6 border-b border-gray-200 ">
         訂單內容
       </h2>
+      <div>
+        <p className="font-italic text-md">{getStatus(order.state)}</p>
+      </div>
       <div className="data py-6 border-b border-gray-200">
         {order.items.map((item) => (
           <div className="flex items-center justify-between gap-4 mb-5">

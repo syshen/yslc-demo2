@@ -1,7 +1,7 @@
 // import { redirect } from 'next/navigation';
 import { CalendarDaysIcon, CreditCardIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { createClient } from '@/utils/supabase/server';
-import { Order } from '@/utils/types';
+import { Order, OrderState } from '@/utils/types';
 
 export default async function PaymentPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
@@ -19,6 +19,7 @@ export default async function PaymentPage({ params }: { params: { order_id: stri
     line_id: '',
     payment_option: '',
     account_number: '',
+    state: OrderState.NONE,
     customer_id: '',
     tax: 0.0,
   };

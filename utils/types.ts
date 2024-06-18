@@ -8,6 +8,15 @@ export interface OrderItem {
   subtotal: number
 }
 
+export enum OrderState {
+  NONE = '',
+  CONFIRMED = 'confirmed',
+  PENDING_PAYMENT = 'pendingPayment',
+  CANCELLED = 'cancelled',
+  PENDING_VERIFY = 'pendingVerify',
+  COMPLETED = 'completed',
+}
+
 export interface Order {
   order_id: string
   created_at: string
@@ -21,6 +30,7 @@ export interface Order {
   payment_option: string
   account_number: string
   customer_id: string
+  state: OrderState
   tax: number
 }
 export interface Customer {
