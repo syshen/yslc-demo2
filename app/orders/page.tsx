@@ -4,6 +4,7 @@ import { redirect, RedirectType } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
 import { MantineProvider, Table, Checkbox, Select, Group, Button } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
@@ -15,6 +16,7 @@ export default function OrdersPage() {
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+  const [refreshTimes, setRefreshTimes] = useState(0);
 
   const copy = (text:string) => {
     navigator.clipboard.writeText(text);
@@ -135,16 +137,21 @@ export default function OrdersPage() {
     }
   };
 
+  const [loading, { toggle }] = useDisclosure();
+
   const doVerifyOrder = async (order_id:string) => {
+    toggle();
     await confirmOrder(order_id);
-    await getData(cancelledChecked, paidChecked, selectedCustomer);
+    setRefreshTimes(refreshTimes + 1);
+    toggle();
   };
 
   const paymentStatus = (order:Order) => {
     if (order.paid === false) {
       if (order.payment_option === 'bankTransfer') {
         if (order.account_number && order.account_number.length > 1) {
-          return (<Button onClick={() => doVerifyOrder(order.order_id)}>確認付款完成</Button>);
+          return (
+          <Button loading={loading} onClick={() => doVerifyOrder(order.order_id)}>確認付款完成</Button>);
         }
       }
       return '待付款';
@@ -164,7 +171,7 @@ export default function OrdersPage() {
       redirect('/login', RedirectType.push);
       return null;
     });
-  }, [cancelledChecked, paidChecked, selectedCustomer]);
+  }, [cancelledChecked, paidChecked, selectedCustomer, refreshTimes]);
 
   return (
     <MantineProvider>
