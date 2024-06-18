@@ -47,12 +47,12 @@ export default async function OrderPage({ params }: { params: { order_id: string
         ))}
       </div>
       <div className="total flex items-center justify-between pt-6">
-        <p className="font-normal text-xl leading-8 text-black ">未稅價</p>
-        <h5 className="font-manrope font-bold text-2xl leading-9 text-indigo-600">{Number(untax_total).toLocaleString()}</h5>
+        <p className="font-normal text-lg leading-8 text-black ">未稅價</p>
+        <h5 className="font-manrope font-bold text-lg leading-9 text-gray-400">{Number(untax_total).toLocaleString()}</h5>
       </div>
       <div className="total flex items-center justify-between pt-6">
-        <p className="font-normal text-xl leading-8 text-black ">稅金</p>
-        <h5 className="font-manrope font-bold text-2xl leading-9 text-indigo-600">{Number(untax_total * order.tax).toLocaleString()}</h5>
+        <p className="font-normal text-lg leading-8 text-black ">稅金</p>
+        <h5 className="font-manrope font-bold text-lg leading-9 text-gray-400">{Number(Math.round(untax_total * order.tax)).toLocaleString()}</h5>
       </div>
       <div className="total flex items-center justify-between pt-6">
         <p className="font-normal text-xl leading-8 text-black ">總價</p>
