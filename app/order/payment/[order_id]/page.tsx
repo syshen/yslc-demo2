@@ -20,6 +20,7 @@ export default async function PaymentPage({ params }: { params: { order_id: stri
     payment_option: '',
     account_number: '',
     customer_id: '',
+    tax: 0.0,
   };
   if (data && data.length > 0) {
     [order] = data;
