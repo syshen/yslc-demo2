@@ -33,17 +33,6 @@ export default function OrdersPage() {
     return '貨到付款';
   };
 
-  const paymentStatus = (order:Order) => {
-    if (order.paid === false) {
-      if (order.payment_option === 'bankTransfer') {
-        if (order.account_number && order.account_number.length > 1) {
-          return (<Button onClick={() => confirmOrder(order.order_id)}>確認付款完成</Button>);
-        }
-      }
-      return '待付款';
-    }
-    return '已付款';
-  };
   const getCustomers = async () => {
     const { data } = await supabase.from('customers')
       .select(`
@@ -144,6 +133,23 @@ export default function OrdersPage() {
       });
       setRows(rs);
     }
+  };
+
+  const doVerifyOrder = async (order_id:string) => {
+    await confirmOrder(order_id);
+    await getData(cancelledChecked, paidChecked, selectedCustomer);
+  };
+
+  const paymentStatus = (order:Order) => {
+    if (order.paid === false) {
+      if (order.payment_option === 'bankTransfer') {
+        if (order.account_number && order.account_number.length > 1) {
+          return (<Button onClick={() => doVerifyOrder(order.order_id)}>確認付款完成</Button>);
+        }
+      }
+      return '待付款';
+    }
+    return '已付款';
   };
 
   const [cancelledChecked, setCancelledChecked] = useState(false);
