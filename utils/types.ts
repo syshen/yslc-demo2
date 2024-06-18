@@ -21,6 +21,7 @@ export interface Order {
   payment_option: string
   account_number: string
   customer_id: string
+  tax: number
 }
 export interface Customer {
   id: number

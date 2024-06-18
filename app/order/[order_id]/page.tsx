@@ -18,9 +18,15 @@ export default async function OrderPage({ params }: { params: { order_id: string
     payment_option: '',
     account_number: '',
     customer_id: '',
+    tax: 0.0,
   };
+  let untax_total = 0;
   if (data && data.length > 0) {
     [order] = data;
+
+    order.items.forEach((item) => {
+      untax_total += item.subtotal;
+    });
   }
 
   return (
@@ -39,6 +45,14 @@ export default async function OrderPage({ params }: { params: { order_id: string
             <p className="font-medium text-lg leading-8 text-gray-900">{Number(item.subtotal).toLocaleString()}</p>
           </div>
         ))}
+      </div>
+      <div className="total flex items-center justify-between pt-6">
+        <p className="font-normal text-xl leading-8 text-black ">未稅價</p>
+        <h5 className="font-manrope font-bold text-2xl leading-9 text-indigo-600">{Number(untax_total).toLocaleString()}</h5>
+      </div>
+      <div className="total flex items-center justify-between pt-6">
+        <p className="font-normal text-xl leading-8 text-black ">稅金</p>
+        <h5 className="font-manrope font-bold text-2xl leading-9 text-indigo-600">{Number(untax_total * order.tax).toLocaleString()}</h5>
       </div>
       <div className="total flex items-center justify-between pt-6">
         <p className="font-normal text-xl leading-8 text-black ">總價</p>
