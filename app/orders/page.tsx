@@ -143,7 +143,6 @@ export default function OrdersPage() {
     toggle();
     await confirmOrder(order_id);
     setRefreshTimes(refreshTimes + 1);
-    toggle();
   };
 
   const paymentStatus = (order:Order) => {
