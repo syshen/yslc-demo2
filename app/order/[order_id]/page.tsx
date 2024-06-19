@@ -49,10 +49,10 @@ export default async function OrderPage({ params }: { params: { order_id: string
   return (
     <div className="p-6 border border-gray-200 rounded-3xl w-full group transition-all duration-500 hover:border-gray-400 ">
       <h2
-        className="font-manrope font-bold text-3xl leading-10 text-black pb-6 border-b border-gray-200 ">
+        className="font-manrope font-bold text-3xl leading-10 text-black pb-6">
         訂單內容
       </h2>
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row justify-between border-b border-gray-200">
         <p>{new Date(order.created_at).toLocaleDateString()}</p>
         <p className="font-italic text-md text-right">{getStatus(order.state)}</p>
       </div>
