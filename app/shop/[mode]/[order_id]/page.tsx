@@ -95,7 +95,9 @@ export default function OrderPage({ params }: { params: { mode: string, order_id
             shopCarts(
               mode,
               order_id,
-              Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
+              Object.entries(cart)
+                    .map(([key, value]) => ({ product_id: key, quantity: value }))
+                    .filter((item) => item.quantity > 0)
             ).then(() => open());
           }
         }
@@ -112,7 +114,9 @@ export default function OrderPage({ params }: { params: { mode: string, order_id
             shopCarts(
               mode,
               order_id,
-              Object.entries(cart).map(([key, value]) => ({ product_id: key, quantity: value }))
+              Object.entries(cart)
+                    .map(([key, value]) => ({ product_id: key, quantity: value }))
+                    .filter((item) => item.quantity > 0)
             ).then(() => open());
           }}
         >送出
