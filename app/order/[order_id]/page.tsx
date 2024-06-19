@@ -52,8 +52,9 @@ export default async function OrderPage({ params }: { params: { order_id: string
         className="font-manrope font-bold text-3xl leading-10 text-black pb-6 border-b border-gray-200 ">
         訂單內容
       </h2>
-      <div>
-        <p className="font-italic text-md">{getStatus(order.state)}</p>
+      <div className="flex flex-row justify-between">
+        <p>{new Date(order.created_at).toLocaleDateString()}</p>
+        <p className="font-italic text-md text-right">{getStatus(order.state)}</p>
       </div>
       <div className="data py-6 border-b border-gray-200">
         {order.items.map((item) => (
