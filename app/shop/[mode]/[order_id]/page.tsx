@@ -18,7 +18,7 @@ export default function OrderPage({ params }: { params: { mode: string, order_id
   const [opened, { open, close }] = useDisclosure(false);
 
   const getProducts = async () => {
-    const { data } = await supabase.from('products').select('name,product_id,unit,spec');
+    const { data } = await supabase.from('products').select('name,product_id,unit,spec').order('product_id', { ascending: true });
     if (data) {
       const products:Product[] = data;
 
