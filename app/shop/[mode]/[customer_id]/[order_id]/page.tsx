@@ -7,8 +7,10 @@ import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
 
-export default function OrderPage({ params }: { params: { mode: string, order_id: string } }) {
-  const { mode, order_id } = params;
+export default function OrderPage(
+  { params }: { params: { mode: string, customer_id: string, order_id: string } }
+) {
+  const { mode, customer_id, order_id } = params;
   const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   interface Cart {
@@ -18,7 +20,12 @@ export default function OrderPage({ params }: { params: { mode: string, order_id
   const [opened, { open, close }] = useDisclosure(false);
 
   const getProducts = async () => {
-    const { data } = await supabase.from('products').select('name,product_id,unit,spec').order('product_id', { ascending: true });
+    const { data } = await supabase
+      .from('AvailableProducts')
+      .select('name,product_id,unit,stock_quantity,spec,price')
+      .eq('is_active', true)
+      .eq('customer_id', customer_id)
+      .order('product_id', { ascending: true });
     if (data) {
       const products:Product[] = data;
 
