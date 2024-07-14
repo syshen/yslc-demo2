@@ -53,6 +53,7 @@ export interface Product {
   unit: string
   unit_price?: number
   spec?: string
+  price?: number
   stock_status?: string
   stock_quantity?: number
   is_active?: boolean
