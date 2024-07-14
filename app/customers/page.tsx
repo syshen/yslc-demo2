@@ -2,7 +2,7 @@
 
 import { redirect, RedirectType } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Button, Modal, Table, Checkbox, TextInput, LoadingOverlay } from '@mantine/core';
+import { MantineProvider, Button, Modal, Table, Checkbox, TextInput, LoadingOverlay } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
 import { Order } from '@/utils/types';
@@ -40,7 +40,8 @@ export default function CustomersPage() {
       .from('customers')
       .select(`
         *,
-        orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items)
+        orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items),
+        customer_products (product_id, customer_id, price, is_available)
         `).order('created_at', { ascending: false });
 
       if (data) {
@@ -72,7 +73,7 @@ export default function CustomersPage() {
               .toLocaleString()
             }
           </Table.Td>
-          <Table.Td>
+          <Table.Td>({row.customer_products.length})
             <Button onClick={() => {
               setSelectedCustomer(row.customer_id);
               setOpened(true);
@@ -85,14 +86,18 @@ export default function CustomersPage() {
       }
     };
 
+    setLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        return getData();
+        getData();
+        setLoading(false);
+        return null;
       }
+      setLoading(false);
       redirect('/login', RedirectType.push);
       return null;
     });
-  });
+  }, []);
 
   const handleCheckboxChange = (product_id: string) => {
     setChanged(true);
@@ -226,7 +231,8 @@ export default function CustomersPage() {
   };
 
   return (
-    <>
+    <MantineProvider>
+      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ blur: 2 }} />
       <Modal
         opened={opened}
         onClose={() => { saveChanges(); setOpened(false); }}
@@ -238,7 +244,6 @@ export default function CustomersPage() {
           backgroundOpacity: 0.55,
           blur: 3,
         }}>
-        <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ blur: 2 }} />
         <Table>
           <Table.Thead>
             <Table.Tr>
@@ -265,6 +270,6 @@ export default function CustomersPage() {
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
-    </>
+    </MantineProvider>
   );
 }

@@ -55,6 +55,7 @@ export interface Product {
   spec?: string
   stock_status?: string
   stock_quantity?: number
+  is_active?: boolean
 }
 
 export interface Cart {

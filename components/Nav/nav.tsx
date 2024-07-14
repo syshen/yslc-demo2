@@ -38,6 +38,9 @@ export function NavMenu() {
             <a href="/customers" className={classes.link}>
               所有客戶
             </a>
+            <a href="/products" className={classes.link}>
+              所有產品
+            </a>
           </Group>
           <SignInButton />
           <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
@@ -64,6 +67,9 @@ export function NavMenu() {
           </a>
           <a href="/customers" className={classes.link}>
             所有客戶
+          </a>
+          <a href="/products" className={classes.link}>
+            所有產品
           </a>
 
           <Divider my="sm" />
