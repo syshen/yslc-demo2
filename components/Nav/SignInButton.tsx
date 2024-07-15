@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Group, Button, Text, Avatar } from '@mantine/core';
+import { Group, Button, Avatar } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 
 export function SignInButton() {
@@ -16,7 +16,7 @@ export function SignInButton() {
   return currentUser ? (
     <Group visibleFrom="sm">
         <Avatar
-          autoContrast={true}
+          autoContrast
           name={currentUser.email}
           color="initials">
         </Avatar>
@@ -26,7 +26,7 @@ export function SignInButton() {
     <div>
       <Group visibleFrom="sm">
         <Avatar
-          autoContrast={true}
+          autoContrast
           src={null}
         >
         </Avatar>

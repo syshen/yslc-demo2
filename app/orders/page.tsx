@@ -3,7 +3,7 @@
 import { redirect, RedirectType } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
-import { MantineProvider, Table, Checkbox, Select, Group, Button } from '@mantine/core';
+import { MantineProvider, Table, Checkbox, Select, Group, Button, LoadingOverlay } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
@@ -17,6 +17,7 @@ export default function OrdersPage() {
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [refreshTimes, setRefreshTimes] = useState(0);
+  const [pageLoading, setPageLoading] = useState(true);
 
   const copy = (text:string) => {
     navigator.clipboard.writeText(text);
@@ -162,11 +163,14 @@ export default function OrdersPage() {
   const [paidChecked, setPaidChecked] = useState(false);
 
   useEffect(() => {
+    setPageLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         getCustomers();
-        return getData(cancelledChecked, paidChecked, selectedCustomer);
+        return getData(cancelledChecked, paidChecked, selectedCustomer)
+          .then(() => setPageLoading(false));
       }
+      setPageLoading(false);
       redirect('/login', RedirectType.push);
       return null;
     });
@@ -175,6 +179,7 @@ export default function OrdersPage() {
   return (
     <MantineProvider>
       <Notifications />
+      <LoadingOverlay visible={pageLoading} zIndex={1000} overlayProps={{ blur: 2 }} />
       <div className="flex flex-row m-5 content-center justify-between">
         <Group gap="md">
           <div className="pr-5">篩選條件:</div>
