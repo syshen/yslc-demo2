@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Group, Button, Text } from '@mantine/core';
+import { Group, Button, Text, Avatar } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 
 export function SignInButton() {
@@ -15,12 +15,21 @@ export function SignInButton() {
 
   return currentUser ? (
     <Group visibleFrom="sm">
-        <Text>{currentUser.email}</Text>
+        <Avatar
+          autoContrast={true}
+          name={currentUser.email}
+          color="initials">
+        </Avatar>
         <Button variant="default" onClick={() => supabase.auth.signOut()}>登出</Button>
     </Group>
   ) : (
     <div>
       <Group visibleFrom="sm">
+        <Avatar
+          autoContrast={true}
+          src={null}
+        >
+        </Avatar>
         <Link href="/login">
           <Button variant="default">登入</Button>
         </Link>

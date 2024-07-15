@@ -2,7 +2,7 @@
 
 import { redirect, RedirectType } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { MantineProvider, Button, Modal, Table, Checkbox, TextInput, LoadingOverlay } from '@mantine/core';
+import { MantineProvider, Button, Modal, Table, Checkbox, TextInput, LoadingOverlay, Text } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
 import { Order } from '@/utils/types';
@@ -73,12 +73,17 @@ export default function CustomersPage() {
               .toLocaleString()
             }
           </Table.Td>
-          <Table.Td>({row.customer_products.length})
-            <Button onClick={() => {
-              setSelectedCustomer(row.customer_id);
-              setOpened(true);
-            }}>編輯
-            </Button>
+          <Table.Td>
+            <Text
+              td="underline"
+              size="xs"
+              className="cursor-pointer"
+              onClick={() => {
+                setSelectedCustomer(row.customer_id);
+                setChanged(false);
+                setOpened(true);
+            }}>{row.customer_products.length === 0 ? '設定' : `現有 ${row.customer_products.length} 商品選擇`}
+            </Text>
           </Table.Td>
           </Table.Tr>
         ));
@@ -201,6 +206,7 @@ export default function CustomersPage() {
     if (!selectedCustomer) return;
     if (!changed) return;
 
+    setLoading(true);
     await supabase.from('customer_products').delete().eq('customer_id', selectedCustomer);
 
     const records:CustomerProduct[] = [];
@@ -228,33 +234,45 @@ export default function CustomersPage() {
       console.log(`insert ${JSON.stringify(records)}`);
       await supabase.from('customer_products').insert(records);
     }
+    setChanged(false);
+    setLoading(false);
+    setOpened(false);
   };
 
   return (
     <MantineProvider>
       <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ blur: 2 }} />
-      <Modal
+      <Modal.Root
         opened={opened}
-        onClose={() => { saveChanges(); setOpened(false); }}
-        title="Products"
+        onClose={() => { setOpened(false); }}
         centered
         size="lg"
-        transitionProps={{ duration: 200, transition: 'fade' }}
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}>
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>啟用</Table.Th>
-              <Table.Th>產品名稱</Table.Th>
-              <Table.Th>單價</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{productRows}</Table.Tbody>
-        </Table>
-      </Modal>
+        transitionProps={{ duration: 200, transition: 'fade' }}>
+        <Modal.Overlay
+          backgroundOpacity={0.55}
+          blur={3} />
+        <Modal.Content>
+          <Modal.Header>
+            <Modal.Title>銷售商品選擇</Modal.Title>
+            <Button
+              disabled={!changed}
+              onClick={() => { saveChanges(); }}>儲存
+            </Button>
+          </Modal.Header>
+          <Modal.Body>
+              <Table>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>啟用</Table.Th>
+                    <Table.Th>產品名稱</Table.Th>
+                    <Table.Th>單價</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>{productRows}</Table.Tbody>
+              </Table>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal.Root>
       <Table miw={700}>
         <Table.Thead className={classes.header}>
           <Table.Tr>
