@@ -1,6 +1,6 @@
 'use client';
 
-import { redirect, RedirectType } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { MantineProvider, Button, Modal, Table, Checkbox, TextInput, LoadingOverlay, Text } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
@@ -33,73 +33,74 @@ export default function CustomersPage() {
     = useState<string[]>([]);
   const [changed, setChanged] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
+
+  const getCustomers = async () => {
+    const { data } = await supabase
+    .from('customers')
+    .select(`
+      *,
+      orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items),
+      customer_products (product_id, customer_id, price, is_available)
+      `).order('created_at', { ascending: false });
+
+    if (data) {
+      const rs = data.map((row) => (
+        <Table.Tr key={row.customer_id}>
+        <Table.Td>{row.customer_id}</Table.Td>
+        <Table.Td>{row.name}</Table.Td>
+        <Table.Td>{row.contact_phone_1}, {row.contact_phone_2}</Table.Td>
+        <Table.Td>{row.shipping_address}</Table.Td>
+        <Table.Td>
+          {
+            row.orders
+            .filter((order:Order) => (order.confirmed && !order.paid)).length
+          }
+        </Table.Td>
+        <Table.Td>
+          {
+            row.orders
+            .filter((order:Order) => order.paid)
+            .reduce((accuValue:number, order:Order) => accuValue + order.total, 0)
+            .toLocaleString()
+          }
+        </Table.Td>
+        <Table.Td>
+          {
+            row.orders
+            .filter((order:Order) => (order.confirmed && !order.paid))
+            .reduce((accuValue:number, order:Order) => accuValue + order.total, 0)
+            .toLocaleString()
+          }
+        </Table.Td>
+        <Table.Td>
+          <Text
+            td="underline"
+            size="xs"
+            className="cursor-pointer"
+            onClick={() => {
+              setSelectedCustomer(row.customer_id);
+              setChanged(false);
+              setOpened(true);
+          }}>{row.customer_products.length === 0 ? '設定' : `現有 ${row.customer_products.length} 商品選擇`}
+          </Text>
+        </Table.Td>
+        </Table.Tr>
+      ));
+      setRows(rs);
+    }
+  };
 
   useEffect(() => {
-    const getData = async () => {
-      const { data } = await supabase
-      .from('customers')
-      .select(`
-        *,
-        orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items),
-        customer_products (product_id, customer_id, price, is_available)
-        `).order('created_at', { ascending: false });
-
-      if (data) {
-        const rs = data.map((row) => (
-          <Table.Tr key={row.customer_id}>
-          <Table.Td>{row.customer_id}</Table.Td>
-          <Table.Td>{row.name}</Table.Td>
-          <Table.Td>{row.contact_phone_1}, {row.contact_phone_2}</Table.Td>
-          <Table.Td>{row.shipping_address}</Table.Td>
-          <Table.Td>
-            {
-              row.orders
-              .filter((order:Order) => (order.confirmed && !order.paid)).length
-            }
-          </Table.Td>
-          <Table.Td>
-            {
-              row.orders
-              .filter((order:Order) => order.paid)
-              .reduce((accuValue:number, order:Order) => accuValue + order.total, 0)
-              .toLocaleString()
-            }
-          </Table.Td>
-          <Table.Td>
-            {
-              row.orders
-              .filter((order:Order) => (order.confirmed && !order.paid))
-              .reduce((accuValue:number, order:Order) => accuValue + order.total, 0)
-              .toLocaleString()
-            }
-          </Table.Td>
-          <Table.Td>
-            <Text
-              td="underline"
-              size="xs"
-              className="cursor-pointer"
-              onClick={() => {
-                setSelectedCustomer(row.customer_id);
-                setChanged(false);
-                setOpened(true);
-            }}>{row.customer_products.length === 0 ? '設定' : `現有 ${row.customer_products.length} 商品選擇`}
-            </Text>
-          </Table.Td>
-          </Table.Tr>
-        ));
-        setRows(rs);
-      }
-    };
-
     setLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        getData();
+        getCustomers();
         setLoading(false);
         return null;
       }
       setLoading(false);
-      redirect('/login', RedirectType.push);
+      router.push('/login');
       return null;
     });
   }, []);
@@ -237,6 +238,7 @@ export default function CustomersPage() {
     setChanged(false);
     setLoading(false);
     setOpened(false);
+    getCustomers();
   };
 
   return (

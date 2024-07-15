@@ -1,6 +1,6 @@
 'use client';
 
-import { redirect, RedirectType } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { MantineProvider, Box, Group, Button, Table, Checkbox, TextInput, LoadingOverlay } from '@mantine/core';
 import '@mantine/notifications/styles.css';
@@ -9,6 +9,7 @@ import classes from './products.module.css';
 import { Product } from '@/utils/types';
 
 export default function ProductsPage() {
+  const router = useRouter();
   const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [rows, setRows] = useState<JSX.Element[]>([]);
@@ -104,7 +105,7 @@ export default function ProductsPage() {
         setLoading(false);
       } else {
         setLoading(false);
-        redirect('/login', RedirectType.push);
+        router.push('/login');
       }
     });
   }, []);

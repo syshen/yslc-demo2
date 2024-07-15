@@ -1,6 +1,6 @@
 'use client';
 
-import { redirect, RedirectType } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
 import { MantineProvider, Table, Checkbox, Select, Group, Button, LoadingOverlay } from '@mantine/core';
@@ -12,6 +12,7 @@ import { Order, OrderItem } from '@/utils/types';
 import { confirmOrder } from '@/app/actions';
 
 export default function OrdersPage() {
+  const router = useRouter();
   const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
@@ -171,7 +172,7 @@ export default function OrdersPage() {
           .then(() => setPageLoading(false));
       }
       setPageLoading(false);
-      redirect('/login', RedirectType.push);
+      router.push('/login');
       return null;
     });
   }, [cancelledChecked, paidChecked, selectedCustomer, refreshTimes]);
