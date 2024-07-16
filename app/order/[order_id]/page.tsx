@@ -58,7 +58,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
               className="font-manrope font-bold text-3xl leading-10 pb-6">
               訂單內容
             </h2>
-            <Image src={Logo} alt="logo" width={50} height={50} className="rounded-full" />
+            <Image src={Logo} alt="logo" width={30} height={30} className="rounded-full" />
           </Group>
           <Group className="flex flex-row justify-between border-b py-5">
             <p>{new Date(order.created_at).toLocaleDateString()}</p>
@@ -85,7 +85,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
           <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(untax_total * order.tax)).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
-          <p className="font-normal text-xl leading-8">總價</p>
+          <p className="font-normal text-xl leading-8">總金額</p>
           <h5 className="font-manrope font-bold text-2xl leading-9">{Number(order.total).toLocaleString()}</h5>
         </div>
       </div>

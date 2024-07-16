@@ -2,18 +2,16 @@
 
 import Image from 'next/image';
 import { Anchor, Group, ActionIcon, rem } from '@mantine/core';
-import { IconBrandTwitter, IconBrandYoutube, IconBrandInstagram } from '@tabler/icons-react';
+import { IconBrandFacebook, IconBrandInstagram } from '@tabler/icons-react';
 // import { MantineLogo } from '@mantinex/mantine-logo';
 import Logo from './yslc.png';
 
 import classes from './footer.module.css';
 
 const links = [
-  { link: '#', label: 'Contact' },
-  { link: '#', label: 'Privacy' },
-  { link: '#', label: 'Blog' },
-  { link: '#', label: 'Store' },
-  { link: '#', label: 'Careers' },
+  { link: 'mailto: service@youngsollife.com', label: 'Contact' },
+  { link: 'https://www.facebook.com/youngsollifestyle/', label: 'Facebook' },
+  { link: 'https://www.instagram.com/yslc_aussielifestyle/', label: 'Instagram' },
 ];
 
 export function FooterCentered() {
@@ -41,10 +39,7 @@ export function FooterCentered() {
 
         <Group gap="xs" justify="flex-end" wrap="nowrap">
           <ActionIcon size="lg" variant="default" radius="xl">
-            <IconBrandTwitter style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
-          </ActionIcon>
-          <ActionIcon size="lg" variant="default" radius="xl">
-            <IconBrandYoutube style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
+            <IconBrandFacebook style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
           </ActionIcon>
           <ActionIcon size="lg" variant="default" radius="xl">
             <IconBrandInstagram style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
