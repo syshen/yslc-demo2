@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
 import { MantineProvider, Table, Checkbox, Select, Group, Button, LoadingOverlay } from '@mantine/core';
-// import { useDisclosure } from '@mantine/hooks';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
@@ -144,15 +143,13 @@ export default function OrdersPage() {
     }
   };
 
-  // const [loading, { toggle }] = useDisclosure();
   const [orderLoading, setOrderLoading] = useState<string|null>(null);
 
   const doVerifyOrder = async (order_id:string) => {
-    // toggle();
     setOrderLoading(order_id);
     await confirmOrder(order_id);
+    setOrderLoading(null);
     await getOrders();
-    // setRefreshTimes(refreshTimes + 1);
   };
 
   const paymentStatus = (order:Order) => {
