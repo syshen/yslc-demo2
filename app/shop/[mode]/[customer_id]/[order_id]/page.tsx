@@ -32,14 +32,15 @@ export default function OrderPage(
 
       const rs = products.map((product:Product) => (
         <li key={product.product_id} className="py-5">
-          <div className="flex justify-between">
-            <p className="py-2">{product.name}</p>
-            <p className="py-2">單價: {Number(product.price).toLocaleString()}元</p>
-          </div>
+          <Group className="flex justify-between">
+            <Text className="py-2">{product.name}</Text>
+            <Text className="py-2">單價: {Number(product.price).toLocaleString()}元</Text>
+          </Group>
           <div className="flex justify-between items-center">
-            <p>數量:<b> {cart[product.product_id] ? cart[product.product_id] : 0} {product.unit} </b>
-            </p>
-            <p className="font-sm">({product.spec})</p>
+            <Text size="sm">
+              數量:<b> {cart[product.product_id] ? cart[product.product_id] : 0} {product.unit} </b>
+            </Text>
+            <Text size="sm">({product.spec})</Text>
             <div className="grid grap-x-8 grid-cols-2">
               <Button
                 variant="outline"
