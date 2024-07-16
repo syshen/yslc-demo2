@@ -1,6 +1,8 @@
 import { MantineProvider, Group, Box } from '@mantine/core';
+import Image from 'next/image';
 import { createClient } from '@/utils/supabase/server';
 import { Order, OrderState } from '@/utils/types';
+import Logo from './yslc.png';
 
 export default async function OrderPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
@@ -51,10 +53,13 @@ export default async function OrderPage({ params }: { params: { order_id: string
     <MantineProvider>
       <div className="p-6 border border-gray-200 w-full group transition-all duration-500">
         <Box className="shadow-sm my-5">
-          <h2
-            className="font-manrope font-bold text-3xl leading-10 pb-6">
-            訂單內容
-          </h2>
+          <Group className="flex justify-between">
+            <h2
+              className="font-manrope font-bold text-3xl leading-10 pb-6">
+              訂單內容
+            </h2>
+            <Image src={Logo} alt="logo" width={50} height={50} className="rounded-full" />
+          </Group>
           <Group className="flex flex-row justify-between border-b py-5">
             <p>{new Date(order.created_at).toLocaleDateString()}</p>
             <p className="font-italic text-md text-right">{getStatus(order.state)}</p>
