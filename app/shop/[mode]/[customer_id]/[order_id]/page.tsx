@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDisclosure } from '@mantine/hooks';
-import { Button, Modal } from '@mantine/core';
+import { MantineProvider, Box, Group, Button, Modal } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
@@ -80,57 +80,61 @@ export default function OrderPage(
   }, [cart]);
 
   return (
-    <>
-    <Modal
-      opened={opened}
-      onClose={close}
-      closeOnClickOutside={false}
-      closeOnEscape={false}
-      withCloseButton={false}
-      centered
-    >
-      <h2>訂單已送出</h2>
-      <p>請關閉視窗回到 Line 做最後的確認</p>
-    </Modal>
-    <ul className="divide-y divide-gray-100 mx-2">
-      <div className="flex justify-between py-5 items-center sticky top-0 bg-white drop-shadow">
-        <h2 className="font-bold">請選擇您要訂購的選擇商品</h2>
-        <Button
-          variant="light"
-          radius="xl"
-          disabled={!(Object.values(cart).some(value => value > 0))}
-          onClick={() => {
-            shopCarts(
-              mode,
-              order_id,
-              Object.entries(cart)
+    <MantineProvider>
+      <Modal
+        opened={opened}
+        onClose={close}
+        closeOnClickOutside={false}
+        closeOnEscape={false}
+        withCloseButton={false}
+        centered
+      >
+        <h2>訂單已送出</h2>
+        <p>請關閉視窗回到 Line 做最後的確認</p>
+      </Modal>
+      <ul className="divide-y divide-gray-100 mx-2">
+        <Box className="shadow-sm">
+          <header>
+            <Group className="justify-between py-5 items-center sticky top-0">
+              <h2 className="font-bold">請選擇要訂購的選擇商品</h2>
+              <Button
+                variant="light"
+                radius="xl"
+                disabled={!(Object.values(cart).some(value => value > 0))}
+                onClick={() => {
+                  shopCarts(
+                    mode,
+                    order_id,
+                    Object.entries(cart)
+                      .map(([key, value]) => ({ product_id: key, quantity: value }))
+                      .filter((item) => item.quantity > 0)
+                  ).then(() => open());
+                }
+              }
+              >送出
+              </Button>
+            </Group>
+          </header>
+        </Box>
+        {rows}
+        <div className="flex justify-end py-5 items-center">
+          <Button
+            variant="light"
+            radius="xl"
+            disabled={!(Object.values(cart).some(value => value > 0))}
+            onClick={() => {
+              shopCarts(
+                mode,
+                order_id,
+                Object.entries(cart)
                     .map(([key, value]) => ({ product_id: key, quantity: value }))
                     .filter((item) => item.quantity > 0)
-            ).then(() => open());
-          }
-        }
-        >送出
-        </Button>
-      </div>
-      {rows}
-      <div className="flex justify-end py-5 items-center">
-        <Button
-          variant="light"
-          radius="xl"
-          disabled={!(Object.values(cart).some(value => value > 0))}
-          onClick={() => {
-            shopCarts(
-              mode,
-              order_id,
-              Object.entries(cart)
-                    .map(([key, value]) => ({ product_id: key, quantity: value }))
-                    .filter((item) => item.quantity > 0)
-            ).then(() => open());
-          }}
-        >送出
-        </Button>
-      </div>
-    </ul>
-    </>
+              ).then(() => open());
+            }}
+          >送出
+          </Button>
+        </div>
+      </ul>
+    </MantineProvider>
   );
 }
