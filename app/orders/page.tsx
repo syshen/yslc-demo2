@@ -10,6 +10,8 @@ import classes from './orders.module.css';
 import { Order, OrderItem } from '@/utils/types';
 import { confirmOrder } from '@/app/actions';
 
+const delay = (ms:number) => new Promise(r => { setTimeout(r, ms); });
+
 export default function OrdersPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -148,6 +150,7 @@ export default function OrdersPage() {
   const doVerifyOrder = async (order_id:string) => {
     setOrderLoading(order_id);
     await confirmOrder(order_id);
+    await delay(4000);
     setOrderLoading(null);
     await getOrders();
   };
