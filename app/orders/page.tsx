@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
 import { MantineProvider, Table, Checkbox, Select, Group, Button, LoadingOverlay } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+// import { useDisclosure } from '@mantine/hooks';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
@@ -14,10 +14,11 @@ import { confirmOrder } from '@/app/actions';
 export default function OrdersPage() {
   const router = useRouter();
   const supabase = createClient();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
-  const [refreshTimes, setRefreshTimes] = useState(0);
+  // const [refreshTimes, setRefreshTimes] = useState(0);
   const [pageLoading, setPageLoading] = useState(true);
 
   const copy = (text:string) => {
@@ -53,7 +54,68 @@ export default function OrdersPage() {
     }
   };
 
-  const getData = async (
+  useEffect(() => {
+    const rs = orders.map((row:any) => {
+      if (!row.items) {
+        return [];
+      }
+      return row.items.map((item:OrderItem, idx:number) => (
+        <Table.Tr key={idx}>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>
+            {new Date(row.created_at).toLocaleDateString()}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(row.order_id); }}
+          >
+            {row.order_id}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(row.customers.customer_id); }}
+          >
+            {row.customers.customer_id}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(row.customers.name); }}
+          >
+            {row.customers.name}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(item.id.toString()); }}
+          >
+            {item.id}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(item.item); }}
+          >
+            {item.item}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(item.quantity.toString()); }}
+          >
+            {item.quantity}
+          </Table.Td>
+          <Table.Td
+            className={row.cancelled ? 'line-through' : ''}
+            onClick={() => { copy(item.unit_price.toString()); }}
+          >
+            {item.unit_price.toLocaleString()}
+          </Table.Td>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentOption(row)}</Table.Td>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>{Number(row.total).toLocaleString()}</Table.Td>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentStatus(row)}</Table.Td>
+        </Table.Tr>
+      ));
+    });
+    setRows(rs);
+  }, [orders]);
+
+  const getOrders = async (
     includeCanceled:boolean = false,
     includePaid:boolean = false,
     customer_id: string | null = null
@@ -78,73 +140,19 @@ export default function OrdersPage() {
     const { data } = await func;
 
     if (data) {
-      const rs = data.map((row:any) => {
-        if (!row.items) {
-          return [];
-        }
-        return row.items.map((item:OrderItem, idx:number) => (
-          <Table.Tr key={idx}>
-            <Table.Td className={row.cancelled ? 'line-through' : ''}>
-              {new Date(row.created_at).toLocaleDateString()}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(row.order_id); }}
-            >
-              {row.order_id}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(row.customers.customer_id); }}
-            >
-              {row.customers.customer_id}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(row.customers.name); }}
-            >
-              {row.customers.name}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(item.id.toString()); }}
-            >
-              {item.id}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(item.item); }}
-            >
-              {item.item}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(item.quantity.toString()); }}
-            >
-              {item.quantity}
-            </Table.Td>
-            <Table.Td
-              className={row.cancelled ? 'line-through' : ''}
-              onClick={() => { copy(item.unit_price.toString()); }}
-            >
-              {item.unit_price.toLocaleString()}
-            </Table.Td>
-            <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentOption(row)}</Table.Td>
-            <Table.Td className={row.cancelled ? 'line-through' : ''}>{Number(row.total).toLocaleString()}</Table.Td>
-            <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentStatus(row)}</Table.Td>
-          </Table.Tr>
-        ));
-      });
-      setRows(rs);
+      setOrders(data);
     }
   };
 
-  const [loading, { toggle }] = useDisclosure();
+  // const [loading, { toggle }] = useDisclosure();
+  const [orderLoading, setOrderLoading] = useState<string|null>(null);
 
   const doVerifyOrder = async (order_id:string) => {
-    toggle();
+    // toggle();
+    setOrderLoading(order_id);
     await confirmOrder(order_id);
-    setRefreshTimes(refreshTimes + 1);
+    await getOrders();
+    // setRefreshTimes(refreshTimes + 1);
   };
 
   const paymentStatus = (order:Order) => {
@@ -152,7 +160,11 @@ export default function OrdersPage() {
       if (order.payment_option === 'bankTransfer') {
         if (order.account_number && order.account_number.length > 1) {
           return (
-          <Button loading={loading} onClick={() => doVerifyOrder(order.order_id)}>確認付款完成</Button>);
+          <Button
+            loading={orderLoading === order.order_id}
+            onClick={() => doVerifyOrder(order.order_id)}>
+              確認付款完成
+          </Button>);
         }
       }
       return '待付款';
@@ -168,14 +180,14 @@ export default function OrdersPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         getCustomers();
-        return getData(cancelledChecked, paidChecked, selectedCustomer)
+        return getOrders(cancelledChecked, paidChecked, selectedCustomer)
           .then(() => setPageLoading(false));
       }
       setPageLoading(false);
       router.push('/login');
       return null;
     });
-  }, [cancelledChecked, paidChecked, selectedCustomer, refreshTimes]);
+  }, [cancelledChecked, paidChecked, selectedCustomer]);
 
   return (
     <MantineProvider>
