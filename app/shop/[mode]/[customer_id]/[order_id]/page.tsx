@@ -102,7 +102,7 @@ export default function OrderPage(
         <Box className="shadow-sm">
           <header>
             <Group className="justify-between py-5 items-center sticky top-0">
-              <h2 className="font-bold">請選擇要訂購的選擇商品</h2>
+              <h2 className="font-bold">請選擇商品</h2>
               <Group>
                 <Text hidden={totalFee === 0} size="sm">
                   總金額: {Number(totalFee).toLocaleString()} 元
