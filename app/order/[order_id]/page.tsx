@@ -2,7 +2,7 @@ import { MantineProvider, Group, Box } from '@mantine/core';
 import Image from 'next/image';
 import { createClient } from '@/utils/supabase/server';
 import { Order, OrderState } from '@/utils/types';
-import Logo from './yslc.png';
+import Logo from '@/components/Nav/yslc.png';
 
 export default async function OrderPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
