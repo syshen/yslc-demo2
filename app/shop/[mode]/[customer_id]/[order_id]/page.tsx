@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useDisclosure } from '@mantine/hooks';
-import { MantineProvider, Box, Group, Button, Modal } from '@mantine/core';
+import { MantineProvider, Text, Box, Group, Button, Modal } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
@@ -17,6 +17,7 @@ export default function OrderPage(
     [productId:string]: number
   }
   const [cart, setCart] = useState<Cart>({});
+  const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
 
   const getProducts = async () => {
@@ -45,12 +46,14 @@ export default function OrderPage(
                 radius="xl"
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center mr-3"
                 onClick={
-                  () =>
-                  setCart({
-                    ...cart,
-                    [product.product_id]:
-                      cart[product.product_id] ? cart[product.product_id] + 1 : 1,
-                  })
+                  () => {
+                    setCart({
+                      ...cart,
+                      [product.product_id]:
+                        cart[product.product_id] ? cart[product.product_id] + 1 : 1,
+                    });
+                    setTotalFee(totalFee + Number(product.price));
+                  }
                 }>+
               </Button>
               <Button
@@ -59,12 +62,14 @@ export default function OrderPage(
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center"
                 disabled={cart[product.product_id] === 0 || cart[product.product_id] === undefined}
                 onClick={
-                  () =>
-                  setCart({
-                    ...cart,
-                    [product.product_id]:
-                      cart[product.product_id] ? cart[product.product_id] - 1 : 1,
-                  })
+                  () => {
+                    setCart({
+                      ...cart,
+                      [product.product_id]:
+                        cart[product.product_id] ? cart[product.product_id] - 1 : 1,
+                    });
+                    setTotalFee(totalFee - Number(product.price));
+                  }
                 }>-
               </Button>
             </div>
@@ -97,43 +102,50 @@ export default function OrderPage(
           <header>
             <Group className="justify-between py-5 items-center sticky top-0">
               <h2 className="font-bold">請選擇要訂購的選擇商品</h2>
-              <Button
-                variant="light"
-                radius="xl"
-                disabled={!(Object.values(cart).some(value => value > 0))}
-                onClick={() => {
-                  shopCarts(
-                    mode,
-                    order_id,
-                    Object.entries(cart)
-                      .map(([key, value]) => ({ product_id: key, quantity: value }))
-                      .filter((item) => item.quantity > 0)
-                  ).then(() => open());
+              <Group>
+                <Text hidden={totalFee === 0} size="sm">
+                  總金額: {Number(totalFee).toLocaleString()} 元
+                </Text>
+                <Button
+                  variant="light"
+                  radius="xl"
+                  disabled={!(Object.values(cart).some(value => value > 0))}
+                  onClick={() => {
+                    shopCarts(
+                      mode,
+                      order_id,
+                      Object.entries(cart)
+                        .map(([key, value]) => ({ product_id: key, quantity: value }))
+                        .filter((item) => item.quantity > 0)
+                    ).then(() => open());
+                  }
                 }
-              }
-              >送出
-              </Button>
+                >送出
+                </Button>
+              </Group>
             </Group>
           </header>
         </Box>
         {rows}
-        <div className="flex justify-end py-5 items-center">
-          <Button
-            variant="light"
-            radius="xl"
-            disabled={!(Object.values(cart).some(value => value > 0))}
-            onClick={() => {
-              shopCarts(
-                mode,
-                order_id,
-                Object.entries(cart)
-                    .map(([key, value]) => ({ product_id: key, quantity: value }))
-                    .filter((item) => item.quantity > 0)
-              ).then(() => open());
-            }}
-          >送出
-          </Button>
-        </div>
+        <Box>
+          <Group className="justify-end py-5 items-center">
+            <Button
+              variant="light"
+              radius="xl"
+              disabled={!(Object.values(cart).some(value => value > 0))}
+              onClick={() => {
+                shopCarts(
+                  mode,
+                  order_id,
+                  Object.entries(cart)
+                      .map(([key, value]) => ({ product_id: key, quantity: value }))
+                      .filter((item) => item.quantity > 0)
+                ).then(() => open());
+              }}
+            >送出
+            </Button>
+          </Group>
+        </Box>
       </ul>
     </MantineProvider>
   );
