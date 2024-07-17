@@ -3,7 +3,16 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
-import { MantineProvider, Table, Checkbox, Select, Group, Button, LoadingOverlay } from '@mantine/core';
+import {
+    MantineProvider,
+    Table,
+    Checkbox,
+    Select,
+    Group,
+    Button,
+    Box,
+    Loader,
+} from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
@@ -19,7 +28,6 @@ export default function OrdersPage() {
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
-  // const [refreshTimes, setRefreshTimes] = useState(0);
   const [pageLoading, setPageLoading] = useState(true);
 
   const copy = (text:string) => {
@@ -145,7 +153,7 @@ export default function OrdersPage() {
     }
   };
 
-  const [orderLoading, setOrderLoading] = useState<string|null>(null);
+  const [orderLoading, setOrderLoading] = useState<string | null>(null);
 
   const doVerifyOrder = async (order_id:string) => {
     setOrderLoading(order_id);
@@ -189,10 +197,14 @@ export default function OrdersPage() {
     });
   }, [cancelledChecked, paidChecked, selectedCustomer]);
 
-  return (
-    <MantineProvider>
-      <Notifications />
-      <LoadingOverlay visible={pageLoading} zIndex={1000} overlayProps={{ blur: 2 }} />
+  const loading = () => (
+      <Box className="flex justify-center">
+        <Loader color="blue" type="dots" className="py-5"></Loader>
+      </Box>
+    );
+
+  const orderTable = () => (
+    <Box>
       <div className="flex flex-row m-5 content-center justify-between">
         <Group gap="md">
           <div className="pr-5">篩選條件:</div>
@@ -235,6 +247,13 @@ export default function OrdersPage() {
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
+    </Box>
+  );
+
+  return (
+    <MantineProvider>
+      <Notifications />
+      { pageLoading ? loading() : orderTable() }
     </MantineProvider>
   );
 }

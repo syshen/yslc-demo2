@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: any }) {
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
         />
       </head>
-      <body>
+      <body className="mx-0 lg:mx-5">
         <MantineProvider theme={theme}>{children}</MantineProvider>
       </body>
     </html>

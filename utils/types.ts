@@ -32,17 +32,28 @@ export interface Order {
   customer_id: string
   state: OrderState
   tax: number
+  shipping_fee?: number
 }
 export interface Customer {
-  id: number
-  created_at: string
+  id?: number
+  created_at?: string
   customer_id: string
+  parent_id?: string
   name: string
-  line_id: string
-  payment_term: string
-  contact_phone_1: string
-  contact_phone_2: string
-  shipping_address: string
+  line_id?: string
+  payment_term?: string
+  contact_phone_1?: string
+  contact_phone_2?: string
+  shipping_address?: string
+  payment_options?: string
+  orders?: Order[]
+}
+
+export interface CustomerProduct {
+  customer_id: string;
+  price: number;
+  product_id?: string;
+  is_available?: boolean;
 }
 
 export interface Product {
@@ -55,8 +66,9 @@ export interface Product {
   spec?: string
   price?: number
   stock_status?: string
-  stock_quantity?: number
+  stock_quantity?: number | null
   is_active?: boolean
+  customer_products?: CustomerProduct[]
 }
 
 export interface Cart {

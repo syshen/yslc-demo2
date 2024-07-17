@@ -2,7 +2,16 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { MantineProvider, Box, Group, Button, Table, Checkbox, TextInput, LoadingOverlay } from '@mantine/core';
+import {
+  MantineProvider,
+  Box,
+  Group,
+  Button,
+  Table,
+  Checkbox,
+  TextInput,
+  Loader,
+} from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
@@ -22,6 +31,23 @@ export default function ProductsPage() {
     const ps = products.map((p) => {
       if (p.product_id === product.product_id) {
         p.is_active = !p.is_active;
+        c = true;
+      }
+      return p;
+    });
+    if (c) {
+      setProducts(ps);
+      setChangedProductIds([...changedProductIds, product.product_id]);
+      setChanged(true);
+    }
+  };
+
+  const changeStockQuantity = async (product:Product, value:string) => {
+    let c = false;
+    const val = value === '' ? null : parseInt(value, 10);
+    const ps = products.map((p) => {
+      if (p.product_id === product.product_id) {
+        p.stock_quantity = val;
         c = true;
       }
       return p;
@@ -76,7 +102,7 @@ export default function ProductsPage() {
             placeholder="庫存數量，不填則為無限"
             value={row.stock_quantity === undefined || row.stock_quantity === null ? '' : row.stock_quantity}
             width={100}
-            onChange={() => changeStockStatus(row)} />
+            onChange={(event) => changeStockQuantity(row, event.currentTarget.value)} />
         </Table.Td>
       </Table.Tr>
     ));
@@ -110,34 +136,43 @@ export default function ProductsPage() {
     });
   }, []);
 
+  const pageLoading = () => (
+    <Box className="flex justify-center">
+      <Loader color="blue" type="dots" className="py-5"></Loader>
+    </Box>
+  );
+
   return (
     <MantineProvider>
-      <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ blur: 2 }} />
-      <Box className="shadow-sm">
-        <header>
-          <Group justify="flex-end" className="py-3 pr-4">
-            <Button
-              disabled={!changed}
-              onClick={() => saveChanges()}
-            >
+      { loading ? pageLoading() :
+      <Box>
+        <Box className="shadow-sm">
+          <header>
+            <Group justify="flex-end" className="py-3 pr-4">
+              <Button
+                disabled={!changed}
+                onClick={() => saveChanges()}
+              >
                 套用變更
-            </Button>
-          </Group>
-        </header>
+              </Button>
+            </Group>
+          </header>
+        </Box>
+        <Table miw={700}>
+          <Table.Thead className={classes.header}>
+            <Table.Tr>
+              <Table.Th>商品名稱</Table.Th>
+              <Table.Th>品號</Table.Th>
+              <Table.Th>單位</Table.Th>
+              <Table.Th>單位價格</Table.Th>
+              <Table.Th>銷售中</Table.Th>
+              <Table.Th>剩餘庫存</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>{rows}</Table.Tbody>
+        </Table>
       </Box>
-      <Table miw={700}>
-        <Table.Thead className={classes.header}>
-          <Table.Tr>
-            <Table.Th>商品名稱</Table.Th>
-            <Table.Th>品號</Table.Th>
-            <Table.Th>單位</Table.Th>
-            <Table.Th>單位價格</Table.Th>
-            <Table.Th>銷售中</Table.Th>
-            <Table.Th>剩餘庫存</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
+      }
     </MantineProvider>
   );
 }
