@@ -21,6 +21,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
     customer_id: '',
     state: OrderState.NONE,
     tax: 0.0,
+    shipping_fee: 0.0,
   };
   let untax_total = 0;
   if (data && data.length > 0) {
@@ -80,8 +81,12 @@ export default async function OrderPage({ params }: { params: { order_id: string
           <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(untax_total * order.tax)).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
+          <p className="font-normal text-lg leading-8">運費</p>
+          <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(order.shipping_fee ?? 0)).toLocaleString()}</h5>
+        </div>
+        <div className="total flex items-center justify-between pt-6">
           <p className="font-normal text-xl leading-8">總金額</p>
-          <h5 className="font-manrope font-bold text-2xl leading-9">{Number(order.total).toLocaleString()}</h5>
+          <h5 className="font-manrope font-bold text-2xl leading-9">{Number(order.total + (order.shipping_fee ?? 0)).toLocaleString()}</h5>
         </div>
       </div>
     </MantineProvider>
