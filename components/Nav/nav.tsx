@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import {
   Group,
   Divider,
@@ -16,6 +17,7 @@ import classes from './nav.module.css';
 import Logo from './yslc.png';
 
 export function NavMenu() {
+  const pathname = usePathname();
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
 
   return (
@@ -32,17 +34,14 @@ export function NavMenu() {
             <a href="/" className={classes.link}>
               首頁
             </a>
-            <a href="/orders" className={classes.link}>
+            <a href="/orders" className={`${classes.link} ${pathname === '/orders' ? 'bg-gray-200' : ''}`}>
               所有訂單
             </a>
-            <a href="/customers" className={classes.link}>
+            <a href="/customers" className={`${classes.link} ${pathname === '/customers' ? 'bg-gray-200' : ''}`}>
               所有客戶
             </a>
-            <a href="/products" className={classes.link}>
+            <a href="/products" className={`${classes.link} ${pathname === '/products' ? 'bg-gray-200' : ''}`}>
               所有產品
-            </a>
-            <a href="/settings" className={classes.link}>
-              設定
             </a>
           </Group>
           <SignInButton />
@@ -73,9 +72,6 @@ export function NavMenu() {
           </a>
           <a href="/products" className={classes.link}>
             所有產品
-          </a>
-          <a href="/settings" className={classes.link}>
-            設定
           </a>
           <Divider my="sm" />
           <SignInButton />
