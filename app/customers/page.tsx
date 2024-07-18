@@ -15,10 +15,11 @@ import {
   Divider,
   Select,
   Loader,
+  Pill,
   MultiSelect } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
-import { Order, Customer, Product, CustomerProduct } from '@/utils/types';
+import { Customer, Product, CustomerProduct } from '@/utils/types';
 
 export default function CustomersPage() {
   const supabase = createClient();
@@ -63,54 +64,42 @@ export default function CustomersPage() {
     setProductLoading(false);
   };
 
+  const paymentOptions = (options: string | undefined) => {
+    if (!options) {
+      return '';
+    }
+    const label:{ [key: string] : string } = {
+      monthlyPayment: '月結',
+      bankTransfer: '銀行轉帳',
+      payOnReceive: '貨到付款',
+    };
+    return options?.split(',').map((option) => <Pill key={option}>{label[option]}</Pill>);
+  };
+
   useEffect(() => {
     const rs = customers.map((row) => (
       <Table.Tr key={row.customer_id}>
-      <Table.Td>{row.customer_id}</Table.Td>
-      <Table.Td>{row.name}</Table.Td>
-      <Table.Td>{row.contact_phone_1}, {row.contact_phone_2}</Table.Td>
-      <Table.Td>{row.shipping_address}</Table.Td>
-      <Table.Td>
-        {
-          row.orders ?
-          row.orders.filter((order:Order) => (order.confirmed && !order.paid)).length
-          : ''
-        }
-      </Table.Td>
-      <Table.Td>
-        {
-          row.orders ?
-          row.orders
-          .filter((order:Order) => order.paid)
-          .reduce((accuValue:number, order:Order) => accuValue + order.total, 0)
-          .toLocaleString()
-          : ''
-        }
-      </Table.Td>
-      <Table.Td>
-        {
-          row.orders ?
-          row.orders
-          .filter((order:Order) => (order.confirmed && !order.paid))
-          .reduce((accuValue:number, order:Order) => accuValue + order.total, 0)
-          .toLocaleString()
-          : ''
-        }
-      </Table.Td>
-      <Table.Td>
-        <Text
-          td="underline"
-          size="xs"
-          className="cursor-pointer"
-          onClick={() => {
-            getProductsByCustomer(row.customer_id);
-            setSelectedCustomer(row);
-            setEditFlag(true);
-            // setChanged(false);
-            setOpened(true);
-        }}>編輯
-        </Text>
-      </Table.Td>
+        <Table.Td>{row.customer_id}</Table.Td>
+        <Table.Td>{row.name}</Table.Td>
+        <Table.Td>{row.customers ? (<Pill>{row.customers.name}</Pill>) : ''}</Table.Td>
+        <Table.Td>{row.line_group_name}</Table.Td>
+        <Table.Td>{[row.contact_phone_1, row.contact_phone_2].filter((x) => x).join(',')}</Table.Td>
+        <Table.Td>{row.shipping_address}</Table.Td>
+        <Table.Td>{paymentOptions(row.payment_options)}</Table.Td>
+        <Table.Td>
+          <Text
+            td="underline"
+            size="xs"
+            className="cursor-pointer"
+            onClick={() => {
+              getProductsByCustomer(row.customer_id);
+              setSelectedCustomer(row);
+              setEditFlag(true);
+              // setChanged(false);
+              setOpened(true);
+          }}>編輯
+          </Text>
+        </Table.Td>
       </Table.Tr>
     ));
     setRows(rs);
@@ -121,7 +110,8 @@ export default function CustomersPage() {
     .from('customers')
     .select(`
       *,
-      orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items)
+      orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items),
+      customers:parent_id (customer_id, name)
       `).order('created_at', { ascending: false });
 
     if (data) {
@@ -254,7 +244,7 @@ export default function CustomersPage() {
     if (!selectedCustomer) return;
     if (selectedCustomer.customer_id === '') return;
 
-    setLoading(true);
+    // setLoading(true);
     await supabase.from('customers').update({
       customer_id: selectedCustomer!.customer_id.trim(),
       name: selectedCustomer!.name.trim(),
@@ -286,7 +276,7 @@ export default function CustomersPage() {
       await supabase.from('customer_products').insert(records);
     }
     // setChanged(false);
-    setLoading(false);
+    // setLoading(false);
     setOpened(false);
     getCustomers();
   };
@@ -453,16 +443,16 @@ export default function CustomersPage() {
           </Group>
         </header>
       </Box>
-      <Table miw={700}>
+      <Table miw={700} highlightOnHover>
         <Table.Thead className={classes.header}>
           <Table.Tr>
             <Table.Th>客戶代號</Table.Th>
             <Table.Th>客戶簡稱</Table.Th>
+            <Table.Th>母公司</Table.Th>
+            <Table.Th>Line群</Table.Th>
             <Table.Th>聯絡電話</Table.Th>
             <Table.Th>出貨地址</Table.Th>
-            <Table.Th>未確認訂單數</Table.Th>
-            <Table.Th>總收款額</Table.Th>
-            <Table.Th>待付款項</Table.Th>
+            <Table.Th>結帳方式</Table.Th>
             <Table.Th> </Table.Th>
           </Table.Tr>
         </Table.Thead>

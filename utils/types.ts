@@ -46,7 +46,9 @@ export interface Customer {
   contact_phone_2?: string
   shipping_address?: string
   payment_options?: string
+  line_group_name?: string
   orders?: Order[]
+  customers?: Customer // Parent customer
 }
 
 export interface CustomerProduct {

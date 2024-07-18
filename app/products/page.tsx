@@ -158,7 +158,7 @@ export default function ProductsPage() {
             </Group>
           </header>
         </Box>
-        <Table miw={700}>
+        <Table miw={700} highlightOnHover>
           <Table.Thead className={classes.header}>
             <Table.Tr>
               <Table.Th>商品名稱</Table.Th>

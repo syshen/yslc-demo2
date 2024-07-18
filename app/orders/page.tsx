@@ -156,6 +156,7 @@ export default function OrdersPage() {
   const [orderLoading, setOrderLoading] = useState<string | null>(null);
 
   const doVerifyOrder = async (order_id:string) => {
+    console.log(`test: ${order_id}`);
     setOrderLoading(order_id);
     await confirmOrder(order_id);
     await delay(4000);
@@ -229,7 +230,7 @@ export default function OrdersPage() {
           onChange={(customer_id) => { setSelectedCustomer(customer_id); }}
         />
       </div>
-      <Table miw={700}>
+      <Table miw={700} highlightOnHover>
         <Table.Thead className={classes.header}>
           <Table.Tr>
             <Table.Th>銷貨日期</Table.Th>
