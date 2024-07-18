@@ -29,6 +29,7 @@ export default function OrdersPage() {
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [loadingOrder, setLoadingOrder] = useState<string | null>(null);
 
   const copy = (text:string) => {
     navigator.clipboard.writeText(text);
@@ -122,7 +123,7 @@ export default function OrdersPage() {
       ));
     });
     setRows(rs);
-  }, [orders]);
+  }, [orders, loadingOrder]);
 
   const getOrders = async (
     includeCanceled:boolean = false,
@@ -153,14 +154,11 @@ export default function OrdersPage() {
     }
   };
 
-  const [orderLoading, setOrderLoading] = useState<string | null>(null);
-
   const doVerifyOrder = async (order_id:string) => {
-    console.log(`test: ${order_id}`);
-    setOrderLoading(order_id);
+    setLoadingOrder(order_id);
     await confirmOrder(order_id);
-    await delay(4000);
-    setOrderLoading(null);
+    await delay(24000);
+    setLoadingOrder(null);
     await getOrders();
   };
 
@@ -170,7 +168,7 @@ export default function OrdersPage() {
         if (order.account_number && order.account_number.length > 1) {
           return (
           <Button
-            loading={orderLoading === order.order_id}
+            loading={loadingOrder === order.order_id}
             onClick={() => doVerifyOrder(order.order_id)}>
               確認付款完成
           </Button>);
