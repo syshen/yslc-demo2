@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Notifications } from '@mantine/notifications';
+import '@mantine/notifications/styles.css';
 import {
   MantineProvider,
   Box,
@@ -340,6 +342,7 @@ export default function CustomersPage() {
 
   return (
     <MantineProvider>
+      <Notifications />
       { loading ? pageLoading() :
       <>
       <Modal

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Notifications } from '@mantine/notifications';
 import {
   MantineProvider,
   Box,
@@ -144,6 +145,7 @@ export default function ProductsPage() {
 
   return (
     <MantineProvider>
+      <Notifications />
       { loading ? pageLoading() :
       <Box>
         <Box className="shadow-sm">
