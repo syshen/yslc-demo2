@@ -28,9 +28,6 @@ export default function CustomersPage() {
   const [productRows, setProductRows] = useState<JSX.Element[]>([]);
   const [opened, setOpened] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer>({ customer_id: '', name: '' });
-  // const [selectedProducts, setSelectedProducts]
-    // = useState<string[]>([]);
-  // const [changed, setChanged] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [productLoading, setProductLoading] = useState<boolean>(false);
   const [editFlag, setEditFlag] = useState<boolean>(false);
@@ -61,7 +58,6 @@ export default function CustomersPage() {
           rs.push(product.product_id);
         }
       }
-      // setSelectedProducts(rs);
       setProducts(data);
     }
     setProductLoading(false);
@@ -190,19 +186,9 @@ export default function CustomersPage() {
       });
       return newProducts;
     });
-    // setSelectedProducts(prevSelected => {
-    //   if (prevSelected.includes(product_id)) {
-    //     return prevSelected.filter(id => id !== product_id);
-    //   }
-    //   return [...prevSelected, product_id];
-    // });
   };
 
   const handlePriceChange = (product_id:string, newPrice:number) => {
-    // if (!selectedCustomer) {
-    //   return;
-    // }
-    // setChanged(true);
     const newProducts = products.map((product) => {
       if (product.product_id === product_id) {
         if (product.customer_products && product.customer_products.length > 0) {
@@ -266,9 +252,22 @@ export default function CustomersPage() {
 
   const saveChanges = async () => {
     if (!selectedCustomer) return;
+    if (selectedCustomer.customer_id === '') return;
 
     setLoading(true);
-    await supabase.from('customer_products').delete().eq('customer_id', selectedCustomer);
+    await supabase.from('customers').update({
+      customer_id: selectedCustomer!.customer_id.trim(),
+      name: selectedCustomer!.name.trim(),
+      parent_id: selectedCustomer!.parent_id,
+      contact_phone_1:
+        selectedCustomer!.contact_phone_1 ? selectedCustomer!.contact_phone_1.trim() : null,
+      contact_phone_2:
+        selectedCustomer!.contact_phone_2 ? selectedCustomer!.contact_phone_2.trim() : null,
+      shipping_address:
+        selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
+      payment_options: selectedCustomer!.payment_options,
+    }).eq('customer_id', selectedCustomer.customer_id);
+    await supabase.from('customer_products').delete().eq('customer_id', selectedCustomer.customer_id);
 
     const records:CustomerProduct[] = [];
 
@@ -295,13 +294,16 @@ export default function CustomersPage() {
   const saveNewCustomer = async () => {
     console.log(selectedCustomer);
     await supabase.from('customers').insert({
-      customer_id: selectedCustomer!.customer_id,
-      name: selectedCustomer!.name,
+      customer_id: selectedCustomer!.customer_id.trim(),
+      name: selectedCustomer!.name.trim(),
       parent_id: selectedCustomer!.parent_id,
-      contact_phone_1: selectedCustomer!.contact_phone_1,
-      contact_phone_2: selectedCustomer!.contact_phone_2,
-      shipping_address: selectedCustomer!.shipping_address,
-      payment_option: selectedCustomer!.payment_options,
+      contact_phone_1:
+        selectedCustomer!.contact_phone_1 ? selectedCustomer!.contact_phone_1.trim() : null,
+      contact_phone_2:
+        selectedCustomer!.contact_phone_2 ? selectedCustomer!.contact_phone_2.trim() : null,
+      shipping_address:
+        selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
+      payment_options: selectedCustomer!.payment_options ? selectedCustomer!.payment_options : null,
     });
 
     const records:CustomerProduct[] = [];
