@@ -31,6 +31,9 @@ export default async function OrderPage({ params }: { params: { order_id: string
       untax_total += item.subtotal;
     });
   }
+  const tax = order.tax ?? 0.05;
+  const shipping_fee = order.shipping_fee ?? 0;
+  const total_with_tax = (untax_total + shipping_fee) * tax + untax_total + shipping_fee;
   const getStatus = (state:string) => {
     switch (state) {
       case OrderState.CONFIRMED:
@@ -77,16 +80,16 @@ export default async function OrderPage({ params }: { params: { order_id: string
           <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
-          <p className="font-normal text-lg leading-8">稅金</p>
-          <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(untax_total * order.tax)).toLocaleString()}</h5>
+          <p className="font-normal text-lg leading-8">運費</p>
+          <h5 className="font-manrope font-bold text-lg leading-9">{Number(shipping_fee).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
-          <p className="font-normal text-lg leading-8">運費</p>
-          <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(order.shipping_fee ?? 0)).toLocaleString()}</h5>
+          <p className="font-normal text-lg leading-8">稅金</p>
+          <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((untax_total + shipping_fee) * tax)).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
           <p className="font-normal text-xl leading-8">總金額</p>
-          <h5 className="font-manrope font-bold text-2xl leading-9">{Number(order.total + (order.shipping_fee ?? 0)).toLocaleString()}</h5>
+          <h5 className="font-manrope font-bold text-2xl leading-9">{Number(Math.round(total_with_tax)).toLocaleString()}</h5>
         </div>
       </div>
     </MantineProvider>
