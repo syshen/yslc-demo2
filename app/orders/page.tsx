@@ -157,7 +157,7 @@ export default function OrdersPage() {
   const doVerifyOrder = async (order_id:string) => {
     setLoadingOrder(order_id);
     await confirmOrder(order_id);
-    await delay(24000);
+    await delay(2000);
     setLoadingOrder(null);
     await getOrders();
   };
