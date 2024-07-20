@@ -228,24 +228,26 @@ export default function OrdersPage() {
           onChange={(customer_id) => { setSelectedCustomer(customer_id); }}
         />
       </div>
-      <Table miw={700} highlightOnHover>
-        <Table.Thead className={classes.header}>
-          <Table.Tr>
-            <Table.Th>銷貨日期</Table.Th>
-            <Table.Th>訂單編號</Table.Th>
-            <Table.Th>客戶代號</Table.Th>
-            <Table.Th>客戶簡稱</Table.Th>
-            <Table.Th>品號</Table.Th>
-            <Table.Th>品名</Table.Th>
-            <Table.Th>銷貨數量</Table.Th>
-            <Table.Th>訂單單價</Table.Th>
-            <Table.Th>付款方式</Table.Th>
-            <Table.Th>訂單總額</Table.Th>
-            <Table.Th>付款狀態</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
+      <Table.ScrollContainer minWidth={700}>
+        <Table miw={700} highlightOnHover>
+          <Table.Thead className={classes.header}>
+            <Table.Tr>
+              <Table.Th>銷貨日期</Table.Th>
+              <Table.Th>訂單編號</Table.Th>
+              <Table.Th>客戶代號</Table.Th>
+              <Table.Th>客戶簡稱</Table.Th>
+              <Table.Th>品號</Table.Th>
+              <Table.Th>品名</Table.Th>
+              <Table.Th>銷貨數量</Table.Th>
+              <Table.Th>訂單單價</Table.Th>
+              <Table.Th>付款方式</Table.Th>
+              <Table.Th>訂單總額</Table.Th>
+              <Table.Th>付款狀態</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>{rows}</Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
     </Box>
   );
 

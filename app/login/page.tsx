@@ -46,9 +46,9 @@ export default function Login() {
         <SubmitButton
           formAction={signIn}
           className="bg-green-700 rounded-md px-4 py-2 text-foreground mb-2"
-          pendingText="Signing In..."
+          pendingText="登入中..."
         >
-          Sign In
+          登入
         </SubmitButton>
       </form>
     </div>

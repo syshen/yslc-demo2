@@ -160,19 +160,21 @@ export default function ProductsPage() {
             </Group>
           </header>
         </Box>
-        <Table miw={700} highlightOnHover>
-          <Table.Thead className={classes.header}>
-            <Table.Tr>
-              <Table.Th>商品名稱</Table.Th>
-              <Table.Th>品號</Table.Th>
-              <Table.Th>單位</Table.Th>
-              <Table.Th>單位價格</Table.Th>
-              <Table.Th>銷售中</Table.Th>
-              <Table.Th>剩餘庫存</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+        <Table.ScrollContainer minWidth={700}>
+          <Table miw={700} highlightOnHover>
+            <Table.Thead className={classes.header}>
+              <Table.Tr>
+                <Table.Th>商品名稱</Table.Th>
+                <Table.Th>品號</Table.Th>
+                <Table.Th>單位</Table.Th>
+                <Table.Th>單位價格</Table.Th>
+                <Table.Th>銷售中</Table.Th>
+                <Table.Th>剩餘庫存</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
       </Box>
       }
     </MantineProvider>

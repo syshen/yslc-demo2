@@ -14,24 +14,26 @@ export function SignInButton() {
   });
 
   return currentUser ? (
-    <Group visibleFrom="sm">
+    <Group>
         <Avatar
           autoContrast
+          visibleFrom="xs"
           name={currentUser.email}
           color="initials">
         </Avatar>
-        <Button variant="default" onClick={() => supabase.auth.signOut()}>登出</Button>
+        <Button className="ml-4 md:ml-0" variant="default" onClick={() => supabase.auth.signOut()}>登出</Button>
     </Group>
   ) : (
     <div>
-      <Group visibleFrom="sm">
+      <Group>
         <Avatar
+          visibleFrom="xs"
           autoContrast
           src={null}
         >
         </Avatar>
         <Link href="/login">
-          <Button variant="default">登入</Button>
+          <Button className="ml-4 md:ml-0" variant="default">登入</Button>
         </Link>
       </Group>
     </div>

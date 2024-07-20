@@ -446,21 +446,23 @@ export default function CustomersPage() {
           </Group>
         </header>
       </Box>
-      <Table miw={700} highlightOnHover>
-        <Table.Thead className={classes.header}>
-          <Table.Tr>
-            <Table.Th>客戶代號</Table.Th>
-            <Table.Th>客戶簡稱</Table.Th>
-            <Table.Th>母公司</Table.Th>
-            <Table.Th>Line群</Table.Th>
-            <Table.Th>聯絡電話</Table.Th>
-            <Table.Th>出貨地址</Table.Th>
-            <Table.Th>結帳方式</Table.Th>
-            <Table.Th> </Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
+      <Table.ScrollContainer minWidth={700}>
+        <Table miw={700} highlightOnHover>
+          <Table.Thead className={classes.header}>
+            <Table.Tr>
+              <Table.Th>客戶代號</Table.Th>
+              <Table.Th>客戶簡稱</Table.Th>
+              <Table.Th>母公司</Table.Th>
+              <Table.Th>Line群</Table.Th>
+              <Table.Th>聯絡電話</Table.Th>
+              <Table.Th>出貨地址</Table.Th>
+              <Table.Th>結帳方式</Table.Th>
+              <Table.Th> </Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>{rows}</Table.Tbody>
+        </Table>
+      </Table.ScrollContainer>
       </>
       }
     </MantineProvider>

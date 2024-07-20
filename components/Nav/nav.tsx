@@ -54,7 +54,7 @@ export function NavMenu() {
         onClose={closeDrawer}
         size="100%"
         padding="md"
-        title="Navigation"
+        title="選單"
         hiddenFrom="sm"
         zIndex={1000000}
       >
