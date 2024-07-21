@@ -41,7 +41,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
   const shipping_fee = order.shipping_fee ?? 0;
   const total_with_tax = (untax_total + shipping_fee) * tax + untax_total + shipping_fee;
   const getStatus = (state:string) => {
-    if (customer && customer.payment_options?.includes(PaymentOption.BANK_TRANSFER)) {
+    if (customer && customer.payment_options?.includes(PaymentOption.MONTHLY_PAYMENT)) {
       return '月結';
     }
     switch (state) {
