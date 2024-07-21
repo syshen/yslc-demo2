@@ -1,4 +1,4 @@
-import { MantineProvider, Group, Box, Text } from '@mantine/core';
+import { MantineProvider, Group, Flex, Box, Text } from '@mantine/core';
 import { createClient } from '@/utils/supabase/server';
 import { Customer, Order, OrderState, PaymentOption, TAX_RATE } from '@/utils/types';
 
@@ -41,6 +41,9 @@ export default async function OrderPage({ params }: { params: { order_id: string
   const shipping_fee = order.shipping_fee ?? 0;
   const total_with_tax = (untax_total + shipping_fee) * tax + untax_total + shipping_fee;
   const getStatus = (state:string) => {
+    if (customer && customer.payment_options?.includes(PaymentOption.BANK_TRANSFER)) {
+      return '月結';
+    }
     switch (state) {
       case OrderState.CONFIRMED:
         return '已確認';
@@ -87,15 +90,17 @@ export default async function OrderPage({ params }: { params: { order_id: string
             </div>
           ))}
         </div>
-        <Group
-          className="flex flex-col"
+        <Flex
+          direction="column"
+          gap="md"
+          align="flex-start"
           hidden={
             !customer ||
             (customer.payment_options !== undefined &&
             customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))}
         >
         <div className="total flex items-center justify-between pt-6">
-          <p className="font-normal text-lg leading-8">未稅價{customer ? customer.payment_options : 'no value'}</p>
+          <p className="font-normal text-lg leading-8">未稅價</p>
           <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
@@ -110,7 +115,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
           <p className="font-normal text-xl leading-8">總金額</p>
           <h5 className="font-manrope font-bold text-2xl leading-9">{Number(Math.round(total_with_tax)).toLocaleString()}</h5>
         </div>
-        </Group>
+        </Flex>
       </div>
     </MantineProvider>
   );
