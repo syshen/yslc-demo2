@@ -17,45 +17,52 @@ export default function OrderPage(
     [productId:string]: number
   }
   const [customer, setCustomer] = useState<Customer>();
+  const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Cart>({});
   const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
 
-  const getProducts = async () => {
-    // 月結客戶我們不顯示金額
-    const resp = await supabase
-      .from('customers')
-      .select('name , customer_id, patyment_options')
-      .eq('customer_id', customer_id);
-    if (resp.data) {
-      if (resp.data.length > 0) {
-        const [c] = resp.data;
+  const getCustomer = async () => {
+    const { data } = await supabase
+    .from('customers')
+    .select('name , customer_id, patyment_options')
+    .eq('customer_id', customer_id);
+    if (data) {
+      if (data.length > 0) {
+        const [c] = data;
         setCustomer(c);
       }
     }
+  };
 
+  const getProducts = async () => {
+    // 月結客戶我們不顯示金額
     const { data } = await supabase
-      .from('AvailableProducts')
-      .select(`
+    .from('AvailableProducts')
+    .select(`
         name,
         product_id,
         unit,
         stock_quantity,
         spec,
         price`)
-      .eq('is_active', true)
-      .eq('customer_id', customer_id)
-      .order('product_id', { ascending: true });
+    .eq('is_active', true)
+    .eq('customer_id', customer_id)
+    .order('product_id', { ascending: true });
     if (data) {
-      const products:Product[] = data;
+      const ps:Product[] = data;
+      setProducts(ps);
+    }
+  };
 
+  const listProducts = async () => {
       const rs = products.map((product:Product) => (
         <li key={product.product_id} className="py-5">
           <Group className="flex justify-between">
             <Text className="py-2">{product.name}</Text>
             <Text
               className={(!customer ||
-                (customer.payment_options !== undefined &&
+              (customer.payment_options !== undefined &&
                 customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))) ? 'invisible' : 'py-2'}
             >單價: {Number(product.price).toLocaleString()}元
             </Text>
@@ -91,7 +98,7 @@ export default function OrderPage(
                     setCart({
                       ...cart,
                       [product.product_id]:
-                        cart[product.product_id] ? cart[product.product_id] - 1 : 1,
+                      cart[product.product_id] ? cart[product.product_id] - 1 : 1,
                     });
                     setTotalFee(totalFee - Number(product.price));
                   }
@@ -102,12 +109,16 @@ export default function OrderPage(
         </li>
       ));
       setRows(rs);
-    }
   };
 
   useEffect(() => {
+    listProducts();
+  }, [products, cart, customer]);
+
+  useEffect(() => {
+    getCustomer();
     getProducts();
-  }, [cart]);
+  }, []);
 
   return (
     <MantineProvider>
@@ -130,7 +141,7 @@ export default function OrderPage(
               <Group>
                 <Text
                   hidden={(totalFee === 0) ||
-                    (!customer ||
+                  (!customer ||
                     (customer.payment_options !== undefined &&
                     customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)))}
                   size="sm">
