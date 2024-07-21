@@ -54,11 +54,9 @@ export default function OrderPage(
           <Group className="flex justify-between">
             <Text className="py-2">{product.name}</Text>
             <Text
-              hidden={
-                customer &&
-                customer.payment_options !== undefined &&
-                customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)}
-              className="py-2"
+              className={(!customer ||
+                (customer.payment_options !== undefined &&
+                customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))) ? 'invisible' : 'py-2'}
             >單價: {Number(product.price).toLocaleString()}元
             </Text>
           </Group>
@@ -132,9 +130,9 @@ export default function OrderPage(
               <Group>
                 <Text
                   hidden={(totalFee === 0) ||
-                    (customer &&
-                    customer.payment_options !== undefined &&
-                    customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))}
+                    (!customer ||
+                    (customer.payment_options !== undefined &&
+                    customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)))}
                   size="sm">
                   總金額: {Number(totalFee).toLocaleString()} 元
                 </Text>
