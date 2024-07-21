@@ -99,19 +99,19 @@ export default async function OrderPage({ params }: { params: { order_id: string
             (customer.payment_options !== undefined &&
             customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))) ? 'invisible' : ''}
         >
-          <div className="total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-lg leading-8">未稅價</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
           </div>
-          <div className="total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-lg leading-8">運費</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(shipping_fee).toLocaleString()}</h5>
           </div>
-          <div className="total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-lg leading-8">稅金</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((untax_total + shipping_fee) * tax)).toLocaleString()}</h5>
           </div>
-          <div className="total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-xl leading-8">總金額</p>
             <h5 className="font-manrope font-bold text-2xl leading-9">{Number(Math.round(total_with_tax)).toLocaleString()}</h5>
           </div>
