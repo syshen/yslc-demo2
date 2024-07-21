@@ -88,6 +88,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
           ))}
         </div>
         <Group
+          className="flex flex-col"
           hidden={
             !customer ||
             (customer.payment_options !== undefined &&
