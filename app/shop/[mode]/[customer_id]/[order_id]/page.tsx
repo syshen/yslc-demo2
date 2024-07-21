@@ -28,6 +28,7 @@ export default function OrderPage(
     .select('name , customer_id, patyment_options')
     .eq('customer_id', customer_id);
     if (data) {
+      console.log(data);
       const [c] = data;
       setCustomer(c);
     }
@@ -53,7 +54,7 @@ export default function OrderPage(
     }
   };
 
-  const listProducts = async () => {
+  const listProducts = () => {
       const rs = products.map((product:Product) => (
         <li key={product.product_id} className="py-5">
           <Group className="flex justify-between">
