@@ -25,7 +25,7 @@ export default function OrderPage(
   const getCustomer = async () => {
     const { data } = await supabase
     .from('customers')
-    .select('name , customer_id, patyment_options')
+    .select('name, customer_id, payment_options')
     .eq('customer_id', customer_id);
     if (data) {
       console.log(data);
