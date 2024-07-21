@@ -28,10 +28,8 @@ export default function OrderPage(
     .select('name , customer_id, patyment_options')
     .eq('customer_id', customer_id);
     if (data) {
-      if (data.length > 0) {
-        const [c] = data;
-        setCustomer(c);
-      }
+      const [c] = data;
+      setCustomer(c);
     }
   };
 
