@@ -28,7 +28,6 @@ export default function OrderPage(
     .select('name, customer_id, payment_options')
     .eq('customer_id', customer_id);
     if (data) {
-      console.log(data);
       const [c] = data;
       setCustomer(c);
     }
