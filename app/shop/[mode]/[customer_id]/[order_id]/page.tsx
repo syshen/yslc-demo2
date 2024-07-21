@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { MantineProvider, Text, Box, Group, Button, Modal } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
-import { Product } from '@/utils/types';
+import { Product, Customer, PaymentOption } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
 
 export default function OrderPage(
@@ -16,14 +16,33 @@ export default function OrderPage(
   interface Cart {
     [productId:string]: number
   }
+  const [customer, setCustomer] = useState<Customer>();
   const [cart, setCart] = useState<Cart>({});
   const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
 
   const getProducts = async () => {
+    // 月結客戶我們不顯示金額
+    const resp = await supabase
+      .from('customers')
+      .select('name , customer_id, patyment_options')
+      .eq('customer_id', customer_id);
+    if (resp.data) {
+      if (resp.data.length > 0) {
+        const [c] = resp.data;
+        setCustomer(c);
+      }
+    }
+
     const { data } = await supabase
       .from('AvailableProducts')
-      .select('name,product_id,unit,stock_quantity,spec,price')
+      .select(`
+        name,
+        product_id,
+        unit,
+        stock_quantity,
+        spec,
+        price`)
       .eq('is_active', true)
       .eq('customer_id', customer_id)
       .order('product_id', { ascending: true });
@@ -34,7 +53,14 @@ export default function OrderPage(
         <li key={product.product_id} className="py-5">
           <Group className="flex justify-between">
             <Text className="py-2">{product.name}</Text>
-            <Text className="py-2">單價: {Number(product.price).toLocaleString()}元</Text>
+            <Text
+              hidden={
+                customer &&
+                customer.payment_options !== undefined &&
+                customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)}
+              className="py-2"
+            >單價: {Number(product.price).toLocaleString()}元
+            </Text>
           </Group>
           <div className="flex justify-between items-center">
             <Text size="sm">
@@ -104,7 +130,12 @@ export default function OrderPage(
             <Group className="justify-between py-5 items-center sticky top-0">
               <h2 className="font-bold">請選擇商品</h2>
               <Group>
-                <Text hidden={totalFee === 0} size="sm">
+                <Text
+                  hidden={(totalFee === 0) ||
+                    (customer &&
+                    customer.payment_options !== undefined &&
+                    customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))}
+                  size="sm">
                   總金額: {Number(totalFee).toLocaleString()} 元
                 </Text>
                 <Button

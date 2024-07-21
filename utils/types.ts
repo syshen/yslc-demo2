@@ -1,3 +1,11 @@
+export const TAX_RATE = 0.05;
+
+export enum PaymentOption {
+  MONTHLY_PAYMENT = 'monthlyPayment',
+  BANK_TRANSFER = 'bankTransfer',
+  PAY_ON_RECEIVE = 'payOnReceive',
+}
+
 export interface OrderItem {
   item: string
   id: number

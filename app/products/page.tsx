@@ -60,6 +60,23 @@ export default function ProductsPage() {
     }
   };
 
+  const changeUnitPrice = (product:Product, value:string) => {
+    let c = false;
+    const val = value === '' ? null : parseInt(value, 10);
+    const ps = products.map((p) => {
+      if (p.product_id === product.product_id) {
+        p.unit_price = Number(val);
+        c = true;
+      }
+      return p;
+    });
+    if (c) {
+      setProducts(ps);
+      setChangedProductIds([...changedProductIds, product.product_id]);
+      setChanged(true);
+    }
+  };
+
   const saveChanges = async () => {
     setLoading(true);
     setChanged(false);
@@ -67,6 +84,7 @@ export default function ProductsPage() {
       const product = products.find((p) => p.product_id === product_id);
       if (product) {
         await supabase.from('products').update({
+          unit_price: product.unit_price,
           is_active: product.is_active,
           stock_quantity: product.stock_quantity,
         }).eq('product_id', product_id);
@@ -89,7 +107,11 @@ export default function ProductsPage() {
           {row.unit}
         </Table.Td>
         <Table.Td>
-          {row.unit_price}
+          <TextInput
+            w={80}
+            value={row.unit_price}
+            onChange={(event) => changeUnitPrice(row, event.currentTarget.value)}
+          />
         </Table.Td>
         <Table.Td>
           <Checkbox

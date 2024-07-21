@@ -1,6 +1,6 @@
-import { MantineProvider, Group, Box } from '@mantine/core';
+import { MantineProvider, Group, Box, Text } from '@mantine/core';
 import { createClient } from '@/utils/supabase/server';
-import { Order, OrderState } from '@/utils/types';
+import { Customer, Order, OrderState, PaymentOption, TAX_RATE } from '@/utils/types';
 
 export default async function OrderPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
@@ -31,7 +31,13 @@ export default async function OrderPage({ params }: { params: { order_id: string
       untax_total += item.subtotal;
     });
   }
-  const tax = order.tax ?? 0.05;
+  let customer:Customer | undefined;
+  const resp = await supabase.from('customers').select().eq('customer_id', order.customer_id);
+  if (resp.data && resp.data.length > 0) {
+    [customer] = resp.data;
+  }
+
+  const tax = order.tax ?? TAX_RATE;
   const shipping_fee = order.shipping_fee ?? 0;
   const total_with_tax = (untax_total + shipping_fee) * tax + untax_total + shipping_fee;
   const getStatus = (state:string) => {
@@ -71,10 +77,22 @@ export default async function OrderPage({ params }: { params: { order_id: string
                 <p className="font-normal text-lg leading-8 transition-all duration-500">{item.item}</p>
                 <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {item.quantity}</p>
               </div>
-              <p className="font-medium text-lg leading-8">{Number(item.subtotal).toLocaleString()}</p>
+              <Text
+                hidden={
+                  !customer ||
+                  (customer.payment_options !== undefined &&
+                  customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))}
+                className="font-medium text-lg leading-8">{Number(item.subtotal).toLocaleString()}
+              </Text>
             </div>
           ))}
         </div>
+        <Group
+          hidden={
+            !customer ||
+            (customer.payment_options !== undefined &&
+            customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))}
+        >
         <div className="total flex items-center justify-between pt-6">
           <p className="font-normal text-lg leading-8">未稅價</p>
           <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
@@ -91,6 +109,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
           <p className="font-normal text-xl leading-8">總金額</p>
           <h5 className="font-manrope font-bold text-2xl leading-9">{Number(Math.round(total_with_tax)).toLocaleString()}</h5>
         </div>
+        </Group>
       </div>
     </MantineProvider>
   );
