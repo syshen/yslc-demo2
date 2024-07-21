@@ -95,7 +95,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
             customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))}
         >
         <div className="total flex items-center justify-between pt-6">
-          <p className="font-normal text-lg leading-8">未稅價</p>
+          <p className="font-normal text-lg leading-8">未稅價{customer ? customer.payment_options : 'no value'}</p>
           <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
         </div>
         <div className="total flex items-center justify-between pt-6">
