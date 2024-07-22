@@ -261,21 +261,24 @@ export default function CustomersPage() {
     }).eq('customer_id', selectedCustomer.customer_id);
     await supabase.from('customer_products').delete().eq('customer_id', selectedCustomer.customer_id);
 
-    const records:CustomerProduct[] = [];
+    // 沒有母公司, 或者本身就是母公司的我們才儲存產品變動
+    if (!selectedCustomer.parent_id || selectedCustomer.parent_id === '') {
+      const records:CustomerProduct[] = [];
 
-    for (const product of products) {
-      if (isProductEnabled(product)) {
-        records.push({
-          customer_id: selectedCustomer.customer_id,
-          product_id: product.product_id,
-          price: product.customer_products![0].price,
-          is_available: true,
-        });
+      for (const product of products) {
+        if (isProductEnabled(product)) {
+          records.push({
+            customer_id: selectedCustomer.customer_id,
+            product_id: product.product_id,
+            price: product.customer_products![0].price,
+            is_available: true,
+          });
+        }
       }
-    }
-    if (records.length > 0) {
-      console.log(`insert ${JSON.stringify(records)}`);
-      await supabase.from('customer_products').insert(records);
+      if (records.length > 0) {
+        console.log(`insert ${JSON.stringify(records)}`);
+        await supabase.from('customer_products').insert(records);
+      }
     }
     // setChanged(false);
     // setLoading(false);
@@ -404,7 +407,9 @@ export default function CustomersPage() {
               });
             }} />
           <Divider my="xl" />
-          { productLoading ?
+          { (selectedCustomer && selectedCustomer.parent_id && selectedCustomer.parent_id !== '') ?
+            <Text>請修改母公司的產品列表</Text>
+          : productLoading ?
             <Box className="flex justify-center">
               <Loader color="blue" type="dots" className="py-5"></Loader>
             </Box> :
