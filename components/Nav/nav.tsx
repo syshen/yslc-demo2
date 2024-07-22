@@ -43,6 +43,9 @@ export function NavMenu() {
             <a href="/products" className={`${classes.link} ${pathname === '/products' ? 'bg-gray-200' : ''}`}>
               所有產品
             </a>
+            <a href="/settings" className={classes.link}>
+              設定
+            </a>
           </Group>
           <SignInButton />
           <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
@@ -72,6 +75,9 @@ export function NavMenu() {
           </a>
           <a href="/products" className={classes.link}>
             所有產品
+          </a>
+          <a href="/settings" className={classes.link}>
+            設定
           </a>
           <Divider my="sm" />
           <SignInButton />

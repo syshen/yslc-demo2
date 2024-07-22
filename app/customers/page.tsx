@@ -363,7 +363,11 @@ export default function CustomersPage() {
             }} />
           <Select
             label="母公司編號"
+            clearable
             value={selectedCustomer!.parent_id}
+            onChange={(value) => {
+              setSelectedCustomer({ ...selectedCustomer!, parent_id: value! });
+            }}
             data={
               customers.map(customer => ({
                 label: `${customer.customer_id} - ${customer.name}`,
