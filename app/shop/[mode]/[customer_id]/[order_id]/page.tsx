@@ -155,7 +155,8 @@ export default function OrderPage(
                       order_id,
                       Object.entries(cart)
                         .map(([key, value]) => ({ product_id: key, quantity: value }))
-                        .filter((item) => item.quantity > 0)
+                        .filter((item) => item.quantity > 0),
+                      customer_id
                     ).then(() => open());
                   }
                 }
@@ -178,7 +179,8 @@ export default function OrderPage(
                   order_id,
                   Object.entries(cart)
                       .map(([key, value]) => ({ product_id: key, quantity: value }))
-                      .filter((item) => item.quantity > 0)
+                      .filter((item) => item.quantity > 0),
+                  customer_id
                 ).then(() => open());
               }}
             >送出

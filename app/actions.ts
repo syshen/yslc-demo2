@@ -18,7 +18,8 @@ export const confirmOrder = async (order_id:string) => {
   console.log(resp);
 };
 
-export const shopCarts = async (mode: string, order_id:string, carts: Cart[]) => {
+export const shopCarts = async (
+  mode: string, order_id:string, carts: Cart[], customer_id:string) => {
   'use server';
 
   let url = '';
@@ -35,6 +36,7 @@ export const shopCarts = async (mode: string, order_id:string, carts: Cart[]) =>
       JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
     },
     body: JSON.stringify({
+      customer_id,
       order_id,
       carts,
     }),
