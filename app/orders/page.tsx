@@ -114,10 +114,10 @@ export default function OrdersPage() {
             className={row.cancelled ? 'line-through' : ''}
             onClick={() => { copy(item.unit_price.toString()); }}
           >
-            {item.unit_price.toLocaleString()}
+            {item.unit_price ? item.unit_price.toLocaleString() : ''}
           </Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentOption(row)}</Table.Td>
-          <Table.Td className={row.cancelled ? 'line-through' : ''}>{Number(row.total).toLocaleString()}</Table.Td>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>{row.total ? Number(row.total).toLocaleString() : ''}</Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentStatus(row)}</Table.Td>
         </Table.Tr>
       ));
