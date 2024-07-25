@@ -112,7 +112,7 @@ export default function ProductsPage() {
             width={100}
             onChange={(event) => changeStockQuantity(row, event.currentTarget.value)} />
         </Table.Td>
-        <Table.Td>
+        <Table.Td w={80}>
           <Text
             td="underline"
             size="xs"

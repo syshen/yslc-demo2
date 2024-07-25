@@ -88,7 +88,7 @@ export default function CustomersPage() {
         <Table.Td>{[row.contact_phone_1, row.contact_phone_2].filter((x) => x).join(',')}</Table.Td>
         <Table.Td>{row.shipping_address}</Table.Td>
         <Table.Td>{paymentOptions(row.payment_options)}</Table.Td>
-        <Table.Td>
+        <Table.Td w={60}>
           <Text
             td="underline"
             size="xs"
@@ -383,6 +383,8 @@ export default function CustomersPage() {
             }} />
           <MultiSelect
             label="付款方式"
+            disabled={selectedCustomer && selectedCustomer.parent_id !== undefined
+              && selectedCustomer.parent_id !== null && selectedCustomer.parent_id.length !== 0}
             value={selectedCustomer!.payment_options?.split(',')}
             data={[
               { label: '月結', value: 'monthlyPayment' },

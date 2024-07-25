@@ -43,7 +43,7 @@ export function NavMenu() {
             <a href="/products" className={`${classes.link} ${pathname === '/products' ? 'bg-slate-100' : ''}`}>
               所有產品
             </a>
-            <a href="/settings" className={classes.link}>
+            <a href="/settings" className={`${classes.link} ${pathname === '/settings' ? 'bg-slate-100' : ''}`}>
               設定
             </a>
           </Group>
