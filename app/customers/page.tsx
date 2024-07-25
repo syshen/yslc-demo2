@@ -288,7 +288,7 @@ export default function CustomersPage() {
 
   const saveNewCustomer = async () => {
     console.log(selectedCustomer);
-    await supabase.from('customers').insert({
+    const resp = await supabase.from('customers').insert({
       customer_id: selectedCustomer!.customer_id.trim(),
       name: selectedCustomer!.name.trim(),
       parent_id: selectedCustomer!.parent_id,
@@ -300,6 +300,12 @@ export default function CustomersPage() {
         selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
       payment_options: selectedCustomer!.payment_options ? selectedCustomer!.payment_options : null,
     });
+    if (resp.error) {
+      Notifications.show({
+        message: `新增失敗: ${resp.error.message}`,
+        color: 'red',
+      });
+    }
 
     const records:CustomerProduct[] = [];
     for (const product of products) {

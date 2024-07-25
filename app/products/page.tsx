@@ -173,7 +173,7 @@ export default function ProductsPage() {
 
     if (!editFlag) {
       // new
-      await supabase.from('products').insert([
+      const resp = await supabase.from('products').insert([
         {
           name: selectedProduct?.name || '',
           product_id: selectedProduct?.product_id || '',
@@ -181,13 +181,18 @@ export default function ProductsPage() {
           unit_price: selectedProduct?.unit_price || 0,
         },
       ]);
+      if (resp.error) {
+        Notifications.show({ message: `新增失敗: ${resp.error.message}`, color: 'red' });
+      }
     } else {
-      await supabase.from('products').update({
+      const resp = await supabase.from('products').update({
         name: selectedProduct?.name || '',
         unit: selectedProduct?.unit || '',
         unit_price: selectedProduct?.unit_price || 0,
       }).eq('product_id', selectedProduct?.product_id);
-      return;
+      if (resp.error) {
+        Notifications.show({ message: `更新失敗: ${resp.error.message}`, color: 'red' });
+      }
     }
     setOpened(false);
     setSelectedProduct(undefined);
