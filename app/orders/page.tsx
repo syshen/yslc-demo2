@@ -203,31 +203,6 @@ export default function OrdersPage() {
     );
 
   const orderTable = () => (
-    <Box>
-      <div className="flex flex-row m-5 content-center justify-between">
-        <Group gap="md">
-          <div className="pr-5">篩選條件:</div>
-          <Checkbox
-            size="md"
-            checked={cancelledChecked}
-            label="已取消訂單"
-            onChange={(event) => setCancelledChecked(event.currentTarget.checked)}>
-          </Checkbox>
-          <Checkbox
-            size="md"
-            checked={paidChecked}
-            label="已付款訂單"
-            onChange={(event) => setPaidChecked(event.currentTarget.checked)}>
-          </Checkbox>
-        </Group>
-        <Select
-          size="md"
-          data={customerOptions}
-          clearable
-          placeholder="選擇客戶"
-          onChange={(customer_id) => { setSelectedCustomer(customer_id); }}
-        />
-      </div>
       <Table.ScrollContainer minWidth={700}>
         <Table miw={700} highlightOnHover>
           <Table.Thead className={classes.header}>
@@ -248,13 +223,38 @@ export default function OrdersPage() {
           <Table.Tbody>{rows}</Table.Tbody>
         </Table>
       </Table.ScrollContainer>
-    </Box>
   );
 
   return (
     <MantineProvider>
       <Notifications />
-      { pageLoading ? loading() : orderTable() }
+      <Box>
+        <div className="flex flex-row m-5 content-center justify-between">
+          <Group gap="md">
+            <div className="pr-5">篩選條件:</div>
+            <Checkbox
+              size="md"
+              checked={cancelledChecked}
+              label="已取消訂單"
+              onChange={(event) => setCancelledChecked(event.currentTarget.checked)}>
+            </Checkbox>
+            <Checkbox
+              size="md"
+              checked={paidChecked}
+              label="已付款訂單"
+              onChange={(event) => setPaidChecked(event.currentTarget.checked)}>
+            </Checkbox>
+          </Group>
+          <Select
+            size="md"
+            data={customerOptions}
+            clearable
+            placeholder="選擇客戶"
+            onChange={(customer_id) => { setSelectedCustomer(customer_id); }}
+          />
+        </div>
+        { pageLoading ? loading() : orderTable() }
+      </Box>
     </MantineProvider>
   );
 }
