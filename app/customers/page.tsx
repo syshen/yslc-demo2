@@ -352,7 +352,7 @@ export default function CustomersPage() {
         size="xl"
         opened={opened}
         title={editFlag ? '編輯客戶' : '新增客戶'}
-        transitionProps={{ duration: 200, transition: 'fade' }}
+        transitionProps={{ duration: 200, transition: 'slide-down' }}
         onClose={() => { setOpened(false); }}>
           <TextInput
             label="客戶編號"
