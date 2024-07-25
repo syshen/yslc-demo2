@@ -23,7 +23,7 @@ export default function ChangePassword({ searchParams }: { searchParams: { messa
       return redirect('/changepassword?message=Cannot change password');
     }
 
-    return redirect('/orders');
+    return redirect('/');
   };
 
   const supabase = createClient();

@@ -34,13 +34,13 @@ export function NavMenu() {
             <a href="/" className={classes.link}>
               首頁
             </a>
-            <a href="/orders" className={`${classes.link} ${pathname === '/orders' ? 'bg-gray-200' : ''}`}>
+            <a href="/orders" className={`${classes.link} ${pathname === '/orders' ? 'bg-slate-100' : ''}`}>
               所有訂單
             </a>
-            <a href="/customers" className={`${classes.link} ${pathname === '/customers' ? 'bg-gray-200' : ''}`}>
+            <a href="/customers" className={`${classes.link} ${pathname === '/customers' ? 'bg-slate-100' : ''}`}>
               所有客戶
             </a>
-            <a href="/products" className={`${classes.link} ${pathname === '/products' ? 'bg-gray-200' : ''}`}>
+            <a href="/products" className={`${classes.link} ${pathname === '/products' ? 'bg-slate-100' : ''}`}>
               所有產品
             </a>
             <a href="/settings" className={classes.link}>

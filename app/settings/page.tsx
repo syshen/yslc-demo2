@@ -1,7 +1,15 @@
 // import { useForm } from '@mantine/form';
 import { MantineProvider, Button, Box, Group, TextInput } from '@mantine/core';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/utils/supabase/server';
 
 export default function SettingsPage() {
+  const supabase = createClient();
+  const user = supabase.auth.getUser();
+  if (!user) {
+    redirect('/login');
+  }
+
   return (
     <MantineProvider>
       <Box className="flex justify-center my-10">
