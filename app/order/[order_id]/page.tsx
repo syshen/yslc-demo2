@@ -42,7 +42,8 @@ export default async function OrderPage({ params }: { params: { order_id: string
 
   const tax = order.tax ?? TAX_RATE;
   const shipping_fee = order.shipping_fee ?? 0;
-  const total_with_tax = (untax_total + shipping_fee) * tax + untax_total + shipping_fee;
+  const service_fee = order.service_fee ?? 0;
+  const total_with_tax = (untax_total + shipping_fee + service_fee) * (1 + tax);
   const getStatus = (state:string) => {
     let payment_option = customer?.payment_options;
     if (customer?.customers?.payment_options) {
@@ -113,6 +114,10 @@ export default async function OrderPage({ params }: { params: { order_id: string
           <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-lg leading-8">運費</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(shipping_fee).toLocaleString()}</h5>
+          </div>
+          <div className="w-full total flex items-center justify-between pt-6">
+            <p className="font-normal text-lg leading-8">貨到付款手續費</p>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(service_fee).toLocaleString()}</h5>
           </div>
           <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-lg leading-8">稅金</p>

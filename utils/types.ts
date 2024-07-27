@@ -41,6 +41,7 @@ export interface Order {
   state: OrderState
   tax: number
   shipping_fee?: number
+  service_fee?: number
 }
 export interface Customer {
   id?: number
