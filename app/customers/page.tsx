@@ -168,7 +168,6 @@ export default function CustomersPage() {
           } else {
             product.customer_products = [
               { customer_id: selectedCustomer.customer_id,
-                price: product.unit_price ? product.unit_price : 0,
                 is_available: true,
               },
             ];
@@ -180,7 +179,7 @@ export default function CustomersPage() {
     });
   };
 
-  const handlePriceChange = (product_id:string, newPrice:number) => {
+  const handlePriceChange = (product_id:string, newPrice:number | undefined) => {
     const newProducts = products.map((product) => {
       if (product.product_id === product_id) {
         if (product.customer_products && product.customer_products.length > 0) {
@@ -221,15 +220,19 @@ export default function CustomersPage() {
           />
         </Table.Td>
         <Table.Td>{row.name}</Table.Td>
+        <Table.Td>{row.unit_price}</Table.Td>
         <Table.Td>
           <TextInput
             disabled={!isProductEnabled(row)}
+            placeholder="不填則為預設牌價"
             onChange={(event) => {
-              handlePriceChange(row.product_id, Number(event.currentTarget.value));
+              const value = (event.currentTarget.value.length === 0)
+                ? undefined : Number(event.currentTarget.value);
+              handlePriceChange(row.product_id, value);
             }}
             value={
               (row.customer_products && row.customer_products.length > 0)
-                ? row.customer_products[0].price : row.unit_price
+                ? row.customer_products[0].price : undefined
             }
           />
         </Table.Td>
@@ -430,7 +433,8 @@ export default function CustomersPage() {
                 <Table.Tr>
                   <Table.Th>啟用</Table.Th>
                   <Table.Th>產品名稱</Table.Th>
-                  <Table.Th>單價</Table.Th>
+                  <Table.Th>牌價</Table.Th>
+                  <Table.Th>特殊價</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{productRows}</Table.Tbody>

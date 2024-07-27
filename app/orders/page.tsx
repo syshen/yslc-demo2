@@ -12,10 +12,13 @@ import {
     Button,
     Box,
     Loader,
+    Text,
+    HoverCard,
 } from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
+import { ChatMessage } from './ChatMessage';
 import { Order, OrderItem } from '@/utils/types';
 import { confirmOrder } from '@/app/actions';
 
@@ -102,7 +105,18 @@ export default function OrdersPage() {
             className={row.cancelled ? 'line-through' : ''}
             onClick={() => { copy(item.item); }}
           >
-            {item.item}
+            <HoverCard disabled={!row.messages} width={280} shadow="md">
+              <HoverCard.Target>
+                <Text>{item.item}</Text>
+              </HoverCard.Target>
+              <HoverCard.Dropdown>
+                <ChatMessage
+                  userName={row.messages ? row.messages.user_name : ''}
+                  profileUrl={row.messages ? row.messages.user_profile_url : ''}
+                  message={row.messages ? row.messages.message : ''}
+                />
+              </HoverCard.Dropdown>
+            </HoverCard>
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
@@ -134,7 +148,8 @@ export default function OrdersPage() {
       .from('orders')
       .select(`
         *,
-        customers (customer_id, name)
+        customers (customer_id, name),
+        messages (message_id, user_name, user_profile_url, message)
       `);
     if (!includeCanceled) {
       func = func.eq('cancelled', false);

@@ -179,6 +179,9 @@ export default function ProductsPage() {
           product_id: selectedProduct?.product_id || '',
           unit: selectedProduct?.unit || '',
           unit_price: selectedProduct?.unit_price || 0,
+          gift_quantity: selectedProduct?.gift_quantity || 0,
+          base_unit: selectedProduct?.base_unit || '',
+          base_unit_quantity: selectedProduct?.base_unit_quantity || 0,
         },
       ]);
       if (resp.error) {
@@ -189,6 +192,9 @@ export default function ProductsPage() {
         name: selectedProduct?.name || '',
         unit: selectedProduct?.unit || '',
         unit_price: selectedProduct?.unit_price || 0,
+        gift_quantity: selectedProduct?.gift_quantity || 0,
+        base_unit: selectedProduct?.base_unit || '',
+        base_unit_quantity: selectedProduct?.base_unit_quantity || 0,
       }).eq('product_id', selectedProduct?.product_id);
       if (resp.error) {
         Notifications.show({ message: `更新失敗: ${resp.error.message}`, color: 'red' });
@@ -249,7 +255,7 @@ export default function ProductsPage() {
           }}
         />
         <Select
-          label="單位"
+          label="銷售單位"
           required
           data={['箱', '組', '桶', '包']}
           value={selectedProduct?.unit}
@@ -276,8 +282,50 @@ export default function ProductsPage() {
             });
           }}
         />
+        <Group>
+          <TextInput
+            label="ERP 數量"
+            value={selectedProduct?.base_unit_quantity}
+            onChange={(event) => {
+              setSelectedProduct({
+                ...selectedProduct,
+                base_unit_quantity: Number(event.currentTarget.value),
+                name: selectedProduct?.name || '',
+                product_id: selectedProduct?.product_id || '',
+                unit: selectedProduct?.unit || '',
+              });
+            }}
+          />
+          <Select
+            label="ERP 單位"
+            value={selectedProduct?.base_unit}
+            data={['罐', '箱', '桶', '瓶', '包']}
+            onChange={(value) => {
+              setSelectedProduct({
+                ...selectedProduct,
+                base_unit: value || '',
+                name: selectedProduct?.name || '',
+                product_id: selectedProduct?.product_id || '',
+                unit: selectedProduct?.unit || '',
+              });
+            }}
+          />
+          <TextInput
+            label="贈品數量"
+            value={selectedProduct?.gift_quantity}
+            onChange={(event) => {
+              setSelectedProduct({
+                ...selectedProduct,
+                gift_quantity: Number(event.currentTarget.value),
+                name: selectedProduct?.name || '',
+                product_id: selectedProduct?.product_id || '',
+                unit: selectedProduct?.unit || '',
+              });
+            }}
+          />
+        </Group>
         <TextInput
-          label="單價"
+          label="牌價"
           required
           value={selectedProduct?.unit_price}
           onChange={(event) => {
@@ -333,7 +381,7 @@ export default function ProductsPage() {
               <Table.Tr>
                 <Table.Th>商品名稱</Table.Th>
                 <Table.Th>品號</Table.Th>
-                <Table.Th>單位</Table.Th>
+                <Table.Th>銷售單位</Table.Th>
                 <Table.Th>單位價格</Table.Th>
                 <Table.Th>銷售中</Table.Th>
                 <Table.Th>剩餘庫存</Table.Th>

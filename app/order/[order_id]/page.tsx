@@ -32,7 +32,10 @@ export default async function OrderPage({ params }: { params: { order_id: string
     });
   }
   let customer:Customer | undefined;
-  const resp = await supabase.from('customers').select().eq('customer_id', order.customer_id);
+  const resp = await supabase.from('customers').select(`
+    *,
+    customer:parent_id (customer_id, name, payment_option)
+  `).eq('customer_id', order.customer_id);
   if (resp.data && resp.data.length > 0) {
     [customer] = resp.data;
   }
@@ -41,7 +44,11 @@ export default async function OrderPage({ params }: { params: { order_id: string
   const shipping_fee = order.shipping_fee ?? 0;
   const total_with_tax = (untax_total + shipping_fee) * tax + untax_total + shipping_fee;
   const getStatus = (state:string) => {
-    if (customer && customer.payment_options?.includes(PaymentOption.MONTHLY_PAYMENT)) {
+    let payment_option = customer?.payment_options;
+    if (customer?.customers?.payment_options) {
+      payment_option = customer?.customers.payment_options;
+    }
+    if (payment_option?.includes(PaymentOption.MONTHLY_PAYMENT)) {
       return '月結';
     }
     switch (state) {

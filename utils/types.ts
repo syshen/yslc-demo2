@@ -61,7 +61,7 @@ export interface Customer {
 
 export interface CustomerProduct {
   customer_id: string;
-  price: number;
+  price?: number;
   product_id?: string;
   is_available?: boolean;
 }
@@ -78,6 +78,9 @@ export interface Product {
   stock_status?: string
   stock_quantity?: number | null
   is_active?: boolean
+  base_unit?: string
+  base_unit_quantity?: number
+  gift_quantity?: number
   customer_products?: CustomerProduct[]
 }
 
