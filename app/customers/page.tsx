@@ -18,7 +18,7 @@ import {
   Select,
   Loader,
   Pill,
-  MultiSelect } from '@mantine/core';
+} from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
 import { Customer, Product, CustomerProduct } from '@/utils/types';
@@ -390,18 +390,18 @@ export default function CustomersPage() {
             onChange={(event) => {
               setSelectedCustomer({ ...selectedCustomer!, name: event.currentTarget.value });
             }} />
-          <MultiSelect
+          <Select
             label="付款方式"
             disabled={selectedCustomer && selectedCustomer.parent_id !== undefined
               && selectedCustomer.parent_id !== null && selectedCustomer.parent_id.length !== 0}
-            value={selectedCustomer!.payment_options?.split(',')}
+            value={selectedCustomer!.payment_options}
             data={[
               { label: '月結', value: 'monthlyPayment' },
               { label: '貨到付款', value: 'payOnReceive' },
               { label: '轉帳', value: 'bankTransfer' },
             ]}
-            onChange={(values) =>
-              setSelectedCustomer({ ...selectedCustomer!, payment_options: values.join(',') })
+            onChange={(value) =>
+              setSelectedCustomer({ ...selectedCustomer!, payment_options: value ?? undefined })
             } />
           <TextInput
             label="聯絡電話"

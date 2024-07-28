@@ -69,7 +69,7 @@ export default function OrderPage(
             <Text size="sm">
               數量:<b> {cart[product.product_id] ? cart[product.product_id] : 0} {product.unit} </b>
             </Text>
-            <Text size="sm">({product.spec})</Text>
+            <Text className={!product.spec ? 'invisible' : ''} size="sm">({product.spec})</Text>
             <div className="grid grap-x-8 grid-cols-2">
               <Button
                 variant="outline"
