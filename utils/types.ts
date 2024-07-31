@@ -42,6 +42,7 @@ export interface Order {
   tax: number
   shipping_fee?: number
   service_fee?: number
+  customers?: Customer
 }
 export interface Customer {
   id?: number
@@ -63,14 +64,14 @@ export interface Customer {
 export interface CustomerProduct {
   customer_id: string;
   price?: number;
-  product_id?: string;
+  product_id?: number;
   is_available?: boolean;
 }
 
 export interface Product {
   id?: number
   created_at?: string
-  product_id: string
+  product_id: number
   name: string
   unit: string
   unit_price?: number

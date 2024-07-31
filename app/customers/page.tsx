@@ -158,7 +158,7 @@ export default function CustomersPage() {
     });
   }, []);
 
-  const handleCheckboxChange = (product_id: string) => {
+  const handleCheckboxChange = (product_id: number) => {
     // setChanged(true);
     setProducts(prevProducts => {
       const newProducts = prevProducts.map(product => {
@@ -179,7 +179,7 @@ export default function CustomersPage() {
     });
   };
 
-  const handlePriceChange = (product_id:string, newPrice:number | undefined) => {
+  const handlePriceChange = (product_id:number, newPrice:number | undefined) => {
     const newProducts = products.map((product) => {
       if (product.product_id === product_id) {
         if (product.customer_products && product.customer_products.length > 0) {
@@ -212,7 +212,7 @@ export default function CustomersPage() {
       <Table.Tr key={row.product_id}>
         <Table.Td>
           <Checkbox
-            id={row.product_id}
+            id={row.product_id.toString()}
             checked={isProductEnabled(row)}
             onChange={() => {
               handleCheckboxChange(row.product_id);

@@ -31,7 +31,7 @@ export default function ProductsPage() {
   const [editFlag, setEditFlag] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [changedProductIds, setChangedProductIds] = useState<string[]>([]);
+  const [changedProductIds, setChangedProductIds] = useState<number[]>([]);
 
   const changeStockStatus = async (product:Product) => {
     let c = false;
@@ -166,7 +166,7 @@ export default function ProductsPage() {
     if (!selectedProduct) {
       return;
     }
-    if (selectedProduct.name.length === 0 || selectedProduct.product_id.length === 0) {
+    if (selectedProduct.name.length === 0 || selectedProduct.product_id === 0) {
       Notifications.show({ message: '名稱和產品編號都不能為空', color: 'red' });
       return;
     }
@@ -206,7 +206,7 @@ export default function ProductsPage() {
   };
 
   const deleteProduct = async () => {
-    if (!selectedProduct || selectedProduct.product_id.length === 0) {
+    if (!selectedProduct || selectedProduct.product_id === 0) {
       return;
     }
 
@@ -233,7 +233,7 @@ export default function ProductsPage() {
             setSelectedProduct({
               ...selectedProduct,
               name: event.currentTarget.value,
-              product_id: selectedProduct?.product_id || '',
+              product_id: selectedProduct?.product_id || 0,
               unit: selectedProduct?.unit || '',
               // unit_price: selectedProduct?.unit_price || 0,
             });
@@ -247,7 +247,7 @@ export default function ProductsPage() {
           onChange={(event) => {
             setSelectedProduct({
               ...selectedProduct,
-              product_id: event.currentTarget.value,
+              product_id: parseInt(event.currentTarget.value),
               name: selectedProduct?.name || '',
               unit: selectedProduct?.unit || '',
               // unit_price: selectedProduct?.unit_price || 0,
@@ -264,7 +264,7 @@ export default function ProductsPage() {
               ...selectedProduct,
               unit: value || '',
               name: selectedProduct?.name || '',
-              product_id: selectedProduct?.product_id || '',
+              product_id: selectedProduct?.product_id || 0,
               // unit_price: selectedProduct?.unit_price || null,
             });
           }}
@@ -277,7 +277,7 @@ export default function ProductsPage() {
               ...selectedProduct,
               spec: event.currentTarget.value,
               name: selectedProduct?.name || '',
-              product_id: selectedProduct?.product_id || '',
+              product_id: selectedProduct?.product_id || 0,
               unit: selectedProduct?.unit || '',
             });
           }}
@@ -291,7 +291,7 @@ export default function ProductsPage() {
                 ...selectedProduct,
                 base_unit_quantity: Number(event.currentTarget.value),
                 name: selectedProduct?.name || '',
-                product_id: selectedProduct?.product_id || '',
+                product_id: selectedProduct?.product_id || 0,
                 unit: selectedProduct?.unit || '',
               });
             }}
@@ -305,7 +305,7 @@ export default function ProductsPage() {
                 ...selectedProduct,
                 base_unit: value || '',
                 name: selectedProduct?.name || '',
-                product_id: selectedProduct?.product_id || '',
+                product_id: selectedProduct?.product_id || 0,
                 unit: selectedProduct?.unit || '',
               });
             }}
@@ -318,7 +318,7 @@ export default function ProductsPage() {
                 ...selectedProduct,
                 gift_quantity: Number(event.currentTarget.value),
                 name: selectedProduct?.name || '',
-                product_id: selectedProduct?.product_id || '',
+                product_id: selectedProduct?.product_id || 0,
                 unit: selectedProduct?.unit || '',
               });
             }}
@@ -333,7 +333,7 @@ export default function ProductsPage() {
               ...selectedProduct,
               unit_price: Number(event.currentTarget.value),
               name: selectedProduct?.name || '',
-              product_id: selectedProduct?.product_id || '',
+              product_id: selectedProduct?.product_id || 0,
               unit: selectedProduct?.unit || '',
             });
           }}
