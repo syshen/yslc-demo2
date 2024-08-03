@@ -112,7 +112,7 @@ export default function CustomersPage() {
     .from('customers')
     .select(`
       *,
-      orders (order_id, customer_id, created_at, confirmed, confirmed_at, paid, paid_at, total, items),
+      orders (order_id, customer_id, created_at, payment_status, total, items),
       customers:parent_id (customer_id, name)
       `).order('created_at', { ascending: false });
 

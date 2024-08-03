@@ -16,22 +16,26 @@ export interface OrderItem {
   subtotal: number
 }
 
+export enum PaymentState {
+  PENDING = 'pending',
+  VERIFYING = 'verifying',
+  PAID = 'paid',
+}
+
 export enum OrderState {
   NONE = '',
+  CREATED = 'created',
   CONFIRMED = 'confirmed',
-  PENDING_PAYMENT = 'pendingPayment',
   CANCELLED = 'cancelled',
-  PENDING_VERIFY = 'pendingVerify',
+  PENDING_SHIPMENT = 'pendingShipment',
+  SHIPPED = 'shipped',
+  DELIVERED = 'delivered',
   COMPLETED = 'completed',
 }
 
 export interface Order {
   order_id: string
   created_at: string
-  confirmed: boolean
-  confirmed_at: string
-  paid: boolean
-  paid_at: string
   total: number
   items: OrderItem[]
   line_id: string
@@ -39,6 +43,7 @@ export interface Order {
   account_number: string
   customer_id: string
   state: OrderState
+  paymentStatus: PaymentState
   tax: number
   shipping_fee?: number
   service_fee?: number

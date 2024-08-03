@@ -1,10 +1,12 @@
+/* eslint-disable quote-props */
+
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
 import { DatePickerInput } from '@mantine/dates';
-import { IconDownload } from '@tabler/icons-react'
+import { IconDownload } from '@tabler/icons-react';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import '@mantine/dates/styles.css';
 import {
@@ -17,22 +19,24 @@ import {
     Box,
     Loader,
     Text,
+    Badge,
     HoverCard,
 } from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
 import { ChatMessage } from './ChatMessage';
-import { Order, OrderItem, PaymentOption, Product } from '@/utils/types';
-import { confirmOrder } from '@/app/actions';
+import { Order, OrderItem, PaymentOption, Product, OrderState, PaymentState } from '@/utils/types';
+// import { confirmOrder } from '@/app/actions';
+import { ActionButton } from './ActionButton';
 
-const delay = (ms:number) => new Promise(r => { setTimeout(r, ms); });
+// const delay = (ms:number) => new Promise(r => { setTimeout(r, ms); });
 const recentWeek = ():[Date, Date] => {
   const today = new Date();
   const oneWeekAgo = new Date(today);
   oneWeekAgo.setDate(today.getDate() - 7);
   return [oneWeekAgo, today];
-}
+};
 
 function formatDate(date:Date) {
   const year = date.getFullYear();
@@ -40,7 +44,7 @@ function formatDate(date:Date) {
   const day = date.getDate();
 
   return `${year}/${month}/${day}`;
-};
+}
 
 const csvConfig = mkConfig({
   filename: `匯出訂單-${formatDate(new Date())}`,
@@ -58,7 +62,7 @@ export default function OrdersPage() {
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
-  const [loadingOrder, setLoadingOrder] = useState<string | null>(null);
+  // const [loadingOrder, setLoadingOrder] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(recentWeek());
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
@@ -75,17 +79,17 @@ export default function OrdersPage() {
         return `銀行轉帳，帳號後五碼: ${order.account_number}`;
       }
       return '銀行轉帳，尚未提供帳號';
-    } else if (order.payment_option === PaymentOption.PAY_ON_RECEIVE) {
-      return '貨到付款';      
-    } else if (order.payment_option === PaymentOption.MONTHLY_PAYMENT) {
+    }
+    if (order.payment_option === PaymentOption.PAY_ON_RECEIVE) {
+      return '貨到付款';
+    }
+    if (order.payment_option === PaymentOption.MONTHLY_PAYMENT) {
       return '月結';
     }
     return '<未指定>';
   };
-  
-  const getProductById = (id:number) => {
-    return products.find((product) => product.product_id === id)
-  }
+
+  const getProductById = (id:number) => products.find((product) => product.product_id === id);
 
   const getTotalERPQuantity = (quantity:number, id:number) => {
     const product = getProductById(id);
@@ -93,28 +97,27 @@ export default function OrdersPage() {
       return '';
     }
     return (quantity * (product.base_unit_quantity || 1)).toString();
-  }
+  };
   const getGiftQuantity = (quantity:number, id:number) => {
     const product = getProductById(id);
     if (product === null || product === undefined) {
       return '';
     }
     return (quantity * (product.gift_quantity || 0)).toString();
-  }
+  };
 
   const getPaymentStatus = (order:Order) => {
     if (order.payment_option === PaymentOption.MONTHLY_PAYMENT) {
       return '月結';
-    } else if (order.payment_option === PaymentOption.PAY_ON_RECEIVE) {
-      return '貨到付款';
-    } else {
-      if (order.state === 'completed') {
-        return '是';
-      } else {
-        return '否';
-      }
     }
-  }
+    if (order.payment_option === PaymentOption.PAY_ON_RECEIVE) {
+      return '貨到付款';
+    }
+    if (order.state === OrderState.COMPLETED) {
+      return '是';
+    }
+    return '否';
+  };
 
   const exportOrders = () => {
     if (selectedRows.length === 0) {
@@ -182,7 +185,7 @@ export default function OrdersPage() {
     if (data) {
       setProducts(data);
     }
-  }
+  };
 
   useEffect(() => {
     const rs = orders.map((row:any) => {
@@ -205,6 +208,9 @@ export default function OrdersPage() {
           </Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>
             {new Date(row.created_at).toLocaleDateString()}
+          </Table.Td>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>
+            {new Date(row.created_at).toLocaleTimeString()}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
@@ -261,12 +267,18 @@ export default function OrdersPage() {
           </Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentOption(row)}</Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{row.total ? Number(row.total).toLocaleString() : ''}</Table.Td>
-          <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentStatus(row)}</Table.Td>
+          <Table.Td className={row.cancelled ? 'line-through' : ''}>{orderStatus(row)}</Table.Td>
+          <Table.Td>
+            <ActionButton
+              order_id={row.order_id}
+              onAction={() => { getOrders(); }}
+            />
+          </Table.Td>
         </Table.Tr>
       ));
     });
     setRows(rs);
-  }, [orders, loadingOrder, selectedRows]);
+  }, [orders, selectedRows]);
 
   const getOrders = async () => {
     let func = supabase
@@ -276,12 +288,25 @@ export default function OrdersPage() {
         customers (customer_id, name, contact_phone_1, contact_phone_2, shipping_address),
         messages (message_id, user_name, user_profile_url, message)
       `);
+    // 是否包含已取消
     if (!cancelledChecked) {
-      func = func.eq('cancelled', false);
+      func = func.neq('state', OrderState.CANCELLED);
     }
-    if (!paidChecked) {
-      func = func.eq('paid', false);
+    // 是否包含待付款
+    if (pendingPaymentChecked) {
+      // func = func.eq('payment_status', PaymentState.PENDING);
+    } else {
+      func = func.neq('payment_status', PaymentState.PENDING);
     }
+    // 是否包含待出貨
+    if (pendingShippingChecked) {
+      // func = func.eq('state', OrderState.CONFIRMED)
+    }
+    // // 是否包含已出貨
+    if (!shippingChecked) {
+      func = func.neq('state', OrderState.SHIPPED).neq('state', OrderState.DELIVERED);
+    }
+
     if (dateRange[0]) {
       func = func.gte('created_at', dateRange[0]!.toISOString());
     }
@@ -300,44 +325,40 @@ export default function OrdersPage() {
     }
   };
 
-  const doVerifyOrder = async (order_id:string) => {
-    setLoadingOrder(order_id);
-    await confirmOrder(order_id);
-    await delay(2000);
-    setLoadingOrder(null);
-    await getOrders();
-  };
-
-  const paymentStatus = (order:Order) => {
-    if (order.payment_option === PaymentOption.BANK_TRANSFER) {
-      if (order.paid === true) {
-        return '已付款';
-      } else {
-        if (order.account_number && order.account_number.length > 1) {
-          return (
-          <Button
-            loading={loadingOrder === order.order_id}
-            onClick={() => doVerifyOrder(order.order_id)}>
-              確認付款完成
-          </Button>);
-        } else {
-          return '待付款';
-        }
-      }
-    } else if (order.payment_option === PaymentOption.PAY_ON_RECEIVE) {
-      return '貨到付款';
-    } else if (order.payment_option === PaymentOption.MONTHLY_PAYMENT) {
-      return '月結';
+  const orderStatus = (order:Order) => {
+    if (order.state === OrderState.SHIPPED) {
+      return (<Badge fullWidth color="green" size="lg">已出貨</Badge>);
     }
+
+    if (order.payment_option === PaymentOption.BANK_TRANSFER) {
+      if (order.paymentStatus === PaymentState.PAID) {
+        return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
+      }
+      if (order.account_number && order.account_number.length > 1) {
+        return (<Badge fullWidth color="yellow" size="lg">待確認付款</Badge>);
+      }
+      return (<Badge fullWidth color="red" size="lg">待付款</Badge>);
+    }
+    return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
   };
 
   const [cancelledChecked, setCancelledChecked] = useState(false);
-  const [paidChecked, setPaidChecked] = useState(false);
+  const [pendingShippingChecked, setPendingShippingChecked] = useState(true);
+  const [pendingPaymentChecked, setPendingPaymentChecked] = useState(true);
+  const [shippingChecked, setShippingChecked] = useState(false);
+  // const [payChecked, setPayChecked] = useState(false);
 
   useEffect(() => {
     getCustomers();
-    getOrders()
-  }, [cancelledChecked, paidChecked, selectedCustomer, dateRange]);
+    getOrders();
+  }, [
+    cancelledChecked,
+    pendingShippingChecked,
+    shippingChecked,
+    pendingPaymentChecked,
+    selectedCustomer,
+    dateRange,
+  ]);
 
   useEffect(() => {
     setPageLoading(true);
@@ -369,7 +390,7 @@ export default function OrdersPage() {
                 <Checkbox
                   onChange={(event) => {
                     if (event.target.checked) {
-                      setSelectedRows(orders.map((order) => order.order_id));                      
+                      setSelectedRows(orders.map((order) => order.order_id));
                     } else {
                       setSelectedRows([]);
                     }
@@ -377,6 +398,7 @@ export default function OrdersPage() {
                 />
               </Table.Th>
               <Table.Th>銷貨日期</Table.Th>
+              <Table.Th>時間</Table.Th>
               <Table.Th>訂單編號</Table.Th>
               <Table.Th>客戶代號</Table.Th>
               <Table.Th>客戶簡稱</Table.Th>
@@ -386,7 +408,8 @@ export default function OrdersPage() {
               <Table.Th>訂單單價</Table.Th>
               <Table.Th>付款方式</Table.Th>
               <Table.Th>訂單總額</Table.Th>
-              <Table.Th>付款狀態</Table.Th>
+              <Table.Th>訂單狀態</Table.Th>
+              <Table.Th></Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>{rows}</Table.Tbody>
@@ -400,33 +423,45 @@ export default function OrdersPage() {
       <Box>
         <div className="flex flex-row m-5 content-center justify-between">
           <Group gap="md">
-            <div className="pr-5">篩選條件:</div>
+            <div className="pr-3">篩選條件:</div>
             <Checkbox
-              size="md"
-              checked={cancelledChecked}
-              label="已取消訂單"
-              onChange={(event) => setCancelledChecked(event.currentTarget.checked)}>
+              size="sm"
+              checked={shippingChecked}
+              label="已出貨"
+              onChange={(event) => setShippingChecked(event.currentTarget.checked)}>
             </Checkbox>
             <Checkbox
-              size="md"
-              checked={paidChecked}
-              label="已付款訂單"
-              onChange={(event) => setPaidChecked(event.currentTarget.checked)}>
+              size="sm"
+              checked={pendingShippingChecked}
+              label="待出貨"
+              onChange={(event) => setPendingShippingChecked(event.currentTarget.checked)}>
+            </Checkbox>
+            <Checkbox
+              size="sm"
+              checked={pendingPaymentChecked}
+              label="待付款"
+              onChange={(event) => setPendingPaymentChecked(event.currentTarget.checked)}>
+            </Checkbox>
+            <Checkbox
+              size="sm"
+              checked={cancelledChecked}
+              label="已取消"
+              onChange={(event) => setCancelledChecked(event.currentTarget.checked)}>
             </Checkbox>
           </Group>
           <Group>
             <DatePickerInput
-              size="md"
+              size="sm"
               type="range"
-              allowSingleDateInRange={true}
-              highlightToday={true}
+              allowSingleDateInRange
+              highlightToday
               locale="zh_Hant_TW"
               placeholder="選擇查詢區間"
               value={dateRange}
-              onChange={ setDateRange }
+              onChange={setDateRange}
             />
             <Select
-              size="md"
+              size="sm"
               data={customerOptions}
               clearable
               placeholder="選擇客戶"
@@ -434,7 +469,7 @@ export default function OrdersPage() {
             />
             <Button
               disabled={selectedRows.length === 0}
-              leftSection={<IconDownload size={14}/>}
+              leftSection={<IconDownload size={14} />}
               onClick={() => exportOrders()}
             >匯出
             </Button>

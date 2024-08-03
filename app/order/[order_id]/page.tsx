@@ -1,6 +1,6 @@
 import { MantineProvider, Group, Flex, Box, Text } from '@mantine/core';
 import { createClient } from '@/utils/supabase/server';
-import { Customer, Order, OrderState, PaymentOption, TAX_RATE } from '@/utils/types';
+import { Customer, Order, OrderState, PaymentOption, TAX_RATE, PaymentState } from '@/utils/types';
 
 export default async function OrderPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
@@ -9,10 +9,6 @@ export default async function OrderPage({ params }: { params: { order_id: string
   let order:Order = {
     total: 0,
     created_at: '',
-    confirmed_at: '',
-    confirmed: false,
-    paid: false,
-    paid_at: '',
     items: [],
     order_id: '',
     line_id: '',
@@ -20,6 +16,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
     account_number: '',
     customer_id: '',
     state: OrderState.NONE,
+    paymentStatus: PaymentState.PENDING,
     tax: 0.0,
     shipping_fee: 0.0,
   };
@@ -55,12 +52,8 @@ export default async function OrderPage({ params }: { params: { order_id: string
     switch (state) {
       case OrderState.CONFIRMED:
         return '已確認';
-      case OrderState.PENDING_PAYMENT:
-        return '待付款';
       case OrderState.CANCELLED:
         return '已取消';
-      case OrderState.PENDING_VERIFY:
-        return '待確認付款';
       case OrderState.COMPLETED:
         return '訂單已完成';
       default:
