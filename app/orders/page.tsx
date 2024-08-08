@@ -290,20 +290,29 @@ export default function OrdersPage() {
       `);
     // 是否包含已取消
     if (!cancelledChecked) {
+      // filters.push('state.neq.cancelled');
       func = func.neq('state', OrderState.CANCELLED);
     }
     // 是否包含待付款
-    if (pendingPaymentChecked) {
-      // func = func.eq('payment_status', PaymentState.PENDING);
-    } else {
+    if (!pendingPaymentChecked) {
+      // filters.push('payment_status.neq.pending');
       func = func.neq('payment_status', PaymentState.PENDING);
     }
     // 是否包含待出貨
-    if (pendingShippingChecked) {
+    if (!pendingShippingChecked) {
+      // filters.push('or(and(payment_option.eq.bankTransfer,payment_status.eq.paid,state.eq.confirmed),and(payment_option.eq.monthlyPayment,state.eq.confirmed),and(payment_option.eq.payOnReceive,state.eq.confirmed)');
+      func = func.or('payment_option.neq.bankTransfer,payment_status.neq.paid,state.neq.confirmed')
+        .or('payment_option.neq.monthlyPayment,state.neq.confirmed')
+        .or('payment_option.neq.payOnReceive,state.neq.confirmed');
+      // func = func.not('and(payment_option.eq.bankTransfer,payment_status.eq.paid,state.eq.confirmed),and(payment_option.eq.monthlyPayment,state.eq.confirmed),and(payment_option.eq.payOnReceive,state.eq.confirmed)');
       // func = func.eq('state', OrderState.CONFIRMED)
+      // !(payment_option = 'bankTransfer' AND payment_status = 'paid' AND state = 'confirmed') and
+      // !(payment_option = 'monthlyPayment' AND state = 'confirmed') and
+      // !(payment_option = 'payOnReceive' AND state = 'confirmed')
     }
-    // // 是否包含已出貨
-    if (!shippingChecked) {
+    // 不包含已出貨
+    if (!shippedChecked) {
+      // filters.push('or(state.eq.shipped,state.eq.delivered)');
       func = func.neq('state', OrderState.SHIPPED).neq('state', OrderState.DELIVERED);
     }
 
@@ -330,8 +339,17 @@ export default function OrdersPage() {
       return (<Badge fullWidth color="green" size="lg">已出貨</Badge>);
     }
 
+    if (order.state === OrderState.COMPLETED) {
+      return (<Badge fullWidth color="green" size="lg">訂單已完成</Badge>);
+    }
+
+    if (order.state === OrderState.CANCELLED) {
+      return (<Badge fullWidth color="red" size="lg">已取消</Badge>);
+    }
+
+    // 銀行轉帳
     if (order.payment_option === PaymentOption.BANK_TRANSFER) {
-      if (order.paymentStatus === PaymentState.PAID) {
+      if (order.payment_status === PaymentState.PAID) {
         return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
       }
       if (order.account_number && order.account_number.length > 1) {
@@ -339,13 +357,19 @@ export default function OrdersPage() {
       }
       return (<Badge fullWidth color="red" size="lg">待付款</Badge>);
     }
-    return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
+
+    // 月結
+    // 貨到付款
+    if (order.state === OrderState.CONFIRMED) {
+      return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
+    }
+    return '';
   };
 
   const [cancelledChecked, setCancelledChecked] = useState(false);
   const [pendingShippingChecked, setPendingShippingChecked] = useState(true);
   const [pendingPaymentChecked, setPendingPaymentChecked] = useState(true);
-  const [shippingChecked, setShippingChecked] = useState(false);
+  const [shippedChecked, setShippedChecked] = useState(false);
   // const [payChecked, setPayChecked] = useState(false);
 
   useEffect(() => {
@@ -354,7 +378,7 @@ export default function OrdersPage() {
   }, [
     cancelledChecked,
     pendingShippingChecked,
-    shippingChecked,
+    shippedChecked,
     pendingPaymentChecked,
     selectedCustomer,
     dateRange,
@@ -426,9 +450,9 @@ export default function OrdersPage() {
             <div className="pr-3">篩選條件:</div>
             <Checkbox
               size="sm"
-              checked={shippingChecked}
+              checked={shippedChecked}
               label="已出貨"
-              onChange={(event) => setShippingChecked(event.currentTarget.checked)}>
+              onChange={(event) => setShippedChecked(event.currentTarget.checked)}>
             </Checkbox>
             <Checkbox
               size="sm"

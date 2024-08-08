@@ -16,7 +16,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
     account_number: '',
     customer_id: '',
     state: OrderState.NONE,
-    paymentStatus: PaymentState.PENDING,
+    payment_status: PaymentState.PENDING,
     tax: 0.0,
     shipping_fee: 0.0,
   };

@@ -23,7 +23,7 @@ export function ActionButton(
       await supabase
         .from('orders')
         .update({
-          paymentStatus: PaymentState.PAID,
+          payment_status: PaymentState.PAID,
         }).eq('order_id', order_id);
     } else {
       await supabase.from('orders').update({ state: status }).eq('order_id', order_id);

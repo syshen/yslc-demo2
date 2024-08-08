@@ -27,7 +27,6 @@ export enum OrderState {
   CREATED = 'created',
   CONFIRMED = 'confirmed',
   CANCELLED = 'cancelled',
-  PENDING_SHIPMENT = 'pendingShipment',
   SHIPPED = 'shipped',
   DELIVERED = 'delivered',
   COMPLETED = 'completed',
@@ -43,7 +42,7 @@ export interface Order {
   account_number: string
   customer_id: string
   state: OrderState
-  paymentStatus: PaymentState
+  payment_status: PaymentState
   tax: number
   shipping_fee?: number
   service_fee?: number
