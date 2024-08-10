@@ -295,20 +295,18 @@ export default function OrdersPage() {
     }
     // 是否包含待付款
     if (!pendingPaymentChecked) {
-      // filters.push('payment_status.neq.pending');
-      func = func.neq('payment_status', PaymentState.PENDING);
+      // !(payment_option = 'bankTransfer' AND payment_status = 'pending')
+      // => payment_option != 'bankTransfer' or payment_status != 'pending'
+      func = func.or('payment_option.neq.bankTransfer,payment_status.neq.pending');
     }
     // 是否包含待出貨
     if (!pendingShippingChecked) {
-      // filters.push('or(and(payment_option.eq.bankTransfer,payment_status.eq.paid,state.eq.confirmed),and(payment_option.eq.monthlyPayment,state.eq.confirmed),and(payment_option.eq.payOnReceive,state.eq.confirmed)');
-      func = func.or('payment_option.neq.bankTransfer,payment_status.neq.paid,state.neq.confirmed')
-        .or('payment_option.neq.monthlyPayment,state.neq.confirmed')
-        .or('payment_option.neq.payOnReceive,state.neq.confirmed');
-      // func = func.not('and(payment_option.eq.bankTransfer,payment_status.eq.paid,state.eq.confirmed),and(payment_option.eq.monthlyPayment,state.eq.confirmed),and(payment_option.eq.payOnReceive,state.eq.confirmed)');
-      // func = func.eq('state', OrderState.CONFIRMED)
       // !(payment_option = 'bankTransfer' AND payment_status = 'paid' AND state = 'confirmed') and
       // !(payment_option = 'monthlyPayment' AND state = 'confirmed') and
       // !(payment_option = 'payOnReceive' AND state = 'confirmed')
+      func = func.or('payment_option.neq.bankTransfer,payment_status.neq.paid,state.neq.confirmed')
+        .or('payment_option.neq.monthlyPayment,state.neq.confirmed')
+        .or('payment_option.neq.payOnReceive,state.neq.confirmed');
     }
     // 不包含已出貨
     if (!shippedChecked) {
