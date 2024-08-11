@@ -1,0 +1,5503 @@
+{
+  "name": "YSLC 訂單處理系統 v2",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "line-webhook"
+      },
+      "id": "95f6adc1-4859-4562-84e9-4e2205bc5f56",
+      "name": "LineWebhook",
+      "type": "n8n-nodes-linewebhook.LineWebhook",
+      "typeVersion": 1,
+      "position": [
+        720,
+        900
+      ],
+      "webhookId": "f8f11e5a-3578-4ef1-a87b-bd5e4b61b5b1",
+      "credentials": {
+        "lineWebhookAuthApi": {
+          "id": "qSX7rXWuM4GpLupJ",
+          "name": "[Bot] 詠鑠訂單小幫手 (webhook)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getProfile",
+        "userId": "={{ $json.event.source.userId }}"
+      },
+      "id": "a24bbde5-c47e-4751-bef7-70091719f7c1",
+      "name": "Get User Profile",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        340
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getGroupChatSummary",
+        "groupId": "={{ $json.event.source.groupId }}"
+      },
+      "id": "390770be-4296-4c8e-9982-3bce5cd41737",
+      "name": "Get Group Summary",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        520
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.userId }}"
+            },
+            {
+              "fieldId": "group_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.groupId }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.text }}"
+            },
+            {
+              "fieldId": "user_name",
+              "fieldValue": "={{ $json.displayName }}"
+            },
+            {
+              "fieldId": "group_name",
+              "fieldValue": "={{ $('Get Group Summary').item.json.groupName }}"
+            },
+            {
+              "fieldId": "type",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.type }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.id }}"
+            },
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            },
+            {
+              "fieldId": "user_profile_url",
+              "fieldValue": "={{ $json.pictureUrl }}"
+            }
+          ]
+        }
+      },
+      "id": "8cb52682-ba0c-45ec-bed9-dbeb630b2807",
+      "name": "Log Message",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        240
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "flex",
+        "altText": "請問要訂購商品是 ...",
+        "flexContent": "={\n    \"type\": \"bubble\",\n    \"header\": {\n        \"type\": \"box\",\n        \"layout\": \"baseline\",\n        \"contents\": [\n            {\n                \"type\": \"text\",\n                \"text\": \"確認訂單\",\n                \"size\": \"xl\",\n                \"align\": \"center\",\n                \"weight\": \"bold\",\n                \"scaling\": true\n            }\n        ]\n    },  \n  \"body\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\":  {{ $json.choices }}\n  },\n  \"footer\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"spacing\": \"sm\",\n    \"contents\": {{ $json.paymentOptions }},\n    \"flex\": 0\n  }\n}"
+      },
+      "id": "59c94cda-356d-4b87-81b0-be3c11cc9ff2",
+      "name": "Flex Message",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        5140,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "={{ $('LineWebhook').first().json.event.replyToken }}"
+      },
+      "id": "4c8240b4-07bf-4c45-85ca-20c4684478b1",
+      "name": "Reply Message",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        5400,
+        -280
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  const seps = item.json.event.postback.data.split(' ');\n  if (seps.length === 2) {\n    item.json.event.command = seps[0];\n    item.json.event.params = seps[1].split(',');\n    if (item.json.event.params.length === 1) {\n      item.json.event.param = item.json.event.params[0];\n    }\n  }\n}\n\nreturn $input.all();"
+      },
+      "id": "3fe05ab3-a176-4c7d-8a79-13a51bed4a6b",
+      "name": "Extract command and order id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "keyValue": "={{ $json.event.param }}"
+            }
+          ]
+        }
+      },
+      "id": "c4826898-1c4d-4f3e-8b15-6d144d907803",
+      "name": "Get order information",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        820
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "該訂單已經確認過了喔~"
+      },
+      "id": "7c7f83ec-d5fa-4c80-abf0-dea74b6cfea9",
+      "name": "訂單已確認過",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3420,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "text": "訂單不存在，或是系統有錯誤"
+      },
+      "id": "6fbb7722-3e14-4629-a29e-130b30897407",
+      "name": "訂單不存在，或是系統有錯誤",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3420,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "={{ $('LineWebhook').item.json.event.replyToken }}"
+      },
+      "id": "0a0c16a1-54b5-44a4-9acb-baa41b7a0a35",
+      "name": "回覆訊息",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        4460,
+        1240
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "88196029-f687-4a01-a9ce-dd4e6a37f58a",
+              "leftValue": "={{ $('Get order information').item.json.state }}",
+              "rightValue": "created",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a383dd0d-c9a8-4e11-becd-62a685a41a3f",
+      "name": "檢查訂單是否已經確認過",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2180,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "keyValue": "={{ $json.event.param }}"
+            }
+          ]
+        }
+      },
+      "id": "ad89d2fe-1c61-4ba0-b637-a9a29ceeeb8a",
+      "name": "Get order information1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        1060
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "訂單早已取消或完成"
+      },
+      "id": "15cf4ecf-d78a-4364-8388-68b244215759",
+      "name": "訂單早已取消",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        1420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.param }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "cancelled"
+            }
+          ]
+        }
+      },
+      "id": "016c6dd5-1712-48ba-9b77-de2b7daf9793",
+      "name": "更新訂單資訊-取消",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2800,
+        1740
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event.source.type }}",
+                    "rightValue": "user",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "User"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "02d37e8e-c7eb-4523-ba52-f9a2a89a20e8",
+                    "leftValue": "={{ $json.event.source.type }}",
+                    "rightValue": "group",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Group"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e73bd37e-afbc-4b98-9f67-4715130b2a83",
+      "name": "User還是Group Chat",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1020,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "text": "目前不接受個人私訊喔～"
+      },
+      "id": "dc06d190-3beb-48d5-941a-8b2eb5bdae38",
+      "name": "Reject Private Message",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "text": "已取消您的訂單"
+      },
+      "id": "aa1255b2-0730-4061-9eb1-a9ce79af3967",
+      "name": "訂單已取消",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        1740
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "22277b5b-530e-4191-a794-b7d667fc4503",
+              "leftValue": "={{ $json.message.content.hasAccount }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "11035c9a-eda7-4354-9af7-d183bfad5353",
+      "name": "有訂單號碼嗎?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2920,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.json.order_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "account_number",
+              "fieldValue": "={{ $('提取帳號後五碼').first().json.message.content.account }}"
+            },
+            {
+              "fieldId": "payment_status",
+              "fieldValue": "verifying"
+            }
+          ]
+        }
+      },
+      "id": "6e7554b1-e480-4cea-a01c-5d2b4a18755d",
+      "name": "更新訂單轉帳號碼",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4160,
+        320
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.message.content.message }}"
+      },
+      "id": "29a35894-3363-4edc-b146-6fb93836ae68",
+      "name": "待確認款項後會儘速為您出貨",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        4660,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "={{ $('LineWebhook').first().json.event.replyToken }}"
+      },
+      "id": "bd910faf-b52c-448d-a30c-fafaac8ca384",
+      "name": "回覆確認款項",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        4840,
+        320
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getGroupChatSummary",
+        "groupId": "={{ $json.event.source.groupId }}"
+      },
+      "id": "a1913654-b350-4a3f-b45e-35e352daa661",
+      "name": "Onboarding: Get Group Summary",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        1660
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.message.content.customer_id }}"
+            },
+            {
+              "keyName": "parent_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.message.content.customer_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "line_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.groupId }}"
+            },
+            {
+              "fieldId": "line_group_name",
+              "fieldValue": "={{ $('Onboarding: Get Group Summary').first().json.groupName }}"
+            }
+          ]
+        }
+      },
+      "id": "540ac053-0a19-426f-b28d-8d60a202244d",
+      "name": "Onboarding: Update customer data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        1660
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "line_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.event.source.groupId }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "line_id"
+            }
+          ]
+        }
+      },
+      "id": "22440169-2eeb-4ba9-b135-3c52af78ee04",
+      "name": "Offboarding: Update customer data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1080,
+        1860
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "30c970ec-6034-40cd-b3e6-75d039e5f929",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "=",
+        "targetRecipient": "={{ $('Get Customer Profile').item.json.line_id }}"
+      },
+      "id": "088ff5c6-aa67-4379-8913-658a694eb621",
+      "name": "回覆訊息1",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        2180
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.message.content }}"
+      },
+      "id": "ac327e2d-599f-4a31-9da5-b661fcde9ff0",
+      "name": "確認收到款項",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        2180
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "keyValue": "={{ $json.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "178ae87a-9b83-4f88-9d55-1402a0907dbc",
+      "name": "Get Customer Profile",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        2180
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "keyValue": "={{ $json.body.order_id }}"
+            }
+          ]
+        }
+      },
+      "id": "d3b2a18f-c1c5-4cb3-bceb-cce2c3b45956",
+      "name": "Get Order Details",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        980,
+        2280
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "af286c83-aa68-414c-8b01-87c3aa93c4f5",
+              "leftValue": "={{ $json.paid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c7472247-0809-4149-a3f9-30c5039daabc",
+      "name": "是否已付款?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        2280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get Order Details').item.json.order_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "paid",
+              "fieldValue": "true"
+            },
+            {
+              "fieldId": "paid_at",
+              "fieldValue": "={{ $now }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "completed"
+            }
+          ]
+        }
+      },
+      "id": "074fdacd-8396-4ac2-b515-8f18b2ca9c73",
+      "name": "Update order data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        2180
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "6ad1cf50-cb42-4c71-ab3e-2bec9cac52cb",
+      "name": "No Operation, do nothing1",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        2360
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "orders",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "order_id",
+              "fieldValue": "={{ $('Unique Identity').first().json.identity }}"
+            },
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $('Identify Customer ID').first().json.message.content.customer_id }}"
+            },
+            {
+              "fieldId": "total",
+              "fieldValue": "={{ Math.round(($('判斷訂單資訊').item.json.message.content.total + $('運費與手續費').item.json.shipping_fee + $('運費與手續費').item.json.service_fee) * 1.05) }}"
+            },
+            {
+              "fieldId": "items",
+              "fieldValue": "={{ $('判斷訂單資訊').item.json.message.content.orders || [] }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "created"
+            },
+            {
+              "fieldId": "tax",
+              "fieldValue": "0.05"
+            },
+            {
+              "fieldId": "shipping_fee",
+              "fieldValue": "={{ $('運費與手續費').item.json.shipping_fee }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.id }}"
+            },
+            {
+              "fieldId": "service_fee",
+              "fieldValue": "={{ $('運費與手續費').item.json.service_fee }}"
+            },
+            {
+              "fieldId": "payment_option",
+              "fieldValue": "={{ $('Get customer').first().json.payment_options }}"
+            }
+          ]
+        }
+      },
+      "id": "ad85da9c-f64d-4db4-b81b-9f719e83462b",
+      "name": "登錄訂單資料",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5120,
+        -160
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 前端 Webhook\n接收錢堆的通知，用來更改訂單\n"
+      },
+      "id": "a7272f0f-43c2-457d-a2d0-ee0423fc3ea1",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        740,
+        2440
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "={{ $('LineWebhook').item.json.event.replyToken }}"
+      },
+      "id": "5ff061eb-da02-4ba2-9b36-9e0330bedcc0",
+      "name": "Reply Message1",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        60
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "cdc9e13b-3925-43d1-996f-19755436bd22",
+      "name": "CheckEmpty",
+      "type": "n8n-nodes-checkempty.CheckEmpty",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "6554375a-f777-4338-921c-de206d22a65b",
+      "name": "CheckEmpty3",
+      "type": "n8n-nodes-checkempty.CheckEmpty",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        1060
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c13794b2-843f-4129-b01d-a36f72c69d29",
+      "name": "CheckEmpty4",
+      "type": "n8n-nodes-checkempty.CheckEmpty",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Onboarding 流程\nBot 被加入群組時，從群組名稱判定客戶 ID\n\n## Offboarding 流程\n當 Bot 從群組被移除時，將客戶資料中的 group id 移除\n\n待解:\n[] 客戶有更換 ID 資料，或者加入其他分店",
+        "height": 300.6008552811019
+      },
+      "id": "4fb94f75-5dcd-440f-815e-a0c75b27b808",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "88196029-f687-4a01-a9ce-dd4e6a37f58a",
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "cancelled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "2ff2bae4-96bc-4e1e-992c-cef40980cd34",
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "ba5fd379-9495-46e2-9b1d-4ef505ab2236",
+      "name": "檢查訂單是否已經取消",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2340,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "11aaa7e2-8d46-4720-97a3-a009c3144a10",
+              "leftValue": "={{ $json.message.content.multiple_choices }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "07c3950b-d9d1-4d07-8066-d439cdc0e8ed",
+              "leftValue": "={{ $json.message.content.multiple_choices }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a27c955a-63ee-405c-b5db-e58774eff51f",
+      "name": "判斷是否有多種可能性",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        4020,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 模糊不清的訂單需求\n"
+      },
+      "id": "791df2e8-4e98-41c6-915c-20189d169d2d",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4200,
+        -560
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 用戶回覆轉帳帳號\n",
+        "height": 81.53406408041334
+      },
+      "id": "ee6a74b8-6aaf-413d-82e1-bcf2d5e56e7a",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2620,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "keyValue": "={{ $json.event.params[0] }}"
+            }
+          ]
+        }
+      },
+      "id": "46a6fe3e-8610-4d4f-bb9d-d49be83fd76a",
+      "name": "Get order information5",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        1280
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "51d9ca8a-3e97-4f98-93f2-1bf095e97a4c",
+      "name": "CheckEmpty2",
+      "type": "n8n-nodes-checkempty.CheckEmpty",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9bbbb4a6-fd69-405e-aa0a-41c9652ac922",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "6dda5d96-686b-4db9-85f8-6b9d589586a4",
+              "name": "product_id",
+              "value": "={{ $json.product_id }}",
+              "type": "number"
+            },
+            {
+              "id": "48b4f87b-11ba-4ff5-a5eb-3abe22f641cd",
+              "name": "unit",
+              "value": "={{ $json.unit }}",
+              "type": "string"
+            },
+            {
+              "id": "5ad580e4-5cf9-4bd3-b847-165067851c07",
+              "name": "price",
+              "value": "={{ $json.price }}",
+              "type": "number"
+            },
+            {
+              "id": "97a8234b-d7d7-4bfc-b5cc-db87590f5022",
+              "name": "stock_quantity",
+              "value": "={{ $json.stock_quantity }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "id": "805920fc-d557-4770-b097-f387496b0fcd",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        2880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "AvailableProducts",
+        "returnAll": true,
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "is_active",
+              "condition": "is",
+              "keyValue": "={{ true  }}"
+            },
+            {
+              "keyName": "customer_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "3be475fd-11f4-4bf1-b55f-313e41075861",
+      "name": "Get the product list",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2520,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "你是一個高效的訂單助理，負責從用戶訊息中提取訂單資訊。請仔細閱讀以下指南，判斷根據用戶的訊息中是否有訂單相關資訊。\n\n任務：\n- 識別用戶訊息中是否有存在訂單相關資訊，仔細判斷是否存在商品名稱、數量等等資訊\n- 使用準確的 JSON 格式回覆你的判斷，JSON 內容範例如下:\n\n{\n   \"hasOrders\": true,\n   \"message\": \"用戶訊息內容\"\n}\n\n如果沒有存在訂單資訊，則回傳:\n{\n   \"hasOrders\": false,\n   \"message\": \"用戶訊息內容\"\n}\n\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $('LineWebhook').first().json.event.message.text }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "cb17aa30-3928-440b-a1ad-568e8a124f27",
+      "name": "判斷訊息內有無訂單",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        200
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "d2b5f993-8de1-481e-8773-38d1f3fb29f2",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3060,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.carts",
+        "options": {}
+      },
+      "id": "cc3d20fa-c375-4b09-a546-2ef285a23240",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        3140
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "121b79c1-3fcf-48b7-84d4-8d7d017aa341",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1440,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "view_customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "keyValue": "={{ $('Shop').first().json.body.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "d848dcb5-a901-455b-a6f0-18a2652443e7",
+      "name": "Get Customer",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        2820
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "orders",
+        "options": {}
+      },
+      "id": "949d20e9-b159-4dd2-b767-e3c10c6c1686",
+      "name": "Aggregate1",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "flex",
+        "altText": "請問要訂購商品是 ...",
+        "flexContent": "={\n    \"type\": \"bubble\",\n    \"header\": {\n        \"type\": \"box\",\n        \"layout\": \"baseline\",\n        \"contents\": [\n            {\n                \"type\": \"text\",\n                \"text\": \"確認訂單\",\n                \"size\": \"xl\",\n                \"align\": \"center\",\n                \"weight\": \"bold\",\n                \"scaling\": true\n            }\n        ]\n    },  \n  \"body\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\":  {{ $json.choices }}\n  },\n  \"footer\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"spacing\": \"sm\",\n    \"contents\": {{ $json.paymentOptions }},\n    \"flex\": 0\n  }\n}"
+      },
+      "id": "f2d464ff-dc80-4785-9450-b3c29bc95557",
+      "name": "Flex Message2",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3220,
+        3180
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "=",
+        "targetRecipient": "={{ $('Get Customer').first().json.line_id }}"
+      },
+      "id": "442676c4-bab9-49fd-9f5c-baa35958b394",
+      "name": "回覆訊息2",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        3380,
+        3180
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "f188cab4-c4bb-4dc6-bc6e-9560ebfc7d34",
+              "leftValue": "={{ $json.message.content.customer_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e5c33262-72bd-47e0-a273-83359ac58b81",
+      "name": "判斷有無客戶資料",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1720,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "用戶會提供一些資訊，字串中可能包含一個 customer_id，這個 customer_id 的格式是一個英文字母加上幾個數字所組成。\n從用戶訊息中取出該 customer_id，並以 JSON 格式回傳。\n\n使用者輸入範例:\n\"詠鑠生活 X 技嘉科技 B1204\"\n\n回傳:\n{\n  \"customer_id\": \"B1204\"\n}\n\n如果都找不到 customer_id，則回傳空物件:\n{\n}\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.groupName }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "7a4aa838-7676-44a8-a32f-9fbc12fcf324",
+      "name": "Onboarding: Identify Customer ID",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        1660
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.params[1] }}"
+            }
+          ]
+        }
+      },
+      "id": "9ed8c202-3975-48e3-8626-cf3453541bdd",
+      "name": "Get Customer Info",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2600,
+        2040
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.params[0] }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $('Extract command and order id').item.json.event.params[1] }}"
+            }
+          ]
+        }
+      },
+      "id": "a4540075-c2b3-4998-8c0c-9a8c51a88b9c",
+      "name": "更新訂單資訊-叫貨門店",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        1620
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "view_customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "keyValue": "={{ $json.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "f47b8049-f03f-4c2b-ab88-d179140022dc",
+      "name": "[DB] Get all customers",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2840,
+        940
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "用戶會提供一些資訊，字串中可能包含一個 customer_id，這個 customer_id 的格式是一個英文字母加上幾個數字所組成。\n從用戶訊息中取出該 customer_id，並以 JSON 格式回傳。\n\n使用者輸入範例:\n\"詠鑠生活 X 技嘉科技 B1204\"\n\n回傳:\n{\n  \"customer_id\": \"B1204\"\n}\n\n如果都找不到 customer_id，則回傳空物件:\n{\n}\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.groupName }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "3938f427-7399-41d4-bd62-64b00bf9d3b8",
+      "name": "Identify Customer ID",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        520
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const options = [];\n\nconst order_id = $('Get order information').first().json.order_id;\n\nfor (let customer of $input.first().json.stores) {\n  options.push({\n      \"type\": \"button\",\n      \"style\": \"link\",\n      \"height\": \"md\",\n      \"action\": {\n        \"type\": \"postback\",\n        \"label\": customer.name,\n        \"data\": `confirmStore ${order_id},${customer.customer_id}`,\n        \"displayText\": `我是幫 ${customer.name} 叫貨`\n      }    \n  });\n}\n\nreturn {\n  json: {\n    \"options\": JSON.stringify(options)\n  }\n}"
+      },
+      "id": "8912f1d0-551a-4223-b843-50ff96fdf3fc",
+      "name": "組合多門店選單",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3220,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "flex",
+        "altText": "請問是幫哪間分店叫貨呢?",
+        "flexContent": "={\n  \"type\": \"bubble\",\n  \"header\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"請問是幫哪間分店叫貨?\",\n        \"align\": \"center\"\n      }\n    ]\n  },\n  \"footer\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": {{ $json.options }}\n  }\n}"
+      },
+      "id": "88c5a1ac-ce0a-4f0a-a4b3-e9a4df6700e4",
+      "name": "多門店選單",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3420,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "flex",
+        "altText": "請問是幫哪間分店叫貨呢?",
+        "flexContent": "={\n  \"type\": \"bubble\",\n  \"header\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"請問要怎麼付款呢?\",\n        \"align\": \"center\"\n      }\n    ]\n  },\n  \"footer\": {\n    \"type\": \"box\",\n    \"layout\": \"horizontal\",\n    \"contents\": {{ $json.options }}\n  }\n}"
+      },
+      "id": "b4c6a303-a8aa-418c-9716-32f83e7aaa8f",
+      "name": "付款選單",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        5880,
+        2060
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const order_id = $('Get order information').first().json.order_id;\n\nconst customer = $input.first().json.customers[0];\nreturn {\n  json: {\n    options: JSON.stringify([\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"貨到付款\",\n          \"data\": `payOnReceive ${order_id}`,\n          \"displayText\": `我選擇貨到付款`\n        }              \n      },\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"銀行轉帳\",\n          \"data\": `bankTransfer ${order_id}`,\n          \"displayText\": `我選擇銀行轉帳`\n        }          \n      }\n    ])\n  }\n}"
+      },
+      "id": "af8dd9ad-5d95-4642-8431-6cad9ece6b5b",
+      "name": "組合付款選單",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5720,
+        2060
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "88168c9f-e299-49a1-9912-83e2499cf3cb",
+              "leftValue": "={{ $json.customers[0].payment_options }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a6fe287f-a967-464a-8718-cca6ca7a9484",
+              "leftValue": "={{ $json.customers[0].payment_options }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "7e91b380-6c37-41a5-b6c1-d9e1b8017520",
+              "leftValue": "={{ $json.customers[0].payment_options }}",
+              "rightValue": "monthlyPayment",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "c972034e-9856-471f-ab1a-9c0e2e8debad",
+      "name": "多付費方式?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        5500,
+        2060
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "36b76a58-348d-4f12-a103-e0c33282c437",
+              "leftValue": "={{ $json.customers[0].payment_options }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "70a86bf4-4989-4f31-86e3-6fbb484acadc",
+              "leftValue": "={{ $json.customers[0].payment_options }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e6e8e7ec-7cc0-49ca-9d77-ebe1cef6180b",
+              "leftValue": "=  {{ $json.customers[0].payment_options }}",
+              "rightValue": "monthlyPayment",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "4430844a-6751-4c60-9e81-0f0ddf4316ae",
+      "name": "多付費方式?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        5500,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const order_id = $('Get order information5').first().json.order_id;\n\nreturn {\n  json: {\n    options: JSON.stringify([\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"貨到付款\",\n          \"data\": `payOnReceive ${order_id}`,\n          \"displayText\": `我選擇貨到付款`\n        }              \n      },\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"銀行轉帳\",\n          \"data\": `bankTransfer ${order_id}`,\n          \"displayText\": `我選擇銀行轉帳`\n        }          \n      }\n    ])\n  }\n}"
+      },
+      "id": "166e6e51-b913-44bf-acd4-2eae8e662dda",
+      "name": "組合付款選單1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5720,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "flex",
+        "altText": "請問是幫哪間分店叫貨呢?",
+        "flexContent": "={\n  \"type\": \"bubble\",\n  \"header\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"請問要怎麼付款呢?\",\n        \"align\": \"center\"\n      }\n    ]\n  },\n  \"footer\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": {{ $json.options }}\n  }\n}"
+      },
+      "id": "9625fc27-2ee1-450b-a919-6b62f9625984",
+      "name": "付款選單1",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        5900,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.param }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "confirmed"
+            }
+          ]
+        }
+      },
+      "id": "eda26185-a817-4022-bfb6-386f51f71ad8",
+      "name": "更新訂單狀態",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4120,
+        660
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "orders",
+        "returnAll": true,
+        "filterType": "string",
+        "filterString": "=cancelled.is.false&paid.is.false&{{ $json.filter }}"
+      },
+      "id": "2877fdd6-3dc4-43e4-a491-90340a85ce1f",
+      "name": "Get Unpaid Orders",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3460,
+        200
+      ],
+      "notesInFlow": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      },
+      "notes": "找出該客戶近三日未付款訂單"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "id",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "88f2e14a-74a0-43ea-9de0-e2171a4de669",
+      "name": "Sort",
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        3880,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: $input.first()\n}"
+      },
+      "id": "c77b296e-a267-44ba-b026-1c56c2620071",
+      "name": "Get the latest unpaid order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4020,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "content": "用戶可能會有多個未付訂單\n永遠拿最新的一筆",
+        "height": 84.63701076932782
+      },
+      "id": "b6e38cdd-e7cd-4f44-8fb9-15ef4f3524b0",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5000,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "b5816d59-bb30-4737-9bd0-0df365f084be",
+      "name": "Merge1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1760,
+        2920
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Shop').first().json.body.order_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "total",
+              "fieldValue": "={{ $json.total }}"
+            },
+            {
+              "fieldId": "items",
+              "fieldValue": "={{ $json.items }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "confirmed"
+            },
+            {
+              "fieldId": "shipping_fee",
+              "fieldValue": "={{ $json.shipping_fee }}"
+            },
+            {
+              "fieldId": "service_fee",
+              "fieldValue": "={{ $json.service_fee }}"
+            },
+            {
+              "fieldId": "payment_status",
+              "fieldValue": "pending"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "id": "30809314-f0f0-495c-8ec7-7fcfef46f23e",
+      "name": "登錄訂單資料1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3000,
+        2900
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let total = 0;\nconst orders = $('Aggregate1').first().json.orders;\nconst {shipping_fee, service_fee} = $('運費與手續費1').first().json;\nconst items = [];\nfor (let i = 0; i < orders.length; i++) {\n  const order = orders[i];\n  items.push({\n    \"item\": order[\"name\"], \n    \"id\": order[\"id\"], \n    \"unit_price\": order[\"price\"], \n    \"unit\": order[\"unit\"], \n    \"quantity\": order[\"quantity\"], \n    \"subtotal\": order[\"price\"] * order[\"quantity\"]\n  });\n  total += (order[\"price\"] * order[\"quantity\"]);\n}\ntax = 0.05;\nconst total_with_tax = Math.round((total + shipping_fee + service_fee) * 1.05);\n\nreturn {\n  json: {\n    items,\n    tax,\n    total: total_with_tax,\n    shipping_fee,\n    service_fee,\n  }\n}"
+      },
+      "id": "deccb45f-97f0-41d3-af84-f396adac9020",
+      "name": "重寫訂單內容",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2780,
+        2900
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "keyValue": "={{ $json.body.order_id }}"
+            }
+          ]
+        }
+      },
+      "id": "50747b00-36a4-4693-ac32-344dfce6105b",
+      "name": "Get Order",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        2820
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "8c07a87b-2938-408f-a1e5-508e0fd61469",
+              "leftValue": "={{ $('Get Order').first().json.state }}",
+              "rightValue": "cancelled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "ac79c783-6b5d-41d1-89f6-b3717c1207a2",
+      "name": "訂單是否已取消",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        2920
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "8c07a87b-2938-408f-a1e5-508e0fd61469",
+              "leftValue": "={{ $('Get Order').first().json.paymentStatus }}",
+              "rightValue": "paid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "0a7b7a61-1227-4f6a-bae0-bbc859b4855f",
+      "name": "訂單是否已付款",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "text": "訂單早已被取消，請重新下單"
+      },
+      "id": "35907dac-975f-4adb-95e3-644004b50362",
+      "name": "訂單早已被取消，請重新下單",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        2340
+      ]
+    },
+    {
+      "parameters": {
+        "text": "該筆訂單早已付款完成，請重新下單"
+      },
+      "id": "7def3876-c94a-4528-ad0e-f4b7da524542",
+      "name": "該筆訂單早已付款完成，請重新下單",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        2700
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.message }}",
+        "replyToken": "=",
+        "targetRecipient": "={{ $('Get Customer').first().json.line_id }}"
+      },
+      "id": "a330e6c8-0d3e-482d-981f-cdbce3f2267f",
+      "name": "回覆訊息3",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        3000,
+        2660
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者已經完成轉帳流程，接下來還需要後台人員確認款項是否收到，以及安排後續的出貨。請幫我用短短一兩句話，以比較輕鬆的語氣，先感謝消費者，並稍待工作人員確認款項，款項確認後就會出貨給他。在回覆訊息中，可以帶點 emoji\n並在最後附上訂單連結: 另外附上訂單連結: https://yslc.vercel.app/order/{{ $('Get the latest unpaid order').first().json.json.order_id }}\n\n請不要使用 markdown 語法\n\n請用 json 格式回傳，json範例為:\n\n{\n  message: \"\"\n}\n",
+              "role": "assistant"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "63ade4ad-b642-443e-833b-5ad604b4b0f0",
+      "name": "產生感謝語句",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        4320,
+        320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "88196029-f687-4a01-a9ce-dd4e6a37f58a",
+              "leftValue": "={{ $('Get order information1').first().json.state }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1afeec1d-3e5f-4ffe-8a2e-3fd2d6bfe845",
+      "name": "檢查訂單是否已完成",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2580,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "text": "訂單已經完成，不能取消，如果要緊急更改訂單，請直接聯繫客服"
+      },
+      "id": "c03b3d50-5918-4f57-b541-2f4c6c751cb0",
+      "name": "訂單早已完成",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3040,
+        1580
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "用戶會給你一串訊息，判斷裡面是否有銀行帳號的其中五碼，回傳必須是一個 JSON 格式，如果有帳號資訊，回傳:\n\n{\n   hasAccount: true,\n   account: \"12345\"\n}\n\n如果沒有帳號資訊，回傳:\n\n{\n   hasAccount: false\n}\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.message.content.message }}\n"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "2ac0324c-f278-4221-8332-5e71dbea17aa",
+      "name": "提取帳號後五碼",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        2600,
+        220
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "76cf38dc-6a84-4a06-b4b9-6ba7a75596f0",
+      "name": "No Operation, do nothing3",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "customers",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            },
+            {
+              "keyName": "parent_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "8e59b56a-16f7-4569-bcd9-35de174cfef3",
+      "name": "Get all customer ids",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3120,
+        200
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet filter_str = '';\nfor (const item of $input.all()) {\n  if (item.json.parent_id) {\n    if (filter_str !== '') {\n      filter_str += ',';\n    }\n    filter_str += `customer_id.eq.${item.json.customer_id}`;\n  }\n}\n\nreturn {\n  json: {\n    filter: `or=(${filter_str})`\n  }\n}"
+      },
+      "id": "ccd22132-b4b9-4edd-be19-00535e52282a",
+      "name": "Generate filter for the order query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3300,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.userId }}"
+            },
+            {
+              "fieldId": "group_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.groupId }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $json.message.text }}"
+            },
+            {
+              "fieldId": "user_name",
+              "fieldValue": "bot"
+            },
+            {
+              "fieldId": "type",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.type }}"
+            },
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $json.message.content.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "22ec6ae5-e4d4-4b40-88a4-792fe77326f7",
+      "name": "Log Message1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4680,
+        1240
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "cb7667ad-9a01-4ce1-bddd-5c2265ceaebc",
+      "name": "CheckEmpty5",
+      "type": "n8n-nodes-checkempty.CheckEmpty",
+      "typeVersion": 1,
+      "position": [
+        2680,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "de2d3534-baa1-4689-9308-345e20f63fb4",
+      "name": "No Operation, do nothing2",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2820,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "flex",
+        "altText": "請修改訂單，重新下單....",
+        "flexContent": "={\n  \"type\": \"bubble\",\n  \"header\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"我不是很清楚知道您需要什麼商品，請改以下按鈕來選擇?\",\n        \"wrap\": true\n      }\n    ]\n  },\n  \"footer\": {\n    \"type\": \"box\",\n    \"layout\": \"vertical\",\n    \"contents\": [\n      {\n        \"type\": \"button\",\n        \"action\": {\n          \"type\": \"uri\",\n          \"label\": \"修改訂單，重新下單\",\n          \"uri\": \"{{ `https://yslc.vercel.app/shop/${$execution.mode}/${$('Identify Customer ID').item.json.message.content.customer_id}/${$('Unique Identity').first().json.identity}` }}\"\n        },\n        \"style\": \"primary\"\n      }\n    ]\n  }\n}"
+      },
+      "id": "dd8d59a4-252e-472d-bc1d-0fe556f9e241",
+      "name": "導引到網頁購物車",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        4520,
+        -280
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.content.hasOrders }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "hasOrders"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "4b23be60-00cf-4e88-bdaf-c40be3160430",
+                    "leftValue": "={{ $json.message.content.hasOrders }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "no order"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "31c15a8f-e508-429e-8e80-10797ac52181",
+      "name": "有無訂單資訊",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        2240,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "dfe62870-c1c5-41ce-a24f-c1fbebda3289",
+              "leftValue": "={{ $('判斷訂單資訊').first().json.message.content.orders }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "eb97806e-5916-451a-b8ef-2de8d9a30f85",
+      "name": "Check empty order",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        4200,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "yslc/payment/confirm",
+        "authentication": "headerAuth",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "2679a8cf-1584-4557-b19f-c25aa1c58a37",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        760,
+        2280
+      ],
+      "webhookId": "9605b8a1-46d9-4af2-a964-bafb01818a60",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GMMCbOgdZVMabw3d",
+          "name": "jidou api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "458ce7d2-685b-4d9b-8d1a-cbc7a8a3fd07",
+      "name": "Anthropic Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [
+        3520,
+        -260
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "CNVnygzGE5iTp8fL",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n    \"request\": [\n        {\n            \"item\": \"Chamellia伯爵紅茶-散茶375G\",\n            \"quantity\": 10,\n            \"unit\": \"箱\"\n        }\n    ],\n    \"orders\": [\n        {\n            \"item\": \"Chamellia伯爵紅茶-散茶375G\",\n            \"id\": 23016,\n            \"unit_price\": 8000,\n            \"unit\": \"箱\",\n            \"quantity\": 10,\n            \"subtotal\": 80000\n        }\n    ],\n    \"total\": 12000\n}"
+      },
+      "id": "94ed4af4-e532-451a-82be-a1e87bdfbdf7",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3680,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "view_customers",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "customer_id",
+              "keyValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "95f956d4-5479-420c-b0e4-4cca27a43a1c",
+      "name": "Get customer",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3060,
+        -200
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const retData = {}\nconst choices = [];\nconst options = [];\n\n//const message_id = $('LineWebhook').first().json.event.message.id;\nconst response = $('判斷訂單資訊').first().json.message.content;\nconst order_id = $('Unique Identity').first().json.identity;\n\nconst orders = response.orders;\nfor (let i = 0; i < orders.length; i++) {\n  let order = orders[i];\n\n  choices.push({\n    \"type\": \"box\",\n    \"layout\": \"baseline\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": order[\"item\"],\n        \"size\": \"sm\",\n        \"wrap\": true\n      },\n      {\n        \"type\": \"text\",\n        \"text\": (order[\"quantity\"] ?? \"\") + (order[\"unit\"] ?? \"\"),\n        \"align\": \"end\",\n        \"size\": \"sm\"\n      }\n    ]\n  })\n}\n\noptions.push({\n  \"type\": \"text\",\n  \"align\": \"center\",\n  \"wrap\": true,\n  \"size\": \"md\",\n  \"text\": \"請確認訂單是否正確?\"\n});\n\noptions.push({\n  \"type\": \"button\",\n  \"style\": \"primary\",\n  \"height\": \"sm\",\n  \"action\": {\n      \"type\": \"postback\",\n      \"label\": \"正確，確認訂單!\",\n      \"data\": `confirm_order ${order_id}`,\n      \"displayText\": \"正確，確認訂單!\"\n  }\n});\n\noptions.push(\n  {\n    \"type\": \"button\",\n    \"style\": \"secondary\",\n    \"height\": \"sm\",\n    \"action\": {\n      \"type\": \"uri\",\n      \"label\": \"需要修改重新下單\",\n      \"uri\": `https://yslc.vercel.app/shop/${$execution.mode}/${$('Identify Customer ID').item.json.message.content.customer_id}/${order_id}`\n    }\n  }\n);\noptions.push(\n  {\n    \"type\": \"button\",\n    \"style\": \"secondary\",\n    \"height\": \"sm\",\n    \"action\": {\n      \"type\": \"postback\",\n      \"label\": \"取消訂單，下次再買\",\n      \"data\": `cancel_order ${order_id}`,\n      \"displayText\": \"取消訂單，下次再買\"\n    }\n  }\n);\n\n\nretData[\"paymentOptions\"] = JSON.stringify(options);\nretData['choices'] = JSON.stringify(choices);\n\n\nreturn [ {json: retData} ];"
+      },
+      "id": "8c99b6ad-a6ba-44a7-99ea-aa07d23b18cd",
+      "name": "組合訂單內容 - 月結",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4860,
+        0
+      ],
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const retData = {}\nconst choices = [];\nconst options = [];\n\n//const message_id = $('LineWebhook').first().json.event.message.id;\nconst order_id = $('Unique Identity').first().json.identity;\nconst additional_fee = $('運費與手續費').first().json;\nconst response = $('判斷訂單資訊').first().json.message.content;\nconst orders = response.orders;\nfor (let i = 0; i < orders.length; i++) {\n  let order = orders[i];\n\n  choices.push({\n    \"type\": \"box\",\n    \"layout\": \"baseline\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": order[\"item\"],\n        \"size\": \"sm\",\n        \"wrap\": true\n      },\n      {\n        \"type\": \"text\",\n        \"text\": (order[\"quantity\"] ?? \"\") + (order[\"unit\"] ?? \"\"),\n        \"align\": \"end\",\n        \"size\": \"sm\"\n      },\n      {\n        \"type\": \"text\",\n        \"text\": Number(order[\"subtotal\"]).toLocaleString(),\n        \"align\": \"end\",\n        \"size\": \"sm\"\n      }\n    ]\n  })\n}\nconst shipping_fee = additional_fee.shipping_fee;\nconst service_fee = additional_fee.service_fee;\n\nconst contents = [\n    {\n      \"type\": \"separator\",\n      \"margin\": \"xxl\"\n    },\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"小計\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(response[\"total\"]).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n    },\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"運費\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(shipping_fee).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n    },\n];\n\nif (service_fee > 0) {\n  contents.push({\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"貨到付款手續費\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(service_fee).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n  })\n}\n\ncontents.push({\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"稅金\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": \"(5%)\",\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(Math.round((response[\"total\"] + shipping_fee + service_fee) * 0.05)).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]  \n});\n\ncontents.push({\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"總金額(含稅)\",\n          \"size\": \"md\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(Math.round((response[\"total\"] + shipping_fee + service_fee) *1.05)).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"md\"\n        }\n      ],\n      \"margin\": \"xl\"  \n});\n\nchoices.push({\n  \"type\": \"box\",\n  \"layout\": \"vertical\",\n  \"contents\": contents\n});\n\n\noptions.push({\n  \"type\": \"text\",\n  \"align\": \"center\",\n  \"wrap\": true,\n  \"size\": \"md\",\n  \"text\": \"請確認訂單是否正確?\"\n});\n\noptions.push({\n  \"type\": \"button\",\n  \"style\": \"primary\",\n  \"height\": \"sm\",\n  \"action\": {\n      \"type\": \"postback\",\n      \"label\": \"正確，確認訂單!\",\n      \"data\": `confirm_order ${order_id}`,\n      \"displayText\": \"正確，確認訂單!\"\n  }\n});\n\noptions.push(\n  {\n    \"type\": \"button\",\n    \"style\": \"secondary\",\n    \"height\": \"sm\",\n    \"action\": {\n      \"type\": \"uri\",\n      \"label\": \"需要修改重新下單\",\n      \"uri\": `https://yslc.vercel.app/shop/${$execution.mode}/${$('Identify Customer ID').item.json.message.content.customer_id}/${order_id}`\n    }\n  }\n);\noptions.push(\n  {\n    \"type\": \"button\",\n    \"style\": \"secondary\",\n    \"height\": \"sm\",\n    \"action\": {\n      \"type\": \"postback\",\n      \"label\": \"取消訂單，下次再買\",\n      \"data\": `cancel_order ${order_id}`,\n      \"displayText\": \"取消訂單，下次再買\"\n    }\n  }\n);\n\n\nretData[\"paymentOptions\"] = JSON.stringify(options);\nretData['choices'] = JSON.stringify(choices);\n\n\nreturn [ {json: retData} ];"
+      },
+      "id": "7fd0c650-9112-4f3b-a3b7-363934e2cb92",
+      "name": "組合訂單內容 - 其他",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4860,
+        160
+      ],
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "97d39b20-5204-4381-9000-1b4b4cddcd7e",
+              "leftValue": "={{ $('Get customer').first().json.payment_options }}",
+              "rightValue": "monthlyPayment",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2d6d238a-dfac-41bb-a16e-4f3cd48cee3a",
+      "name": "判斷月結客戶",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        4640,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "f9ffab4a-f296-42f1-9d1d-b77c498bac25",
+              "leftValue": "={{ $('Merge1').first().json.payment_options }}",
+              "rightValue": "monthlyPayment",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ca667154-ff04-4711-b251-1ed4ee06f9a7",
+      "name": "判斷月結客戶1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2740,
+        3280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const retData = {}\nconst choices = [];\nconst options = [];\n\nconst stores = $('Merge1').first().json.stores;\nconst customer = $('Merge1').first().json;\n\nlet total = 0;\nconst order_id = $('Shop').first().json.body.order_id;\nconst orders = $('Merge1').first().json.orders;\nfor (let i = 0; i < orders.length; i++) {\n  let order = orders[i];\n\n  let subtotal = order[\"unit_price\"] * order[\"quantity\"];\n  total += subtotal;\n  choices.push({\n    \"type\": \"box\",\n    \"layout\": \"baseline\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": order[\"name\"],\n        \"size\": \"sm\",\n        \"wrap\": true\n      },\n      {\n        \"type\": \"text\",\n        \"text\": (order[\"quantity\"] ?? \"\") + (order[\"unit\"] ?? \"\"),\n        \"align\": \"end\",\n        \"size\": \"sm\"\n      }\n    ]\n  })\n}\n\nif (stores.length > 1) {\n  options.push({\n    \"type\": \"text\",\n    \"align\": \"center\",\n    \"wrap\": true,\n    \"size\": \"xs\",\n    \"text\": \"如果確認無誤的話，請選擇是幫哪間分店叫貨?\"\n  });\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"secondary\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"uri\",\n          \"label\": \"修改訂單\",\n          \"uri\": `https://yslc.vercel.app/shop/${$execution.mode}/${customer.customer_id}/${order_id}`\n        }        \n      }\n    );\n\n  for (const store of stores) {\n    options.push({\n      \"type\": \"button\",\n      \"style\": \"link\",\n      \"height\": \"md\",\n      \"action\": {\n        \"type\": \"postback\",\n        \"label\": store.name,\n        \"data\": `confirmStore ${order_id},${store.customer_id}`,\n        \"displayText\": `我是幫 ${store.name} 叫貨`\n      }\n    });\n  }\n} else {\n\n  if (customer && \n      (customer.payment_option === null || \n       customer.payment_option === undefined || \n       customer.payment_option === '')) \n  {\n    options.push({\n      \"type\": \"text\",\n      \"align\": \"center\",\n      \"wrap\": true,\n      \"size\": \"sm\",\n      \"text\": \"如果確認無誤的話，請選擇付款方式?\"\n    });\n\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"貨到付款\",\n          \"data\": `payOnReceive ${order_id}`,\n          \"displayText\": `我選擇貨到付款`\n        }              \n      }\n    );\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"銀行轉帳\",\n          \"data\": `bankTransfer ${order_id}`,\n          \"displayText\": `我選擇銀行轉帳`\n        }          \n      }\n    );\n\n  } else {\n    options.push({\n      \"type\": \"text\",\n      \"wrap\": true,\n      \"align\": \"center\",\n      \"size\": \"sm\",\n      \"text\": \"如果確認無誤的話，直接按確認即可。\"\n    });\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"secondary\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"uri\",\n          \"label\": \"修改訂單\",\n          \"uri\": `https://yslc.vercel.app/shop/${$execution.mode}/${customer.customer_id}/${order_id}`\n        }        \n      }\n    );\n\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"確認\",\n          \"data\": `confirm_order ${order_id}`\n        }\n      });\n  }\n}\n\nretData[\"paymentOptions\"] = JSON.stringify(options);\nretData['choices'] = JSON.stringify(choices);\n\n\nreturn [ {json: retData} ];"
+      },
+      "id": "5a593bac-88c8-4774-8c69-72cff67712e7",
+      "name": "組合訂單內容 - 月結1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3000,
+        3100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const retData = {}\nconst choices = [];\nconst options = [];\n\nconst stores = $('Merge1').first().json.stores;\nconst customer = $('Merge1').first().json;\n\n\nlet total = 0;\nconst order_id = $('Shop').first().json.body.order_id;\nconst orders = $('Merge1').first().json.orders;\nconst {shipping_fee, service_fee} = $('運費與手續費1').first().json;\n\nfor (let i = 0; i < orders.length; i++) {\n  let order = orders[i];\n\n  let subtotal = order[\"unit_price\"] * order[\"quantity\"];\n  total += subtotal;\n  choices.push({\n    \"type\": \"box\",\n    \"layout\": \"baseline\",\n    \"contents\": [\n      {\n        \"type\": \"text\",\n        \"text\": order[\"name\"],\n        \"size\": \"sm\",\n        \"wrap\": true\n      },\n      {\n        \"type\": \"text\",\n        \"text\": (order[\"quantity\"] ?? \"\") + (order[\"unit\"] ?? \"\"),\n        \"align\": \"end\",\n        \"size\": \"sm\"\n      },\n      {\n        \"type\": \"text\",\n        \"text\": (order[\"unit_price\"] * order[\"quantity\"]).toLocaleString(),\n        \"align\": \"end\",\n        \"size\": \"sm\"\n      }\n    ]\n  })\n}\n\ncontents = [\n    {\n      \"type\": \"separator\",\n      \"margin\": \"xxl\"\n    },\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"小計\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(total).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n    },\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"運費\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(shipping_fee).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n    },  \n];\n\nif (service_fee > 0) {\n  contents.push(\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"貨到付款手續費\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(service_fee).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n});\n}\n\ncontents.push(...[\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"稅金\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": \"(5%)\",\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Number(Math.round((total + shipping_fee + service_fee) * 0.05)).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"sm\"\n        }\n      ]\n    },\n    {\n      \"type\": \"box\",\n      \"layout\": \"horizontal\",\n      \"contents\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"總金額\",\n          \"size\": \"md\"\n        },\n        {\n          \"type\": \"text\",\n          \"text\": Math.round((total + shipping_fee + service_fee) * 1.05).toLocaleString(),\n          \"align\": \"end\",\n          \"size\": \"md\"\n        }\n      ],\n      \"margin\": \"xl\"\n    },\n]);\n\n\nchoices.push({\n  \"type\": \"box\",\n  \"layout\": \"vertical\",\n  \"contents\": contents\n});\n\n\nif (stores.length > 1) {\n  options.push({\n    \"type\": \"text\",\n    \"align\": \"center\",\n    \"wrap\": true,\n    \"size\": \"xs\",\n    \"text\": \"如果確認無誤的話，請選擇是幫哪間分店叫貨?\"\n  });\n  options.push(\n    {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"uri\",\n          \"label\": \"修改訂單\",\n          \"uri\": `https://yslc.vercel.app/shop/${$execution.mode}/${customer.customer_id}/${order_id}`\n        }        \n      }\n  );\n\n  for (const store of stores) {\n    options.push({\n      \"type\": \"button\",\n      \"style\": \"link\",\n      \"height\": \"md\",\n      \"action\": {\n        \"type\": \"postback\",\n        \"label\": store.name,\n        \"data\": `confirmStore ${order_id},${store.customer_id}`,\n        \"displayText\": `我是幫 ${store.name} 叫貨`\n      }\n    });\n  }\n} else {\n  if (customer && \n      (customer.payment_option === null || \n       customer.payment_option === undefined || \n       customer.payment_option === '')) \n  {\n    options.push({\n      \"type\": \"text\",\n      \"align\": \"center\",\n      \"wrap\": true,\n      \"size\": \"sm\",\n      \"text\": \"如果確認無誤的話，請選擇付款方式?\"\n    });\n\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"貨到付款\",\n          \"data\": `payOnReceive ${order_id}`,\n          \"displayText\": `我選擇貨到付款`\n        }              \n      }\n    );\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"銀行轉帳\",\n          \"data\": `bankTransfer ${order_id}`,\n          \"displayText\": `我選擇銀行轉帳`\n        }          \n      }\n    );\n\n  } else {\n    options.push({\n      \"type\": \"text\",\n      \"wrap\": true,\n      \"align\": \"center\",\n      \"size\": \"sm\",\n      \"text\": \"如果確認無誤的話，直接按確認即可。\"\n    });\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"secondary\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"uri\",\n          \"label\": \"修改訂單\",\n          \"uri\": `https://yslc.vercel.app/shop/${$execution.mode}/${customer.customer_id}/${order_id}`\n        }        \n      }\n    );\n\n    options.push(\n      {\n        \"type\": \"button\",\n        \"style\": \"link\",\n        \"height\": \"md\",\n        \"action\": {\n          \"type\": \"postback\",\n          \"label\": \"確認\",\n          \"data\": `confirm_order ${order_id}`\n        }\n      });\n  }\n}\n\nretData[\"paymentOptions\"] = JSON.stringify(options);\nretData['choices'] = JSON.stringify(choices);\n\n\nreturn [ {json: retData} ];"
+      },
+      "id": "66db4ee2-af16-4daf-b6a7-4647408fc470",
+      "name": "組合訂單內容 - 其他1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3000,
+        3360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "AvailableProducts",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "product_id",
+              "keyValue": "={{ $json.product_id }}"
+            },
+            {
+              "keyName": "customer_id",
+              "keyValue": "={{ $('Shop').item.json.body.customer_id }}"
+            }
+          ]
+        }
+      },
+      "id": "3e2b057e-7752-4ac9-b770-d7ce9bc9c5e7",
+      "name": "Get Customer Products",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        3000
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getGroupChatMemberProfile",
+        "groupId": "={{ $('LineWebhook').first().json.event.source.groupId }}",
+        "userId": "={{ $('LineWebhook').first().json.event.source.userId }}"
+      },
+      "id": "4359fb00-0a60-4c92-a5e6-1713a0f34395",
+      "name": "Get Line Group User Profile1",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        4760,
+        -160
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.userId }}"
+            },
+            {
+              "fieldId": "group_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.groupId }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.text }}"
+            },
+            {
+              "fieldId": "user_name",
+              "fieldValue": "={{ $json.displayName }}"
+            },
+            {
+              "fieldId": "group_name",
+              "fieldValue": "={{ $('Get Group Summary').item.json.groupName }}"
+            },
+            {
+              "fieldId": "type",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.type }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.id }}"
+            },
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            },
+            {
+              "fieldId": "user_profile_url",
+              "fieldValue": "={{ $json.pictureUrl }}"
+            }
+          ]
+        }
+      },
+      "id": "7feeee60-b865-4d28-9f41-a9f0c54f1be1",
+      "name": "Log Message2",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4940,
+        -160
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $('判斷訂單資訊').first().json.message.content;\nconst orders = response.orders;\n\nlet multiple_items = true;\nfor (const order of orders) {\n  if (order.quantity >= 2) {\n    multiple_items = true;\n    break;\n  }\n}\n\nconst total = response['total'];\nconst shipping_fee = (total > 3500 || multiple_items) ? 0 : 150;\nconst customer = $('Get customer').first().json;\n\nlet service_fee = 0;\nif (customer.payment_options.includes('payOnReceive')) {\n  if (total <= 5000 ) {\n    service_fee = 50;\n  } else if (total <= 10000 && total > 5000) {\n    service_fee = 100;\n  } else if (total <= 15000 && total > 10000) {\n    service_fee = 150;\n  }\n}\n\nreturn [ {json: {\n  shipping_fee,\n  service_fee\n}} ];\n"
+      },
+      "id": "a26359f5-72ec-481c-87ef-f85e83e286c9",
+      "name": "運費與手續費",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4420,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.stores }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "array",
+                      "operation": "lengthGt",
+                      "rightType": "number"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "multiple customers"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "ec5a6912-0c7e-404e-b007-60ac90889364",
+                    "leftValue": "={{ $json.stores }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "array",
+                      "operation": "lengthEquals",
+                      "rightType": "number"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "single customers"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b5a62638-89db-489a-a4d6-c79506f99976",
+      "name": "多門店還是單一門店",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        3000,
+        940
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders = $('Aggregate1').first().json.orders;\nlet total = 0;\nlet multiple_items = true;\n\nfor (const order of orders) {\n  if (order.quantity >= 2) {\n    multiple_items = true;\n  }\n  total += (order[\"price\"] * order[\"quantity\"]);\n}\n\nconst shipping_fee = (total > 3500 || multiple_items) ? 0 : 150;\nlet service_fee = 0;\nconst customer = $('Get Customer').first().json;\nif (customer.payment_options.includes('payOnReceive')) {\n  if (total <= 5000 ) {\n    service_fee = 50;\n  } else if (total <= 10000 && total > 5000) {\n    service_fee = 100;\n  } else if (total <= 15000 && total > 10000) {\n    service_fee = 150;\n  }\n}\nreturn [ {json: {\n  shipping_fee,\n  service_fee\n}} ];\n"
+      },
+      "id": "29c73cdf-38e7-48ad-a69e-83a852917717",
+      "name": "運費與手續費1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2280,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "yslc/shop",
+        "authentication": "headerAuth",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "e24bdc9f-66de-4c46-88b0-f81d2c5ec072",
+      "name": "Shop",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        800,
+        2960
+      ],
+      "webhookId": "9605b8a1-46d9-4af2-a964-bafb01818a60",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GMMCbOgdZVMabw3d",
+          "name": "jidou api key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者選擇要用銀行轉帳的方式來付款，客戶需付款金額為 {{ $json.total }} 元，請幫我用短短一兩句話，並請消費者於轉帳付款總金額後，回報帳號後五碼，好方便工作人員確認付款，待確認付款後會立即出貨。 請用輕鬆的口吻，搭配一些 emoji 回答即可。",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f63c3e60-8f16-4360-9f9c-5ae54ae776b5",
+      "name": "產生回覆: 輸入轉帳後五碼",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3420,
+        1260
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者選擇要用銀行轉帳的方式來付費，目前工作人員已經確認收到客戶的付款，請幫我用短短一兩句話，告知消費者付款已完成，會立即出貨。請用輕鬆的口吻回覆，搭配一些 emoji。\n另外附上訂單連結: https://yslc.vercel.app/order/{{ $('Webhook').first().json.body.order_id }}\n",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5c5dbd2e-4841-440c-b3b1-5b3e1a253b8c",
+      "name": "產生回覆: 確認收到款項",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1700,
+        2180
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "3a4efc62-5359-470b-95d0-0e648be3b297",
+      "name": "No Operation, do nothing4",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.message.content }}"
+      },
+      "id": "b9518642-a26c-46aa-ab74-a5a74e23c078",
+      "name": "AI 訊息回覆",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3780,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.message.content }}"
+      },
+      "id": "5f322635-1288-4fce-918d-db2c1fe1c1b2",
+      "name": "AI 訊息回覆1",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        3580,
+        2040
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.param }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "confirmed"
+            },
+            {
+              "fieldId": "payment_status",
+              "fieldValue": "pending"
+            }
+          ]
+        }
+      },
+      "id": "665c7d6f-dc1c-4fb4-bf14-05a293dfb83b",
+      "name": "更新訂單狀態1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3720,
+        2260
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getGroupChatMemberProfile",
+        "groupId": "={{ $('LineWebhook').first().json.event.source.groupId }}",
+        "userId": "={{ $('LineWebhook').first().json.event.source.userId }}"
+      },
+      "id": "154dbd0e-2bb5-4563-b68c-9e7161969495",
+      "name": "Get Line Group User Profile",
+      "type": "n8n-nodes-linewebhook.LineMessaging",
+      "typeVersion": 1,
+      "position": [
+        4760,
+        -440
+      ],
+      "credentials": {
+        "lineMessagingAuthApi": {
+          "id": "AkLKwqLCIyGy5bgy",
+          "name": "[Bot] 詠鑠訂單小幫手 (access token)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.userId }}"
+            },
+            {
+              "fieldId": "group_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.source.groupId }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.text }}"
+            },
+            {
+              "fieldId": "user_name",
+              "fieldValue": "={{ $json.displayName }}"
+            },
+            {
+              "fieldId": "group_name",
+              "fieldValue": "={{ $('Get Group Summary').item.json.groupName }}"
+            },
+            {
+              "fieldId": "type",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.type }}"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.id }}"
+            },
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $('Identify Customer ID').item.json.message.content.customer_id }}"
+            },
+            {
+              "fieldId": "user_profile_url",
+              "fieldValue": "={{ $json.pictureUrl }}"
+            }
+          ]
+        }
+      },
+      "id": "452c4bee-438c-4524-b867-e5230a4b17d3",
+      "name": "Log Message3",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4920,
+        -440
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "orders",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "order_id",
+              "fieldValue": "={{ $('Unique Identity').first().json.identity }}"
+            },
+            {
+              "fieldId": "customer_id",
+              "fieldValue": "={{ $('Identify Customer ID').first().json.message.content.customer_id }}"
+            },
+            {
+              "fieldId": "items",
+              "fieldValue": "={{ [] }}"
+            },
+            {
+              "fieldId": "state",
+              "fieldValue": "created"
+            },
+            {
+              "fieldId": "tax",
+              "fieldValue": "0.05"
+            },
+            {
+              "fieldId": "message_id",
+              "fieldValue": "={{ $('LineWebhook').item.json.event.message.id }}"
+            },
+            {
+              "fieldId": "payment_option",
+              "fieldValue": "={{ $('Get customer').first().json.payment_options }}"
+            }
+          ]
+        }
+      },
+      "id": "d134673d-7f8c-4426-9e1e-2e74bbb52d71",
+      "name": "登錄訂單資料2",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        5120,
+        -440
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個高效的訂單助理，負責從用戶訊息中提取訂單資訊。請仔細閱讀以下指南，根據用戶的訊息中創建訂詳情。\n\n任務：\n- 識別用戶訊息中的訂單資訊，仔細判斷商品名稱，計量單位，數量等等資訊\n- 以下會提供目前所有在銷售中的商品列表，你必須根據用戶的資訊，從中找出匹配的項目\n- 從所有匹配的商品中，找到有相同單位的項目，並依據訂單中的數量，計算每個訂單的小計 (數量 * 單價)，以及結算最後的總金額\n- 最後以精確的 JSON 格式返回所有資訊，內容必須包括每個訂單的商品名稱 (item)，編號(id)、單位(unit)，單價(unit_price)，數量(quantity)，小計(subtotal)，以及訂單總金額 (total)。\n\n全部銷售商品列表：\n\n{{ JSON.stringify($json.data, null, 2) }}\n\n請務必遵循 JSON 格式規範，確保所有欄位名稱和數據類型的準確無誤。\n\n\n例如用戶輸入「Chamellia伯爵紅茶-散茶375G 十箱」，回覆範例:\n\n{\n  \"request\": [\n    {\n      \"item\": \"Chamellia伯爵紅茶-散茶375G\",\n      \"quantity\": 10,\n      \"unit\": \"箱\"\n    }\n  ],\n  \"orders\": [ {\"item\": \"Chamellia伯爵紅茶-散茶375G\", \"id\": 23016, \"unit_price\": 8000, \"unit\": \"箱\", \"quantity\": 10, \"subtotal\": 80000} ],\n  \"total\": 12000,\n}\n\n如果用戶所提供的資訊中，若該商品有不同的口味，你無法判斷使用者是想要哪種口味時，請使用另外一個欄位 multiple_choices，值為 true\n\n例如用戶輸入 「椰子水*2」，因為銷售商品中椰子水有三種，你無法判定是哪一種，所以回傳:\n\n{\n  \"multiple_choices\": true\n} \n\n例如用戶輸入 「薄荷茶 *2」，因為銷售商品中薄荷茶也有三種，你無法判定是哪一種，所以回傳：\n\n{\n  \"multiple_choices\": true\n}",
+              "role": "=system"
+            },
+            {
+              "content": "={{ $('LineWebhook').first().json.event.message.text }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "bca153f1-4a35-4a57-be8c-fd08070f9d63",
+      "name": "判斷訂單資訊-OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3480,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 轉換不同 AI 的 Output\n\nfor (const item of $input.all()) {\n  if (item.json.output) {\n    item.json.message = {\n      content: item.json.output\n    };\n  }\n}\n\n\nreturn $input.all();"
+      },
+      "id": "f653c974-1812-454c-b04f-6b4172ba1d89",
+      "name": "判斷訂單資訊",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3860,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.param }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "pendingShipment"
+            },
+            {
+              "fieldId": "payment_status",
+              "fieldValue": "pending"
+            }
+          ]
+        }
+      },
+      "id": "5051465d-6c38-45fe-a8ef-889f5e62aae7",
+      "name": "更新訂單狀態2",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3720,
+        1820
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.param }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "pendingShipment"
+            },
+            {
+              "fieldId": "payment_option",
+              "fieldValue": "pending"
+            }
+          ]
+        }
+      },
+      "id": "6d1241ad-d58b-425d-92aa-75f03a969d25",
+      "name": "更新訂單狀態3",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4120,
+        900
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event.command }}",
+                    "rightValue": "confirm_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "確認訂單"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "c313bd40-9d43-4f4a-b525-7afd1753709f",
+                    "leftValue": "={{ $json.event.command }}",
+                    "rightValue": "cancel_order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "取消訂單"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "2ab2a8dc-6516-478f-935b-4ac47d32e1d5",
+                    "leftValue": "={{ $json.event.command }}",
+                    "rightValue": "confirmStore",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "確認們店"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7536c273-ea9a-42e7-b41d-e3696d237369",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1340,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "orders",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "order_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Extract command and order id').item.json.event.param }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "state",
+              "fieldValue": "confirmed"
+            },
+            {
+              "fieldId": "payment_status",
+              "fieldValue": "pending"
+            }
+          ]
+        }
+      },
+      "id": "9dca08f5-052a-4a76-bc84-a80a3234c3a8",
+      "name": "更新訂單狀態4",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3960,
+        1500
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "9CHzpfOCozae9pl6",
+          "name": "YSLC Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "8c07a87b-2938-408f-a1e5-508e0fd61469",
+              "leftValue": "={{ $('Get Order').first().json.state }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "034798b9-a897-446f-b410-a4da6127f5d1",
+      "name": "訂單是否已完成",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        2980
+      ]
+    },
+    {
+      "parameters": {
+        "text": "訂單已經結束，請重新下單"
+      },
+      "id": "553627f4-e439-4320-9bc5-3416456ea973",
+      "name": "訂單已經結束，請重新下單",
+      "type": "n8n-nodes-linewebhook.LineMessageNode",
+      "typeVersion": 1,
+      "position": [
+        2780,
+        2520
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Get order information').item.json.payment_option }}",
+                    "rightValue": "monthlyPayment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "月費"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "0152d128-1054-4ace-bf69-3e000435a2e1",
+                    "leftValue": "={{ $('Get order information').item.json.payment_option }}",
+                    "rightValue": "payOnReceive",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "貨到付款"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "2903de14-d2d2-4ea9-b04a-8416ff0e1389",
+                    "leftValue": "={{ $('Get order information').item.json.payment_option }}",
+                    "rightValue": "bankTransfer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "轉帳"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d586cb7f-8bc9-4802-b250-155771854adc",
+      "name": "Payment Option",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        3220,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Get order information5').item.json.payment_option }}",
+                    "rightValue": "monthlyPayment",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "月費"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "0152d128-1054-4ace-bf69-3e000435a2e1",
+                    "leftValue": "={{ $('Get order information5').item.json.payment_option }}",
+                    "rightValue": "payOnReceive",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "貨到付款"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "2903de14-d2d2-4ea9-b04a-8416ff0e1389",
+                    "leftValue": "={{ $('Get order information5').item.json.payment_option }}",
+                    "rightValue": "bankTransfer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "轉帳"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a4f7bee6-a27e-4322-ba30-f88fb81908ca",
+      "name": "Payment Option1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        2820,
+        2040
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者訂單已完成，請幫我用短短一兩句話，請用輕鬆的口吻回覆，搭配一些 emoji，告知消費者會立即出貨。\n另外附上訂單連結: https://yslc.vercel.app/order/{{ $('Extract command and order id').item.json.event.params[0] }}\n\n請不要使用 markdown 語法",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e74d9721-b8e6-4def-be3f-b9e607cacc2c",
+      "name": "產生回覆: 請等待出貨3",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3200,
+        1920
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者採用貨到付款，請幫我用短短一兩句話，告知消費者會立即出貨，並請消費者在收到貨時，將款項交給司機。請用輕鬆的口吻回覆，搭配一些 emoji。\n另外附上訂單連結: https://yslc.vercel.app/order/{{ $('Extract command and order id').item.json.event.params[0] }}\n\n請不要使用 markdown 語法",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "902176c7-4d71-4573-97e2-906c2be51664",
+      "name": "產生回覆: 請等待出貨2",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3200,
+        2040
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者選擇要用銀行轉帳的方式來付款，客戶需付款金額為 {{ $('Get order information5').item.json.total }} 元，請幫我用短短一兩句話，並請消費者於轉帳付款總金額後，回報帳號後五碼，好方便工作人員確認付款，待確認付款後會立即出貨。 請用輕鬆的口吻，搭配一些 emoji 回答即可。",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "539917c1-ddfb-4128-b6e1-c4c513bd7627",
+      "name": "產生回覆: 輸入轉帳後五碼1",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3200,
+        2160
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者訂單已完成，請幫我用短短一兩句話，請用輕鬆的口吻回覆，搭配一些 emoji，告知消費者會立即出貨。\n另外附上訂單連結: https://yslc.vercel.app/order/{{ $('Extract command and order id').item.json.event.params[0] }}\n\n請不要使用 markdown 語法",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7d85d8f8-d012-4e2d-9b8e-2d9fbc13333c",
+      "name": "產生回覆: 請等待出貨1",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3420,
+        980
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個客服人員，我們在一個與消費者的對話當中，目前消費者採用貨到付款，請幫我用短短一兩句話，告知消費者會立即出貨，並請消費者在收到貨時，將款項交給司機。請用輕鬆的口吻回覆，搭配一些 emoji。\n另外附上訂單連結: https://yslc.vercel.app/order/{{ $('Extract command and order id').item.json.event.params[0] }}\n\n請不要使用 markdown 語法",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5a66f6ab-76e2-4359-bdb5-db30b36be568",
+      "name": "產生回覆: 請等待出貨",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        3420,
+        1120
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/yslc_order.json",
+        "options": {}
+      },
+      "id": "9f9b64a1-b6ba-4e95-9bd9-8a518a6fa8fa",
+      "name": "Read/Write Files from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2700,
+        -740
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "id": "b79dced1-40be-447d-be82-abd622f163bc",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        -740
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "id": "e19d863f-bcc3-46ef-9c16-844e4ff1c72f",
+      "name": "Convert to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        3240,
+        -740
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/yslc_order.json",
+        "options": {}
+      },
+      "id": "2dae015b-48a7-4de7-b7d9-5321548f4c51",
+      "name": "Read/Write Files from Disk1",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3420,
+        -740
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "id": "2bd982fa-0410-4692-92d4-6fe4f9d3e234",
+      "name": "Merge2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        3300,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('LineWebhook').first().json.event.message.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=你是一個高效的訂單助理，負責從用戶訊息中提取訂單資訊。\n請仔細閱讀以下指南，根據用戶的訊息中創建訂詳情。  \n\n任務： \n- 識別用戶訊息中的訂單資訊，仔細判斷商品名稱，計量單位，數量等等資訊 \n- 以下會提供目前所有在銷售中的商品列表，你必須根據用戶的資訊，從中找出匹配的項目 \n- 從所有匹配的商品中，找到有相同單位的項目，並依據訂單中的數量，計算每個訂單的小計 (數量 * 單價)，以及結算最後的總金額 \n- 最後以精確的 JSON 格式返回所有資訊，內容必須包括每個訂單的商品名稱 (item)，編號(id)、單位(unit)，單價(unit_price)，數量(quantity)，小計(subtotal)，以及訂單總金額 (total)。  \n\n全部銷售商品列表：\n{{ JSON.stringify($json.data, null, 2) }}  \n\n請務必遵循 JSON 格式規範，確保所有欄位名稱和數據類型的準確無誤。   \n例如用戶輸入「Chamellia伯爵紅茶-散茶375G 十箱」，回覆範例:  \n{\n  \"request\": [\n    {       \n      \"item\": \"Chamellia伯爵紅茶-散茶375G\",       \n      \"quantity\": 10,       \n      \"unit\": \"箱\"     \n    }\n  ],   \n  \"orders\": [ \n    {\n      \"item\": \"Chamellia伯爵紅茶-散茶375G\", \n      \"id\": 23016, \n      \"unit_price\": 8000, \n      \"unit\": \"箱\", \"\n      quantity\": 10, \n      \"subtotal\": 80000\n    } \n  ],   \n  \"total\": 12000, \n}  \n\n如果用戶所提供的資訊中，若該商品有不同的口味，你無法判斷使用者是想要哪種口味時，請使用另外一個欄位 multiple_choices，值為 true。\n例如用戶輸入 「椰子水*2」，因為銷售商品中椰子水有三種，你無法判定是哪一種，所以回傳:\n\n{   \n  \"multiple_choices\": true \n}   \n\n例如用戶輸入 「薄荷茶 *2」，因為銷售商品中薄荷茶也有三種，你無法判定是哪一種，所以回傳：\n\n{   \n  \"multiple_choices\": true \n}"
+            }
+          ]
+        }
+      },
+      "id": "63d3fe12-c7fd-466d-95ac-812d6bfc39a2",
+      "name": "Claude",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        3500,
+        -440
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "2d5e104c-1c86-4bae-9113-65045e5df032",
+      "name": "[Deprecated] Unique Identity",
+      "type": "n8n-nodes-unique-id.uniqueId",
+      "typeVersion": 1,
+      "position": [
+        3300,
+        -960
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date();\nconst year = today.getFullYear();\nconst month = String(today.getMonth() + 1).padStart(2, '0');\nconst day = String(today.getDate()).padStart(2, '0');\nconst dateString = `${year}${month}${day}`;\nlet series_count = 0;\n\nconst data = $('Extract from File').first().json;\nconst cur = data && data.data && data.data.length > 0 ? data.data[0] : null;\nif (cur) {\n  if (cur.date === dateString) {\n    series_count = cur.series_count + 1;\n  }\n}\n\nreturn {\n  json: {\n    date: dateString,\n    series_count: series_count,\n    identity: `${dateString}${String(series_count).padStart(4, '0')}`\n  }\n}"
+      },
+      "id": "b3a0fdfd-b41c-4392-9806-79ea23854a65",
+      "name": "Unique Identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3060,
+        -740
+      ]
+    },
+    {
+      "parameters": {
+        "content": "建立訂單編號"
+      },
+      "id": "f1a34d9f-955a-4e46-9023-d98060ddc4cf",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2840,
+        -940
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "LineWebhook": {
+      "main": [
+        [
+          {
+            "node": "User還是Group Chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [
+          {
+            "node": "Extract command and order id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Onboarding: Get Group Summary",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Offboarding: Update customer data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Profile": {
+      "main": [
+        [
+          {
+            "node": "Log Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reject Private Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Group Summary": {
+      "main": [
+        [
+          {
+            "node": "Identify Customer ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flex Message": {
+      "main": [
+        [
+          {
+            "node": "Reply Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract command and order id": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get order information": {
+      "main": [
+        [
+          {
+            "node": "CheckEmpty4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單已確認過": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "檢查訂單是否已經確認過": {
+      "main": [
+        [
+          {
+            "node": "訂單已確認過",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[DB] Get all customers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get order information1": {
+      "main": [
+        [
+          {
+            "node": "CheckEmpty3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單早已取消": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "更新訂單資訊-取消": {
+      "main": [
+        [
+          {
+            "node": "訂單已取消",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User還是Group Chat": {
+      "main": [
+        [
+          {
+            "node": "Get User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Group Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject Private Message": {
+      "main": [
+        [
+          {
+            "node": "Reply Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單已取消": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "有訂單號碼嗎?": {
+      "main": [
+        [
+          {
+            "node": "Get all customer ids",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "更新訂單轉帳號碼": {
+      "main": [
+        [
+          {
+            "node": "產生感謝語句",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "待確認款項後會儘速為您出貨": {
+      "main": [
+        [
+          {
+            "node": "回覆確認款項",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Onboarding: Get Group Summary": {
+      "main": [
+        [
+          {
+            "node": "Onboarding: Identify Customer ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "確認收到款項": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer Profile": {
+      "main": [
+        [
+          {
+            "node": "Update order data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Order Details": {
+      "main": [
+        [
+          {
+            "node": "是否已付款?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "是否已付款?": {
+      "main": [
+        [
+          {
+            "node": "Get Customer Profile",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update order data": {
+      "main": [
+        [
+          {
+            "node": "產生回覆: 確認收到款項",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckEmpty": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckEmpty3": {
+      "main": [
+        [
+          {
+            "node": "訂單不存在，或是系統有錯誤",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "檢查訂單是否已經取消",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckEmpty4": {
+      "main": [
+        [
+          {
+            "node": "訂單不存在，或是系統有錯誤",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "檢查訂單是否已經確認過",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "檢查訂單是否已經取消": {
+      "main": [
+        [
+          {
+            "node": "訂單早已取消",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "檢查訂單是否已完成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷是否有多種可能性": {
+      "main": [
+        [
+          {
+            "node": "導引到網頁購物車",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check empty order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get order information5": {
+      "main": [
+        [
+          {
+            "node": "CheckEmpty2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckEmpty2": {
+      "main": [
+        [
+          {
+            "node": "訂單不存在，或是系統有錯誤",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Customer Info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單資訊-叫貨門店",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the product list": {
+      "main": [
+        [
+          {
+            "node": "CheckEmpty5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷訊息內有無訂單": {
+      "main": [
+        [
+          {
+            "node": "有無訂單資訊",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Get Customer Products",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Flex Message2": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷有無客戶資料": {
+      "main": [
+        [
+          {
+            "node": "判斷訊息內有無訂單",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Onboarding: Identify Customer ID": {
+      "main": [
+        [
+          {
+            "node": "Onboarding: Update customer data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer Info": {
+      "main": [
+        [
+          {
+            "node": "Payment Option1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[DB] Get all customers": {
+      "main": [
+        [
+          {
+            "node": "多門店還是單一門店",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identify Customer ID": {
+      "main": [
+        [
+          {
+            "node": "判斷有無客戶資料",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合多門店選單": {
+      "main": [
+        [
+          {
+            "node": "多門店選單",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "多門店選單": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合付款選單": {
+      "main": [
+        [
+          {
+            "node": "付款選單",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "多付費方式?": {
+      "main": [
+        [
+          {
+            "node": "組合付款選單",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "多付費方式?1": {
+      "main": [
+        [
+          {
+            "node": "組合付款選單1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合付款選單1": {
+      "main": [
+        [
+          {
+            "node": "付款選單1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unpaid Orders": {
+      "main": [
+        [
+          {
+            "node": "CheckEmpty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Get the latest unpaid order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get the latest unpaid order": {
+      "main": [
+        [
+          {
+            "node": "更新訂單轉帳號碼",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "訂單是否已取消",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "重寫訂單內容": {
+      "main": [
+        [
+          {
+            "node": "登錄訂單資料1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Order": {
+      "main": [
+        [
+          {
+            "node": "Get Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單是否已取消": {
+      "main": [
+        [
+          {
+            "node": "訂單早已被取消，請重新下單",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "訂單是否已完成",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單是否已付款": {
+      "main": [
+        [
+          {
+            "node": "該筆訂單早已付款完成，請重新下單",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "判斷月結客戶1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "重寫訂單內容",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "該筆訂單早已付款完成，請重新下單": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單早已被取消，請重新下單": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生感謝語句": {
+      "main": [
+        [
+          {
+            "node": "待確認款項後會儘速為您出貨",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "檢查訂單是否已完成": {
+      "main": [
+        [
+          {
+            "node": "訂單早已完成",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "更新訂單資訊-取消",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單早已完成": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "提取帳號後五碼": {
+      "main": [
+        [
+          {
+            "node": "有訂單號碼嗎?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all customer ids": {
+      "main": [
+        [
+          {
+            "node": "Generate filter for the order query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate filter for the order query": {
+      "main": [
+        [
+          {
+            "node": "Get Unpaid Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckEmpty5": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "導引到網頁購物車": {
+      "main": [
+        [
+          {
+            "node": "Reply Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Line Group User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "有無訂單資訊": {
+      "main": [
+        [
+          {
+            "node": "Get the product list",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "提取帳號後五碼",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check empty order": {
+      "main": [
+        [
+          {
+            "node": "導引到網頁購物車",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "運費與手續費",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Order Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Claude",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Claude",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合訂單內容 - 月結": {
+      "main": [
+        [
+          {
+            "node": "Flex Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合訂單內容 - 其他": {
+      "main": [
+        [
+          {
+            "node": "Flex Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷月結客戶": {
+      "main": [
+        [
+          {
+            "node": "組合訂單內容 - 月結",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "組合訂單內容 - 其他",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷月結客戶1": {
+      "main": [
+        [
+          {
+            "node": "組合訂單內容 - 月結1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "組合訂單內容 - 其他1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合訂單內容 - 月結1": {
+      "main": [
+        [
+          {
+            "node": "Flex Message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "組合訂單內容 - 其他1": {
+      "main": [
+        [
+          {
+            "node": "Flex Message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Customer Products": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Line Group User Profile1": {
+      "main": [
+        [
+          {
+            "node": "Log Message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message2": {
+      "main": [
+        [
+          {
+            "node": "登錄訂單資料",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "運費與手續費": {
+      "main": [
+        [
+          {
+            "node": "判斷月結客戶",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Line Group User Profile1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "多門店還是單一門店": {
+      "main": [
+        [
+          {
+            "node": "組合多門店選單",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Payment Option",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "運費與手續費1": {
+      "main": [
+        [
+          {
+            "node": "訂單是否已付款",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shop": {
+      "main": [
+        [
+          {
+            "node": "Get Order",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 輸入轉帳後五碼": {
+      "main": [
+        [
+          {
+            "node": "AI 訊息回覆",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 確認收到款項": {
+      "main": [
+        [
+          {
+            "node": "確認收到款項",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI 訊息回覆": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI 訊息回覆1": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get customer": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Line Group User Profile": {
+      "main": [
+        [
+          {
+            "node": "Log Message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Message3": {
+      "main": [
+        [
+          {
+            "node": "登錄訂單資料2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "判斷訂單資訊": {
+      "main": [
+        [
+          {
+            "node": "判斷是否有多種可能性",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get order information",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get order information1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get order information5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單是否已完成": {
+      "main": [
+        [
+          {
+            "node": "訂單已經結束，請重新下單",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "運費與手續費1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "訂單已經結束，請重新下單": {
+      "main": [
+        [
+          {
+            "node": "回覆訊息3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Option": {
+      "main": [
+        [
+          {
+            "node": "產生回覆: 請等待出貨1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "產生回覆: 請等待出貨",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "產生回覆: 輸入轉帳後五碼",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment Option1": {
+      "main": [
+        [
+          {
+            "node": "產生回覆: 請等待出貨3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "產生回覆: 請等待出貨2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "產生回覆: 輸入轉帳後五碼1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 請等待出貨3": {
+      "main": [
+        [
+          {
+            "node": "AI 訊息回覆1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 請等待出貨2": {
+      "main": [
+        [
+          {
+            "node": "AI 訊息回覆1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 輸入轉帳後五碼1": {
+      "main": [
+        [
+          {
+            "node": "AI 訊息回覆1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 請等待出貨1": {
+      "main": [
+        [
+          {
+            "node": "AI 訊息回覆",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "產生回覆: 請等待出貨": {
+      "main": [
+        [
+          {
+            "node": "AI 訊息回覆",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "更新訂單狀態3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Unique Identity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "main": [
+        [
+          {
+            "node": "判斷訂單資訊",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unique Identity": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "39uS66kJhoyYjnWa"
+  },
+  "versionId": "7058e69e-0e99-4ed7-b2c8-3521aefc13e6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "263871daa91bf414683c0a82e38363349628beadd8d49f331e01984c693d4e93"
+  },
+  "id": "pMBbV0AwU0rQQ7nK",
+  "tags": [
+    {
+      "createdAt": "2024-05-22T08:25:17.698Z",
+      "updatedAt": "2024-05-22T08:25:17.698Z",
+      "id": "73k1eFIbQmD1k8xX",
+      "name": "Line"
+    },
+    {
+      "createdAt": "2024-05-22T08:25:26.314Z",
+      "updatedAt": "2024-05-22T08:25:26.314Z",
+      "id": "EpOthrMSOZRHWQMS",
+      "name": "Bot"
+    },
+    {
+      "createdAt": "2024-05-22T08:25:29.774Z",
+      "updatedAt": "2024-05-22T08:25:29.774Z",
+      "id": "OU5KjgIRUqZKAyPL",
+      "name": "YSLC"
+    }
+  ]
+}

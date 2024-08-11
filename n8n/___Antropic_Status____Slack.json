@@ -1,0 +1,340 @@
+{
+  "name": "監控 Antropic Status 送到 Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "3b1f13f3-044a-4c14-bf4f-c08534763160",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        420,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://status.anthropic.com/",
+        "options": {}
+      },
+      "id": "aa65a0e4-ea07-40d3-8266-daced49905da",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": ".unresolved-incidents",
+              "returnValue": "html"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dd41bc79-b293-4d33-920b-308ec2fb3626",
+      "name": "HTML",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        780,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "39d3ade3-6645-43bd-b5c1-efc95989df2b",
+              "leftValue": "={{ $json.notify }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1132332d-2208-4ef8-93a2-844e183fa564",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0351BC2TV4",
+          "mode": "list",
+          "cachedResultName": "notifications"
+        },
+        "messageType": "block",
+        "blocksUi": "={\n\t\"blocks\": [\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"{{ $json.color }} {{ $json.status }}\"\n\t\t\t}\n\t\t}\n\t]\n}",
+        "text": "=",
+        "otherOptions": {}
+      },
+      "id": "461578cc-5f5e-41e2-afcd-4ba9723e7734",
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        280
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "hNNTtclJbY8YQO0o",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "key": "anthropic_status"
+      },
+      "id": "0e0936e1-88cb-458b-99f5-89f0b0930ceb",
+      "name": "KVStorage",
+      "type": "@telepilotco/n8n-nodes-kv-storage.kvStorage",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        460
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "694a8e6d-e9f1-44ac-815c-8215dd26051b",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1380,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let notify = false;\nlet color = ':large_green_circle:';\nlet outage = false;\nlet status = '';\nfor (const item of $input.all()) {\n  if (item.json.message.content.outage) {\n    notify = true;\n    color = ':red_circle:';\n    outage = true;\n    status = item.json.message.content.status;\n  } else if (item.json.val && item.json.val[0]) {\n    notify = true;\n    color = ':large_green_circle:';\n    outage = false;\n    status = 'No more outage';\n  }\n}\n\nreturn {\n  json: {\n    notify,\n    color,\n    outage,\n    status\n  }\n}"
+      },
+      "id": "33ff6302-d1fc-4315-b76b-1734397ec493",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "setValue",
+        "key": "anthropic_status",
+        "val": "={{ $json.outage }}",
+        "expire": false
+      },
+      "id": "52473b41-162a-435b-96d6-099b270986a4",
+      "name": "KVStorage1",
+      "type": "@telepilotco/n8n-nodes-kv-storage.kvStorage",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=底下是某個 API 服務的 status page HTML 程式碼，請幫我分析一下目前這個服務是否有 outage\n {{ $json[''] || '' }}\n\n請以底下 JSON 格式回傳:\n\n{\n  outage: true,\n  status: ''\n}\n\n如果沒有提供 HTML ，則代表沒有 Outage，回傳:\n\n{\n  outage: false,\n  status: ''\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "17b9cd9c-4cf6-4dad-8e4d-729eede3379a",
+      "name": "OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1000,
+        260
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "elGkuypeKJoF5PJO",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "KVStorage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KVStorage": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "KVStorage1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "58cfbaba-0dde-407e-ad97-ba5aa1101d47",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "263871daa91bf414683c0a82e38363349628beadd8d49f331e01984c693d4e93"
+  },
+  "id": "BPQZLFRgp8ifyg9M",
+  "tags": [
+    {
+      "createdAt": "2024-05-22T08:25:29.774Z",
+      "updatedAt": "2024-05-22T08:25:29.774Z",
+      "id": "OU5KjgIRUqZKAyPL",
+      "name": "YSLC"
+    },
+    {
+      "createdAt": "2024-08-09T02:24:34.478Z",
+      "updatedAt": "2024-08-09T02:24:34.478Z",
+      "id": "OwtS42mBb8eCov7E",
+      "name": "monitoring"
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "name": "YSLC Error Logs",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a301b4d3-0a64-4e96-8cd1-d58032e31f7f",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        840,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0351BC2TV4",
+          "mode": "list",
+          "cachedResultName": "notifications"
+        },
+        "text": "={{ $json.execution }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": true,
+          "mrkdwn": true
+        }
+      },
+      "id": "1a3c03b6-04d4-4ef2-a8a8-7a1e565b20f5",
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        460
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "hNNTtclJbY8YQO0o",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "18680532-79cb-483f-81f6-26e87c113cdc",
+              "name": "execution",
+              "value": "={{ JSON.stringify($json.execution) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "06398261-7b2c-4203-9d90-12efbe8831a6",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1080,
+        460
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bf856430-e4e7-43b1-9470-cba968de143f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "263871daa91bf414683c0a82e38363349628beadd8d49f331e01984c693d4e93"
+  },
+  "id": "39uS66kJhoyYjnWa",
+  "tags": [
+    {
+      "createdAt": "2024-05-22T08:25:29.774Z",
+      "updatedAt": "2024-05-22T08:25:29.774Z",
+      "id": "OU5KjgIRUqZKAyPL",
+      "name": "YSLC"
+    }
+  ]
+}
