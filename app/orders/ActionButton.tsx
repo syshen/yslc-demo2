@@ -1,7 +1,11 @@
 import {
   ActionIcon,
   Menu,
+  Modal,
+  Textarea,
+  Button,
 } from '@mantine/core';
+import { useState } from 'react';
 import {
   IconDotsVertical,
   IconTruck,
@@ -10,13 +14,17 @@ import {
   IconSpeakerphone,
   IconChecks,
 } from '@tabler/icons-react';
+import { Notifications } from '@mantine/notifications';
 import { createClient } from '@/utils/supabase/client';
 import { OrderState, PaymentState } from '@/utils/types';
+import { notifyMessage } from '@/app/actions';
 
 export function ActionButton(
   { order_id, onAction }: { order_id: string, onAction: () => void }
 ) {
   const supabase = createClient();
+  const [opened, setOpened] = useState(false);
+  const [message, setMessage] = useState('');
 
   const changeStatus = async (status: string) => {
     if (status === 'paid') {
@@ -31,9 +39,22 @@ export function ActionButton(
     await onAction();
   };
 
-  const notifyCustomer = async (status: string) => {
-    console.log(status);
-    await onAction();
+  const notifyCustomer = async (status: string, payload?:string) => {
+    try {
+      await notifyMessage(status, order_id, payload);
+      Notifications.show({
+        title: '通知訊息',
+        message: '已通知客戶',
+        color: 'green',
+      });
+      await onAction();
+    } catch (err) {
+      Notifications.show({
+        title: '通知訊息',
+        message: `失敗: ${err}`,
+        color: 'red',
+      });
+    }
   };
   return (
     <>
@@ -81,13 +102,31 @@ export function ActionButton(
             onClick={() => notifyCustomer('shipped')}
           >出貨通知
           </Menu.Item>
-          {/* <Menu.Item
+          <Menu.Item
             leftSection={<IconSpeakerphone size={14} />}
-            onClick={() => notifyCustomer('custom')}
+            onClick={() => setOpened(true)}
           >自訂訊息通知
-          </Menu.Item> */}
+          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
+      <Modal
+        size="xl"
+        opened={opened}
+        title="送出訊息給客戶"
+        transitionProps={{ duration: 200, transition: 'slide-down' }}
+        onClose={() => { setOpened(false); }}>
+        <Textarea
+          label="訊息內容"
+          value={message}
+          onChange={(event) => setMessage(event.currentTarget.value)}
+          className="pb-5"
+        >
+        </Textarea>
+        <Button
+          onClick={() => { setOpened(false); notifyCustomer('message', message); }}
+        >送出
+        </Button>
+      </Modal>
     </>
   );
 }

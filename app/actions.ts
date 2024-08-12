@@ -43,3 +43,19 @@ export const shopCarts = async (
   });
   // window.close();
 };
+
+export const notifyMessage = async (action:string, order_id:string, payload?:string) => {
+  const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/message`;
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
+    },
+    body: JSON.stringify({
+      action,
+      order_id,
+      payload,
+    }),
+  });
+};
