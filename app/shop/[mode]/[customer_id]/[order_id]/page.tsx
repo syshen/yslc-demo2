@@ -128,7 +128,6 @@ export default function OrderPage(
     const { data } = await supabase
     .from('orders')
     .select('*')
-    .eq('customer_id', customer_id)
     .eq('order_id', order_id);
     if (data) {
       const [o] = data;
@@ -172,7 +171,7 @@ export default function OrderPage(
         withCloseButton={false}
         centered
       >
-        <h2>無法重複下訂</h2>
+        <h2>無法修改訂單</h2>
         <p>該筆訂單已在處理中，請重新送訊息下訂，謝謝</p>
       </Modal>
       <Modal
