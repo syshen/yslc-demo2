@@ -199,31 +199,31 @@ export default async function OrderPage({ params }: { params: { order_id: string
           gap="md"
           align="flex-start"
         >
-          <div className="w-full total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">未稅價</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
           </div>
-          <div className="w-full total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">運費</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(shipping_fee).toLocaleString()}</h5>
           </div>
-          <div className="w-full total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">貨到付款手續費</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(service_fee).toLocaleString()}</h5>
           </div>
-          <div className="w-full total flex items-center justify-between pt-6">
+          <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">稅金 (5%)</p>
             <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((untax_total + shipping_fee) * tax)).toLocaleString()}</h5>
           </div>
-          <div className="w-full total flex items-center justify-between pt-6">
-            <p className="font-normal text-xl leading-8">總金額</p>
-            <h5 className="font-manrope font-bold text-2xl leading-9">{Number(Math.round(total_with_tax)).toLocaleString()} 元</h5>
+          <div className="w-full total flex items-center justify-between pt-3">
+            <p className="font-normal text-lg leading-8">總金額</p>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(total_with_tax)).toLocaleString()} 元</h5>
           </div>
         </Flex>
         )}
-        <div className="w-full total flex items-center justify-between pt-6">
+        <div className="w-full total flex items-center justify-between pt-3">
           <p className="font-normal text-lg leading-8">付款方式</p>
-          <h5 className="font-manrope font-bold text-lg leading-9">{getPaymentOption(order.payment_option)}</h5>
+          <h5 className="font-manrope font-normal text-lg leading-9">{getPaymentOption(order.payment_option)}</h5>
         </div>
 
       </Flex>
