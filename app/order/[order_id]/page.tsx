@@ -57,11 +57,11 @@ export default async function OrderPage({ params }: { params: { order_id: string
       product_ids.push(item.id);
     }
   }
-  const { data: products } = await supabase.from('products').select().in('id', product_ids);
-  const findProduct = (id:number) => {
+  const { data: products } = await supabase.from('products').select().in('product_id', product_ids);
+  const findProduct = (product_id:number) => {
     if (products && products.length > 0) {
       for (const product of products) {
-        if (product.id === id) {
+        if (product.product_id === product_id) {
           return product;
         }
       }
@@ -144,7 +144,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
 
   const itemInfo = (item:OrderItem) => {
     const product = findProduct(item.id);
-    if (product) {
+    if (product && product.spec) {
       return `${product.name} (${product.spec})`;
     }
     return `${item.item}`;
