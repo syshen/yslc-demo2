@@ -23,7 +23,7 @@ export function SignInButton() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setCurrentUser(user);
     });
-  });
+  }, []);
 
   return currentUser ? (
     <Group>
