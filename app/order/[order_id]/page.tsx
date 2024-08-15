@@ -184,7 +184,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
             <div key={item.item} className="flex items-center justify-between gap-4 mb-5">
               <div className="flex flex-col">
                 <p className="font-normal text-lg leading-8 transition-all duration-500">{itemInfo(item)}</p>
-                <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {item.quantity}</p>
+                <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {item.quantity}{item.unit}</p>
               </div>
               <Text
                 hidden={order.payment_option.includes(PaymentOption.MONTHLY_PAYMENT)}
