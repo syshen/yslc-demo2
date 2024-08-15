@@ -193,11 +193,11 @@ export default async function OrderPage({ params }: { params: { order_id: string
             </div>
           ))}
         </div>
+        { order.payment_option.includes(PaymentOption.MONTHLY_PAYMENT) ? '' : (
         <Flex
           direction="column"
           gap="md"
           align="flex-start"
-          className={order.payment_option.includes(PaymentOption.MONTHLY_PAYMENT) ? 'invisible' : ''}
         >
           <div className="w-full total flex items-center justify-between pt-6">
             <p className="font-normal text-lg leading-8">未稅價</p>
@@ -220,6 +220,7 @@ export default async function OrderPage({ params }: { params: { order_id: string
             <h5 className="font-manrope font-bold text-2xl leading-9">{Number(Math.round(total_with_tax)).toLocaleString()} 元</h5>
           </div>
         </Flex>
+        )}
         <div className="w-full total flex items-center justify-between pt-6">
           <p className="font-normal text-lg leading-8">付款方式</p>
           <h5 className="font-manrope font-bold text-lg leading-9">{getPaymentOption(order.payment_option)}</h5>
