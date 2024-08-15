@@ -32,12 +32,17 @@ export enum OrderState {
   COMPLETED = 'completed',
 }
 
+export interface LineInfo {
+  line_id: string
+  displayName: string
+  pictureUrl: string
+}
+
 export interface Order {
   order_id: string
   created_at: string
   total: number
   items: OrderItem[]
-  line_id: string
   payment_option: string
   account_number: string
   customer_id: string
@@ -47,6 +52,7 @@ export interface Order {
   shipping_fee?: number
   service_fee?: number
   customers?: Customer
+  line_user_info?: LineInfo
 }
 export interface Customer {
   id?: number
