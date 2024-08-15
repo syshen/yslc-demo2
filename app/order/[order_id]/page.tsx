@@ -26,7 +26,6 @@ export default async function OrderPage({ params }: { params: { order_id: string
     created_at: '',
     items: [],
     order_id: '',
-    line_id: '',
     payment_option: '',
     account_number: '',
     customer_id: '',
