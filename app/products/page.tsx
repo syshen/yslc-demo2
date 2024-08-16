@@ -20,6 +20,7 @@ import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
 import { Product } from '@/utils/types';
+import { ProductImportButton } from './ProductImportButton';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -247,7 +248,7 @@ export default function ProductsPage() {
           onChange={(event) => {
             setSelectedProduct({
               ...selectedProduct,
-              product_id: parseInt(event.currentTarget.value),
+              product_id: parseInt(event.currentTarget.value, 10),
               name: selectedProduct?.name || '',
               unit: selectedProduct?.unit || '',
               // unit_price: selectedProduct?.unit_price || 0,
@@ -372,6 +373,11 @@ export default function ProductsPage() {
               >
                 新增產品
               </Button>
+              <ProductImportButton
+                onImport={() => {
+                  getProducts();
+                }}
+              />
             </Group>
           </header>
         </Box>
