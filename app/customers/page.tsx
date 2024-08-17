@@ -38,6 +38,7 @@ export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer>({ customer_id: '', name: '' });
   const [loading, setLoading] = useState<boolean>(false);
   const [productLoading, setProductLoading] = useState<boolean>(false);
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
   const [editFlag, setEditFlag] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [deleteConfirmOpened, setDeleteConfirmOpened] = useState<boolean>(false);
@@ -357,7 +358,15 @@ export default function CustomersPage() {
   };
 
   const deleteCustomers = async (customer_ids:string[]) => {
-    console.log(customer_ids);
+    if (customer_ids.length === 0) {
+      return;
+    }
+    setDeleteLoading(true);
+    await supabase.from('customers').delete().in('customer_id', customer_ids);
+    setSelectedRows([]);
+    setDeleteLoading(false);
+    setDeleteConfirmOpened(false);
+    getCustomers();
   };
 
   const clickSave = () => {
@@ -390,6 +399,7 @@ export default function CustomersPage() {
           <Text>確認是否要刪除 {selectedRows.length} 筆客戶資料</Text>
           <Button
             color="red"
+            loading={deleteLoading}
             onClick={() => deleteCustomers(selectedRows)}>
             確認刪除
           </Button>
