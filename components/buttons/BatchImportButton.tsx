@@ -1,17 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Notifications } from '@mantine/notifications';
 import {
   Button,
   Modal,
   FileInput,
   Group,
+  Stack,
+  Text,
   rem,
 } from '@mantine/core';
 import { IconFileCv } from '@tabler/icons-react';
 
-export function ProductImportButton({ onImport }: { onImport: () => void }) {
+export function BatchImportButton(
+  { label, description, uploadPath, onImport }:
+  { label:string, description:string, uploadPath:string, onImport: () => void }
+) {
   const [file, setFile] = useState<File | null>();
   const [opened, setOpened] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,7 +26,7 @@ export function ProductImportButton({ onImport }: { onImport: () => void }) {
     }
     try {
       setLoading(true);
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/products/upload`;
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}${uploadPath}`;
 
       const formData = new FormData();
       formData.append('data', file);
@@ -38,7 +43,7 @@ export function ProductImportButton({ onImport }: { onImport: () => void }) {
       }
     } catch (error:any) {
       Notifications.show({
-        title: '批次匯入產品清單失敗',
+        title: '批次匯入失敗',
         message: `請檢查您的檔案格式是否正確: ${error.message}`,
         color: 'red',
         autoClose: 10000,
@@ -54,7 +59,7 @@ export function ProductImportButton({ onImport }: { onImport: () => void }) {
     <>
       <Button
         onClick={() => setOpened(true)}
-      >批次匯入產品清單
+      >{label}
       </Button>
       <Modal
         title="批次匯入"
@@ -62,15 +67,18 @@ export function ProductImportButton({ onImport }: { onImport: () => void }) {
         transitionProps={{ duration: 200, transition: 'slide-down' }}
         onClose={() => setOpened(false)}
       >
+        <Stack>
+          <Text size="sm">{description}</Text>
           <FileInput
             label="上傳 CSV"
             className="pb-5"
             clearable
+            placeholder="請選擇檔案"
             value={file}
             onChange={setFile}
             leftSection={<IconFileCv style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
           />
-          <Group mt="md">
+          <Group>
             <Button
               disabled={file === null}
               loading={loading}
@@ -78,7 +86,7 @@ export function ProductImportButton({ onImport }: { onImport: () => void }) {
             >上傳
             </Button>
           </Group>
-
+        </Stack>
       </Modal>
     </>
   );

@@ -18,9 +18,14 @@ import {
   Select,
   Loader,
   Pill,
+  Stack,
+  ActionIcon,
+  Flex,
 } from '@mantine/core';
+import { IconTrash } from '@tabler/icons-react';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
+import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { Customer, Product, CustomerProduct } from '@/utils/types';
 
 export default function CustomersPage() {
@@ -34,6 +39,8 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [productLoading, setProductLoading] = useState<boolean>(false);
   const [editFlag, setEditFlag] = useState<boolean>(false);
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [deleteConfirmOpened, setDeleteConfirmOpened] = useState<boolean>(false);
   const router = useRouter();
 
   /*
@@ -81,6 +88,18 @@ export default function CustomersPage() {
   useEffect(() => {
     const rs = customers.map((row) => (
       <Table.Tr key={row.customer_id}>
+        <Table.Td>
+          <Checkbox
+            checked={selectedRows.includes(row.customer_id)}
+            onChange={() => {
+              if (selectedRows.includes(row.customer_id)) {
+                setSelectedRows(selectedRows.filter((rec) => rec !== row.customer_id));
+              } else {
+                setSelectedRows([...selectedRows, row.customer_id]);
+              }
+            }}
+          />
+        </Table.Td>
         <Table.Td>{row.customer_id}</Table.Td>
         <Table.Td>{row.name}</Table.Td>
         <Table.Td>{row.customers ? (<Pill>{row.customers.name}</Pill>) : ''}</Table.Td>
@@ -105,7 +124,7 @@ export default function CustomersPage() {
       </Table.Tr>
     ));
     setRows(rs);
-  }, [customers]);
+  }, [customers, selectedRows]);
 
   const getCustomers = async () => {
     const { data } = await supabase
@@ -290,7 +309,6 @@ export default function CustomersPage() {
   };
 
   const saveNewCustomer = async () => {
-    console.log(selectedCustomer);
     const resp = await supabase.from('customers').insert({
       customer_id: selectedCustomer!.customer_id.trim(),
       name: selectedCustomer!.name.trim(),
@@ -338,6 +356,10 @@ export default function CustomersPage() {
     getCustomers();
   };
 
+  const deleteCustomers = async (customer_ids:string[]) => {
+    console.log(customer_ids);
+  };
+
   const clickSave = () => {
     if (editFlag) {
       saveChanges();
@@ -357,6 +379,22 @@ export default function CustomersPage() {
       <Notifications />
       { loading ? pageLoading() :
       <>
+      <Modal
+        size="md"
+        opened={deleteConfirmOpened}
+        title="刪除客戶"
+        transitionProps={{ duration: 200, transition: 'slide-down' }}
+        onClose={() => { setDeleteConfirmOpened(false); }}
+      >
+        <Stack>
+          <Text>確認是否要刪除 {selectedRows.length} 筆客戶資料</Text>
+          <Button
+            color="red"
+            onClick={() => deleteCustomers(selectedRows)}>
+            確認刪除
+          </Button>
+        </Stack>
+      </Modal>
       <Modal
         size="xl"
         opened={opened}
@@ -459,18 +497,47 @@ export default function CustomersPage() {
       </Modal>
       <Box className="shadow-sm">
         <header>
-          <Group justify="flex-end" className="py-3 pr-4">
-            <Button
-              onClick={() => handleNewCustomer()}
-            >新增客戶
-            </Button>
-          </Group>
+          <Flex direction="row" justify="space-between">
+            <Group>
+              <ActionIcon
+                disabled={selectedRows.length === 0}
+                variant="outline"
+                size="md"
+                aria-label="刪除"
+                onClick={() => { setDeleteConfirmOpened(true); }}>
+                  <IconTrash size={16} stroke={2} />
+              </ActionIcon>
+            </Group>
+            <Group className="py-3 pr-4">
+              <Button
+                onClick={() => handleNewCustomer()}
+              >新增客戶
+              </Button>
+              <BatchImportButton
+                label="匯入客戶資料"
+                description="匯入資料的格式必須是 CSV，你可以由 Excel 去轉換成 CSV。裡面要包含一些必要的欄位，像是 客戶代號、客戶簡稱、送貨地址、TEL_NO(一)、TEL NO(二)。"
+                uploadPath="yslc/customers/upload"
+                onImport={() => { getCustomers(); }}
+              />
+            </Group>
+          </Flex>
         </header>
       </Box>
       <Table.ScrollContainer minWidth={700}>
         <Table miw={700} highlightOnHover>
           <Table.Thead className={classes.header}>
             <Table.Tr>
+              <Table.Th>
+                <Checkbox
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      setSelectedRows(customers.map((customer) => customer.customer_id));
+                    } else {
+                      setSelectedRows([]);
+                    }
+                  }}
+                />
+              </Table.Th>
               <Table.Th>客戶代號</Table.Th>
               <Table.Th>客戶簡稱</Table.Th>
               <Table.Th>母公司</Table.Th>

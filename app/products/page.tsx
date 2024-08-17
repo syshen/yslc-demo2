@@ -20,7 +20,7 @@ import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
 import { Product } from '@/utils/types';
-import { ProductImportButton } from './ProductImportButton';
+import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -373,7 +373,10 @@ export default function ProductsPage() {
               >
                 新增產品
               </Button>
-              <ProductImportButton
+              <BatchImportButton
+                label="匯入商品"
+                description="匯入資料的格式必須是 CSV，你可以由 Excel 去轉換成 CSV。裡面要包含一些必要的欄位，像是 品名、品號、單位、標準售價、規格。"
+                uploadPath="yslc/products/upload"
                 onImport={() => {
                   getProducts();
                 }}
