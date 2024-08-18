@@ -33,6 +33,7 @@ export function CustomerModal(
   const [products, setProducts] = useState<Product[]>([]);
   const [productRows, setProductRows] = useState<JSX.Element[]>([]);
   const [productLoading, setProductLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getProductsByCustomer = async (customer_id:string) => {
     setProductLoading(true);
@@ -142,8 +143,10 @@ export function CustomerModal(
 
   const deleteCustomer = async () => {
     if (selectedCustomer.customer_id.length === 0) return;
+    setLoading(true);
     await supabase.from('customers').delete().eq('customer_id', selectedCustomer.customer_id);
     setSelectedCustomer({ customer_id: '', name: '' });
+    setLoading(false);
     setProducts([]);
     setProductRows([]);
     if (onChange) {
@@ -251,11 +254,13 @@ export function CustomerModal(
   };
 
   const clickSave = async () => {
+    setLoading(true);
     if (customer) {
       await saveChanges();
     } else {
       await saveNewCustomer();
     }
+    setLoading(false);
     setProducts([]);
     setProductRows([]);
     if (onChange) {
@@ -356,6 +361,7 @@ export function CustomerModal(
           <Group>
             <Button
               mt="xl"
+              loading={loading}
               onClick={async () => { await clickSave(); }}
             >
               { customer ? '儲存變動' : '新增客戶' }
@@ -363,6 +369,7 @@ export function CustomerModal(
             <Button
               mt="xl"
               color="red"
+              loading={loading}
               className={customer ? '' : 'invisible'}
               onClick={async () => { await deleteCustomer(); }}
             >
