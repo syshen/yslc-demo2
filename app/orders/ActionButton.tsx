@@ -17,7 +17,6 @@ import {
 import { Notifications } from '@mantine/notifications';
 import { createClient } from '@/utils/supabase/client';
 import { OrderState, PaymentState } from '@/utils/types';
-import { notifyMessage } from '@/app/actions';
 
 export function ActionButton(
   { order_id, onAction }: { order_id: string, onAction: () => void }
@@ -41,7 +40,23 @@ export function ActionButton(
 
   const notifyCustomer = async (status: string, payload?:string) => {
     try {
-      await notifyMessage(status, order_id, payload);
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/message`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
+        },
+        body: JSON.stringify({
+          action: status,
+          order_id,
+          payload,
+        }),
+      });
+
+      if (resp.status !== 200) {
+        throw new Error(resp.statusText);
+      }
       Notifications.show({
         title: '通知訊息',
         message: '已通知客戶',
