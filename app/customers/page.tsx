@@ -176,6 +176,7 @@ export default function CustomersPage() {
                 disabled={selectedRows.length === 0}
                 variant="outline"
                 size="md"
+                color="red"
                 aria-label="刪除"
                 onClick={() => { setDeleteConfirmOpened(true); }}>
                   <IconTrash size={16} stroke={2} />
