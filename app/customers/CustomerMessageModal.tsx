@@ -44,7 +44,7 @@ export function CustomerMessageModal(
       message,
       customers: customers.map((customer) => (
         { customer_id: customer.customer_id, line_id: customer.line_id || '' }
-      )),
+      )).filter((customer: { line_id: string }) => customer.line_id !== ''),
     };
     try {
       if (file !== null) {
