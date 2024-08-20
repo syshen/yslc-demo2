@@ -19,12 +19,13 @@ import {
   ActionIcon,
   Flex,
 } from '@mantine/core';
-import { IconTrash } from '@tabler/icons-react';
+import { IconTrash, IconSend } from '@tabler/icons-react';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
 import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { Customer } from '@/utils/types';
 import { CustomerModal } from './CustomerModal';
+import { CustomerMessageModal } from './CustomerMessageModal';
 
 export default function CustomersPage() {
   const supabase = createClient();
@@ -36,6 +37,7 @@ export default function CustomersPage() {
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [deleteConfirmOpened, setDeleteConfirmOpened] = useState<boolean>(false);
+  const [messageOpened, setMessageOpened] = useState<boolean>(false);
   const router = useRouter();
 
   /*
@@ -81,10 +83,7 @@ export default function CustomersPage() {
             size="xs"
             className="cursor-pointer"
             onClick={() => {
-              // getProductsByCustomer(row.customer_id);
               setSelectedCustomer(row);
-              // setEditFlag(true);
-              // setChanged(false);
               setOpened(true);
           }}>編輯
           </Text>
@@ -168,10 +167,24 @@ export default function CustomersPage() {
         onChange={() => { getCustomers(); setOpened(false); }}
         customer={selectedCustomer}
         customers={customers} />
+      <CustomerMessageModal
+        opened={messageOpened}
+        onClose={() => { setMessageOpened(false); }}
+        customers={customers.filter((customer) => selectedRows.includes(customer.customer_id))}
+      />
       <Box className="shadow-sm">
         <header>
           <Flex direction="row" justify="space-between">
             <Group>
+              <ActionIcon
+                disabled={selectedRows.length === 0}
+                variant="outline"
+                size="md"
+                color="blue"
+                aria-label="發送訊息"
+                onClick={() => { setMessageOpened(true); }}>
+                  <IconSend size={16} stroke={2} />
+              </ActionIcon>
               <ActionIcon
                 disabled={selectedRows.length === 0}
                 variant="outline"
