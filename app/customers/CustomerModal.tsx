@@ -16,8 +16,10 @@ import {
   Select,
   Loader,
 } from '@mantine/core';
+import { User } from '@supabase/supabase-js';
 import { createClient } from '../../utils/supabase/client';
 import { Customer, Product, CustomerProduct } from '../../utils/types';
+import { logger, LogAction } from '@/utils/logger';
 
 export function CustomerModal(
   { opened, onClose, onChange, customer, customers }:
@@ -29,6 +31,7 @@ export function CustomerModal(
   }
 ) {
   const supabase = createClient();
+  const [loginUser, setLoginUser] = useState<User>();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer>(customer || { customer_id: '', name: '' });
   const [products, setProducts] = useState<Product[]>([]);
   const [productRows, setProductRows] = useState<JSX.Element[]>([]);
@@ -149,6 +152,14 @@ export function CustomerModal(
     setLoading(false);
     setProducts([]);
     setProductRows([]);
+    logger.info(`Delete customer: ${selectedCustomer.customer_id}`, {
+      action: LogAction.DELETE_CUSTOMERS,
+      user: {
+        user_id: loginUser?.id || '',
+        email: loginUser?.email || '',
+      },
+      customer: selectedCustomer,
+    });
     if (onChange) {
       onChange();
     }
@@ -216,6 +227,14 @@ export function CustomerModal(
     }
   }, [customer]);
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setLoginUser(user);
+      }
+    });
+  }, []);
+
   const saveNewCustomer = async () => {
     const resp = await supabase.from('customers').insert({
       customer_id: selectedCustomer!.customer_id.trim(),
@@ -234,6 +253,7 @@ export function CustomerModal(
         message: `新增失敗: ${resp.error.message}`,
         color: 'red',
       });
+      logger.error(resp.error);
     }
 
     const records:CustomerProduct[] = [];
@@ -257,8 +277,23 @@ export function CustomerModal(
     setLoading(true);
     if (customer) {
       await saveChanges();
+      logger.info('Update customer', {
+        action: LogAction.MODIFY_CUSTOMER,
+        customer,
+        user: {
+          user_id: loginUser?.id || '',
+          email: loginUser?.email || '',
+        },
+      });
     } else {
       await saveNewCustomer();
+      logger.info('Add new customer', {
+        action: LogAction.ADD_CUSTOMER,
+        user: {
+          user_id: loginUser?.id || '',
+          email: loginUser?.email || '',
+        },
+      });
     }
     setLoading(false);
     setProducts([]);

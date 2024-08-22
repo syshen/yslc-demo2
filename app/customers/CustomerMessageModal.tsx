@@ -12,6 +12,7 @@ import {
 } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import { Customer } from '@/utils/types';
+import { logger, LogAction } from '@/utils/logger';
 
 // a js code to generate a file name with date and time, like 20240510123000.png
 function generateFileName() {
@@ -73,6 +74,12 @@ export function CustomerMessageModal(
         message: '已通知客戶',
         color: 'green',
       });
+      logger.info('Send message to customers', {
+        action: LogAction.SEND_MESSAGE,
+        message,
+        customers,
+        hasImage: file !== null,
+      });
     } catch (error) {
       setLoading(false);
       Notifications.show({
@@ -80,6 +87,7 @@ export function CustomerMessageModal(
         message: '發送失敗',
         color: 'red',
       });
+      logger.error(error);
     }
     setFile(null);
     setMessage('');

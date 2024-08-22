@@ -16,6 +16,7 @@ import {
 } from '@tabler/icons-react';
 import { createClient } from '@/utils/supabase/server';
 import { Customer, Order, OrderState, PaymentOption, TAX_RATE, PaymentState, OrderItem } from '@/utils/types';
+import { logger, LogAction } from '@/utils/logger';
 
 export default async function OrderPage({ params }: { params: { order_id: string } }) {
   const { order_id } = params;
@@ -149,6 +150,14 @@ export default async function OrderPage({ params }: { params: { order_id: string
     }
     return `${item.item}`;
   };
+
+  logger.info(`View order page for order: ${order_id}`, {
+    action: LogAction.VIEW_PAGE,
+    page: 'order',
+    order: {
+      order_id,
+    },
+  });
 
   return (
     <MantineProvider>

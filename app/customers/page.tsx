@@ -20,15 +20,18 @@ import {
   Flex,
 } from '@mantine/core';
 import { IconTrash, IconSend } from '@tabler/icons-react';
+import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
 import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { Customer } from '@/utils/types';
 import { CustomerModal } from './CustomerModal';
 import { CustomerMessageModal } from './CustomerMessageModal';
+import { logger, LogAction } from '@/utils/logger';
 
 export default function CustomersPage() {
   const supabase = createClient();
+  const [loginUser, setLoginUser] = useState<User>();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [opened, setOpened] = useState(false);
@@ -112,6 +115,7 @@ export default function CustomersPage() {
     setLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setLoginUser(user);
         getCustomers();
         setLoading(false);
         return null;
@@ -127,6 +131,14 @@ export default function CustomersPage() {
     }
     setDeleteLoading(true);
     await supabase.from('customers').delete().in('customer_id', customer_ids);
+    logger.info('Delete customers', {
+      action: LogAction.DELETE_CUSTOMERS,
+      user: {
+        user_id: loginUser?.id,
+        email: loginUser?.email,
+      },
+      customers: customer_ids,
+    });
     setSelectedRows([]);
     setDeleteLoading(false);
     setDeleteConfirmOpened(false);

@@ -34,7 +34,7 @@ export function ChatMessage(
         bd="0 15px 15px 15px"
         style={{ borderRadius: '0 15px 15px 15px' }}
       >
-        <Text size="sm"><pre>{message}</pre></Text>
+        <pre>{message}</pre>
       </Box>
     </Flex>
   );

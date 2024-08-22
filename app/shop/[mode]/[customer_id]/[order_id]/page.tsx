@@ -20,6 +20,7 @@ import {
   PaymentState,
 } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
+import { logger, LogAction } from '@/utils/logger';
 
 export default function OrderPage(
   { params }: { params: { mode: string, customer_id: string, order_id: string } }
@@ -159,6 +160,16 @@ export default function OrderPage(
     getOrder();
     getCustomer();
     getProducts();
+    logger.info(`View shop page for customer: ${customer_id}`, {
+      action: LogAction.VIEW_PAGE,
+      page: 'shop',
+      customer: {
+        customer_id,
+      },
+      order: {
+        order_id,
+      },
+    });
   }, []);
 
   return (

@@ -23,14 +23,14 @@ import {
     HoverCard,
 } from '@mantine/core';
 import '@mantine/notifications/styles.css';
+import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
 import { ChatMessage } from './ChatMessage';
 import { Order, OrderItem, PaymentOption, Product, OrderState, PaymentState } from '@/utils/types';
-// import { confirmOrder } from '@/app/actions';
 import { ActionButton } from './ActionButton';
+import { logger, LogAction } from '@/utils/logger';
 
-// const delay = (ms:number) => new Promise(r => { setTimeout(r, ms); });
 const recentWeek = ():[Date, Date] => {
   const today = new Date();
   const oneWeekAgo = new Date(today);
@@ -56,13 +56,13 @@ const csvConfig = mkConfig({
 export default function OrdersPage() {
   const router = useRouter();
   const supabase = createClient();
+  const [loginUser, setLoginUser] = useState<User>();
   const [orders, setOrders] = useState<Order[]>([]);
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
-  // const [loadingOrder, setLoadingOrder] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(recentWeek());
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
@@ -156,6 +156,14 @@ export default function OrdersPage() {
     });
     const csv = generateCsv(csvConfig)(data);
     download(csvConfig)(csv);
+    logger.info('Export orders', {
+      action: LogAction.EXPORT_ORDERS,
+      user: {
+        user_id: loginUser?.id || '',
+        email: loginUser?.email || '',
+      },
+      exported_orders: selectedRows,
+    });
   };
 
   const getCustomers = async () => {
@@ -270,6 +278,7 @@ export default function OrdersPage() {
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{orderStatus(row)}</Table.Td>
           <Table.Td>
             <ActionButton
+              customer_id={row.customers.customer_id}
               order_id={row.order_id}
               onAction={() => { getOrders(); }}
             />
@@ -386,6 +395,7 @@ export default function OrdersPage() {
     setPageLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setLoginUser(user);
         getProducts();
         getCustomers();
         return getOrders()

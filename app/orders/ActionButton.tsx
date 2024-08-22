@@ -15,25 +15,64 @@ import {
   IconChecks,
 } from '@tabler/icons-react';
 import { Notifications } from '@mantine/notifications';
+import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { OrderState, PaymentState } from '@/utils/types';
+import { logger, LogAction } from '@/utils/logger';
 
 export function ActionButton(
-  { order_id, onAction }: { order_id: string, onAction: () => void }
+  { customer_id, order_id, onAction }
+  : { customer_id: string, order_id: string, onAction: () => void }
 ) {
   const supabase = createClient();
+  let user:User | null = null;
+  supabase.auth.getUser().then((resp) => {
+    user = resp.data.user;
+  });
   const [opened, setOpened] = useState(false);
   const [message, setMessage] = useState('');
 
   const changeStatus = async (status: string) => {
-    if (status === 'paid') {
-      await supabase
-        .from('orders')
-        .update({
-          payment_status: PaymentState.PAID,
-        }).eq('order_id', order_id);
-    } else {
-      await supabase.from('orders').update({ state: status }).eq('order_id', order_id);
+    try {
+      if (status === 'paid') {
+        await supabase
+          .from('orders')
+          .update({
+            payment_status: PaymentState.PAID,
+          }).eq('order_id', order_id);
+        logger.info(`Order ${order_id} payment status changed to ${PaymentState.PAID}`, {
+          action: LogAction.CHANGE_STATUS,
+          user: {
+            user_id: user?.id || '',
+            email: user?.email || '',
+          },
+          order: {
+            order_id,
+            payment_status: PaymentState.PAID,
+          },
+          customer: {
+            customer_id,
+          },
+        });
+      } else {
+        await supabase.from('orders').update({ state: status }).eq('order_id', order_id);
+        logger.info(`Order ${order_id} status changed to ${status}`, {
+          action: LogAction.CHANGE_STATUS,
+          user: {
+            user_id: user?.id || '',
+            email: user?.email || '',
+          },
+          order: {
+            order_id,
+            status,
+          },
+          customer: {
+            customer_id,
+          },
+        });
+      }
+    } catch (error) {
+      logger.error(error);
     }
     await onAction();
   };
@@ -62,6 +101,20 @@ export function ActionButton(
         message: '已通知客戶',
         color: 'green',
       });
+      logger.info(`Send message to user for order: ${order_id}`, {
+        action: LogAction.SEND_MESSAGE,
+        user: {
+          user_id: user?.id || '',
+          email: user?.email || '',
+        },
+        order: {
+          order_id,
+        },
+        payload,
+        customer: {
+          customer_id,
+        },
+      });
       await onAction();
     } catch (err) {
       Notifications.show({
@@ -69,6 +122,7 @@ export function ActionButton(
         message: `失敗: ${err}`,
         color: 'red',
       });
+      logger.error(err);
     }
   };
   return (
