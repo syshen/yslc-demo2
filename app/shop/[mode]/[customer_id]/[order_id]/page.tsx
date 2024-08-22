@@ -194,7 +194,7 @@ export default function OrderPage(
         centered
       >
         <h2>訂單已送出</h2>
-        <p>請關閉視窗回到 Line 做最後的確認</p>
+        <p>請按下右上方「x」關閉視窗，回到 Line 頁面做最後的確認</p>
       </Modal>
       <ul className="divide-y divide-gray-100 mx-2">
         <Box className="shadow-sm">
