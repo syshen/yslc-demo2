@@ -193,6 +193,7 @@ export default function OrderPage(
 
   return (
     <MantineProvider>
+      <Text>{JSON.stringify(carts)}</Text>
       <Modal
         opened={orderDisabled(order)}
         onClose={close}
