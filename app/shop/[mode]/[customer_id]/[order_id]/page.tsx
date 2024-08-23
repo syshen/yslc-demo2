@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useDisclosure } from '@mantine/hooks';
 import {
   MantineProvider,
@@ -11,6 +12,7 @@ import {
   Modal,
   ActionIcon,
 } from '@mantine/core';
+import { IconPlus, IconMinus } from '@tabler/icons-react';
 import { createClient } from '@/utils/supabase/client';
 import {
   Product,
@@ -20,13 +22,13 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { IconPlus, IconMinus } from '@tabler/icons-react';
 import { shopCarts } from '@/app/actions';
 import { logger, LogAction } from '@/utils/logger';
 
 export default function OrderPage(
   { params }: { params: { mode: string, customer_id: string, order_id: string } }
 ) {
+  const searchParams = useSearchParams();
   const { mode, customer_id, order_id } = params;
   const [order, setOrder] = useState<Order>();
   const supabase = createClient();
@@ -34,9 +36,22 @@ export default function OrderPage(
   interface Cart {
     [productId:string]: number
   }
+  // list=1011:1,2003:2
+  const productList = searchParams.get('list')?.split(',').map((item) => ({
+    product_id: item.split(':')[0],
+    quantity: item.split(':')[1],
+  }));
+  const carts:Cart = {};
+  if (productList) {
+    console.log(productList);
+    for (const item of productList) {
+      carts[item.product_id] = parseInt(item.quantity, 10);
+    }
+  }
+
   const [customer, setCustomer] = useState<Customer>();
   const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<Cart>({});
+  const [cart, setCart] = useState<Cart>(carts);
   const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
 
