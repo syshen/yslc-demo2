@@ -211,7 +211,7 @@ export default function OrderPage(
                   總金額: {Number(totalFee).toLocaleString()} 元
                 </Text>
                 <Button
-                  variant="light"
+                  size="lg"
                   radius="xl"
                   disabled={!(Object.values(cart).some(value => value > 0))}
                   onClick={() => {
@@ -235,7 +235,7 @@ export default function OrderPage(
         <Box>
           <Group className="justify-end py-5 items-center">
             <Button
-              variant="light"
+              size="lg"
               radius="xl"
               disabled={!(Object.values(cart).some(value => value > 0))}
               onClick={() => {

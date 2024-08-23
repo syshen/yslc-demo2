@@ -1,6 +1,7 @@
 'use server';
 
 import { Cart } from '@/utils/types';
+import { logger } from '@/utils/logger';
 
 export const confirmOrder = async (order_id:string) => {
   'use server';
@@ -28,8 +29,7 @@ export const shopCarts = async (
   } else {
     url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/shop`;
   }
-
-  await fetch(url, {
+  const resp = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -41,21 +41,25 @@ export const shopCarts = async (
       carts,
     }),
   });
-  // window.close();
+  if (resp.status !== 200) {
+    logger.error(`Calling ${url} with error: ${await resp.text()}`);
+  }
 };
 
-export const notifyMessage = async (action:string, order_id:string, payload?:string) => {
-  const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/message`;
-  await fetch(url, {
+export const analysisQuery = async (prompt:string) => {
+  'use server';
+
+  const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/analysis`;
+  const resp = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
     },
     body: JSON.stringify({
-      action,
-      order_id,
-      payload,
+      prompt,
     }),
   });
+  const data = await resp.json();
+  return data;
 };
