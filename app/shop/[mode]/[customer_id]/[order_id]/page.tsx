@@ -9,6 +9,7 @@ import {
   Group,
   Button,
   Modal,
+  ActionIcon,
 } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
 import {
@@ -19,6 +20,7 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
+import { IconPlus, IconMinus } from '@tabler/icons-react';
 import { shopCarts } from '@/app/actions';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -87,9 +89,10 @@ export default function OrderPage(
             </Text>
             <Text className={!product.spec ? 'invisible' : ''} size="sm">({product.spec})</Text>
             <div className="grid grap-x-8 grid-cols-2">
-              <Button
+              <ActionIcon
                 variant="outline"
                 radius="xl"
+                size="lg"
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center mr-3"
                 onClick={
                   () => {
@@ -100,11 +103,12 @@ export default function OrderPage(
                     });
                     setTotalFee(totalFee + Number(product.price));
                   }
-                }>+
-              </Button>
-              <Button
+                }><IconPlus size={20} />
+              </ActionIcon>
+              <ActionIcon
                 variant="outline"
                 radius="xl"
+                size="lg"
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center"
                 disabled={cart[product.product_id] === 0 || cart[product.product_id] === undefined}
                 onClick={
@@ -116,8 +120,8 @@ export default function OrderPage(
                     });
                     setTotalFee(totalFee - Number(product.price));
                   }
-                }>-
-              </Button>
+                }><IconMinus size={20} />
+              </ActionIcon>
             </div>
           </div>
         </li>
