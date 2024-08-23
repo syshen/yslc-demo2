@@ -99,8 +99,8 @@ export default function OrderPage(
             </Text>
           </Group>
           <div className="flex justify-between items-center">
-            <Text size="sm">
-              數量:<b> {cart[product.product_id] ? cart[product.product_id] : 0} {product.unit} </b>
+            <Text size="sm" fw={cart[product.product_id] ? 700 : 100}>
+              數量:{cart[product.product_id] ? cart[product.product_id] : 0} {product.unit}
             </Text>
             <Text className={!product.spec ? 'invisible' : ''} size="sm">({product.spec})</Text>
             <div className="grid grap-x-8 grid-cols-2">
@@ -193,7 +193,6 @@ export default function OrderPage(
 
   return (
     <MantineProvider>
-      <Text>{JSON.stringify(carts)}</Text>
       <Modal
         opened={orderDisabled(order)}
         onClose={close}
