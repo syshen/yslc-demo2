@@ -82,6 +82,15 @@ export default function OrderPage(
     .order('product_id', { ascending: true });
     if (data) {
       const ps:Product[] = data;
+      let total = 0;
+      for (const pid of Object.keys(cart)) {
+        const quantity = cart[pid];
+        const product = ps.find((p) => String(p.product_id) === pid);
+        if (product && product.price) {
+          total += product.price * quantity;
+        }
+      }
+      setTotalFee(total);
       setProducts(ps);
     }
   };
@@ -252,7 +261,15 @@ export default function OrderPage(
         </Box>
         {rows}
         <Box>
-          <Group className="justify-end py-5 items-center">
+          <Group className="justify-between py-5 items-center">
+            <Text
+              hidden={(totalFee === 0) ||
+              (!customer ||
+                (customer.payment_options !== undefined &&
+                customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)))}
+              size="sm">
+              總金額: {Number(totalFee).toLocaleString()} 元
+            </Text>
             <Button
               size="lg"
               radius="xl"

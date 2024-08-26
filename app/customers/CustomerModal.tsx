@@ -150,8 +150,8 @@ export function CustomerModal(
     await supabase.from('customers').delete().eq('customer_id', selectedCustomer.customer_id);
     setSelectedCustomer({ customer_id: '', name: '' });
     setLoading(false);
-    setProducts([]);
-    setProductRows([]);
+    // setProducts([]);
+    // setProductRows([]);
     logger.info(`Delete customer: ${selectedCustomer.customer_id}`, {
       action: LogAction.DELETE_CUSTOMERS,
       user: {
@@ -209,6 +209,8 @@ export function CustomerModal(
   }, [products]);
 
   useEffect(() => {
+    setProducts([]);
+    setProductRows([]);
     setSelectedCustomer(customer || { customer_id: '', name: '' });
     if (customer) {
       getProductsByCustomer(customer.customer_id);
@@ -296,8 +298,8 @@ export function CustomerModal(
       });
     }
     setLoading(false);
-    setProducts([]);
-    setProductRows([]);
+    // setProducts([]);
+    // setProductRows([]);
     if (onChange) {
       onChange();
     }
@@ -311,8 +313,8 @@ export function CustomerModal(
         title={customer ? '編輯客戶' : '新增客戶'}
         transitionProps={{ duration: 200, transition: 'slide-down' }}
         onClose={() => {
-          setProducts([]);
-          setProductRows([]);
+          // setProducts([]);
+          // setProductRows([]);
           if (onClose) {
             onClose();
           }
