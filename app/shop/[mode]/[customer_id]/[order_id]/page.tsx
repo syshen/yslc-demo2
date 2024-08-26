@@ -250,7 +250,7 @@ export default function OrderPage(
                         .map(([key, value]) => ({ product_id: key, quantity: value }))
                         .filter((item) => item.quantity > 0),
                       customer_id
-                    ).then(() => open());
+                    ).then(() => { window.close(); });
                   }
                 }
                 >送出
