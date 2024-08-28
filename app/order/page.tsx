@@ -14,6 +14,7 @@ import {
   IconNumber,
   IconChefHat,
 } from '@tabler/icons-react';
+import liff from '@line/liff';
 import { createClient } from '@/utils/supabase/server';
 import { Customer, Order, OrderState, PaymentOption, TAX_RATE, PaymentState, OrderItem } from '@/utils/types';
 import { logger, LogAction } from '@/utils/logger';
@@ -28,6 +29,9 @@ export default async function OrderPage({ searchParams }:
   const order_id:string = searchParams?.oid || '';
   // const { order_id } = params;
   const supabase = createClient();
+  await liff.init({
+    liffId: '2006159272-j3vD3Kvk',
+  });
   const { data } = await supabase.from('orders').select().eq('order_id', order_id);
   let order:Order = {
     total: 0,
