@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDisclosure } from '@mantine/hooks';
 import {
@@ -27,6 +27,12 @@ import { shopCarts } from '@/app/actions';
 import { logger, LogAction } from '@/utils/logger';
 
 export default function OrderPage() {
+  return (
+    <Suspense><Shop /></Suspense>
+  );
+}
+
+function Shop() {
   const searchParams = useSearchParams();
   // const { mode, customer_id, order_id } = params;
   const [order, setOrder] = useState<Order>();
