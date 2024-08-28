@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
+    "@line/liff": "^2.24.0",
     "@mantine/charts": "^7.12.0",
     "@mantine/core": "^7.11.2",
     "@mantine/dates": "^7.11.2",
