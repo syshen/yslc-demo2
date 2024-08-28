@@ -35,7 +35,6 @@ export default function OrderPage() {
 
 function Shop() {
   const searchParams = useSearchParams();
-  // const { mode, customer_id, order_id } = params;
   const [order, setOrder] = useState<Order>();
   const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
@@ -52,7 +51,6 @@ function Shop() {
   }));
   const carts:Cart = {};
   if (productList) {
-    console.log(productList);
     for (const item of productList) {
       carts[item.product_id] = parseInt(item.quantity, 10);
     }
