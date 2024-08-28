@@ -6,6 +6,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {
   MantineProvider,
   Text,
+  Title,
   Box,
   Group,
   Button,
@@ -224,8 +225,8 @@ function Shop() {
         withCloseButton={false}
         centered
       >
-        <h2>無法修改訂單</h2>
-        <p>該筆訂單已在處理中，請重新送訊息下訂，謝謝</p>
+        <Title order={2}>無法修改訂單</Title>
+        <Text>該筆訂單已在處理中，請重新送訊息下訂，謝謝</Text>
       </Modal>
       <Modal
         opened={opened}
@@ -235,11 +236,10 @@ function Shop() {
         withCloseButton={false}
         centered
       >
-        <h2>訂單已送出</h2>
-        <pre>頁面將在 3 秒後自動關閉。
-若未自動關閉,請點擊右上角「X」
-返回 Line 頁面進行確認。
-        </pre>
+        <Title order={2}>訂單已送出</Title>
+        <Text>頁面將在 3 秒後自動關閉。</Text>
+        <Text>若未自動關閉,請點擊右上角「X」</Text>
+        <Text>返回 Line 頁面進行確認。</Text>
       </Modal>
       <ul className="divide-y divide-gray-100 mx-2">
         <Box className="shadow-sm">
