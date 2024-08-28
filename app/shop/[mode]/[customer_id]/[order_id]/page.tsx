@@ -12,6 +12,7 @@ import {
   Modal,
   ActionIcon,
 } from '@mantine/core';
+import liff, { Liff } from '@line/liff';
 import { IconPlus, IconMinus } from '@tabler/icons-react';
 import { createClient } from '@/utils/supabase/client';
 import {
@@ -54,6 +55,7 @@ export default function OrderPage(
   const [cart, setCart] = useState<Cart>(carts);
   const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
+  const [liffCtx, setLiffCtx] = useState<Liff>();
 
   const getCustomer = async () => {
     const { data } = await supabase
@@ -185,6 +187,11 @@ export default function OrderPage(
   }, [products, cart, customer]);
 
   useEffect(() => {
+    liff.init({
+      liffId: '2006159272-exyY23yE',
+    }).then(() => {
+      setLiffCtx(liff);
+    });
     getOrder();
     getCustomer();
     getProducts();
@@ -250,7 +257,7 @@ export default function OrderPage(
                         .map(([key, value]) => ({ product_id: key, quantity: value }))
                         .filter((item) => item.quantity > 0),
                       customer_id
-                    ).then(() => open());
+                    ).then(() => { liffCtx?.closeWindow(); });
                   }
                 }
                 >送出
