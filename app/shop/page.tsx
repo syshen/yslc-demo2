@@ -236,7 +236,10 @@ function Shop() {
         centered
       >
         <h2>訂單已送出</h2>
-        <p>請按下右上方「x」關閉視窗，回到 Line 頁面做最後的確認</p>
+        <pre>頁面將在 3 秒後自動關閉。
+若未自動關閉,請點擊右上角「X」
+返回 Line 頁面進行確認。
+        </pre>
       </Modal>
       <ul className="divide-y divide-gray-100 mx-2">
         <Box className="shadow-sm">
@@ -264,7 +267,7 @@ function Shop() {
                         .map(([key, value]) => ({ product_id: key, quantity: value }))
                         .filter((item) => item.quantity > 0),
                       customer_id
-                    ).then(() => { liffCtx?.closeWindow(); });
+                    ).then(() => { open(); setTimeout(() => { liffCtx?.closeWindow(); }, 3000); });
                   }
                 }
                 >送出
@@ -296,7 +299,7 @@ function Shop() {
                       .map(([key, value]) => ({ product_id: key, quantity: value }))
                       .filter((item) => item.quantity > 0),
                   customer_id
-                ).then(() => open());
+                ).then(() => { open(); setTimeout(() => { liffCtx?.closeWindow(); }, 3000); });
               }}
             >送出
             </Button>
