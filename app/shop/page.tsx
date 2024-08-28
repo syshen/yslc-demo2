@@ -27,7 +27,7 @@ import {
 import { shopCarts } from '@/app/actions';
 import { logger, LogAction } from '@/utils/logger';
 
-export default function OrderPage() {
+export default function ShopPage() {
   return (
     <Suspense><Shop /></Suspense>
   );

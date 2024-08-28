@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import {
   MantineProvider,
   Image,
@@ -20,6 +21,12 @@ import { Customer, Order, OrderState, PaymentOption, TAX_RATE, PaymentState, Ord
 import { logger, LogAction } from '@/utils/logger';
 
 export default async function OrderPage() {
+  return (
+    <Suspense><OrderDetail /></Suspense>
+  );
+}
+
+async function OrderDetail() {
   const searchParams = useSearchParams();
 
   const order_id:string = searchParams.get('oid') || '';
