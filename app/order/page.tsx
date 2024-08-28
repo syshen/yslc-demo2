@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import {
   MantineProvider,
   Image,
@@ -15,21 +14,18 @@ import {
   IconNumber,
   IconChefHat,
 } from '@tabler/icons-react';
-import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { Customer, Order, OrderState, PaymentOption, TAX_RATE, PaymentState, OrderItem } from '@/utils/types';
 import { logger, LogAction } from '@/utils/logger';
 
-export default async function OrderPage() {
-  return (
-    <Suspense><OrderDetail /></Suspense>
-  );
-}
+export default async function OrderPage({ searchParams }:
+  {
+    //params: { slug: string };
+    searchParams?: { [key: string]: string | undefined }
+  }) {
+  // const searchParams = useSearchParams();
 
-async function OrderDetail() {
-  const searchParams = useSearchParams();
-
-  const order_id:string = searchParams.get('oid') || '';
+  const order_id:string = searchParams?.oid || '';
   // const { order_id } = params;
   const supabase = createClient();
   const { data } = await supabase.from('orders').select().eq('order_id', order_id);
