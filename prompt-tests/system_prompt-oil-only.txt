@@ -11,87 +11,10 @@
 全部銷售商品列表：
 [
   {
-    "name": "Bonsoy棒杏仁奶買六送一(6搭1)",
-    "product_id": 510021,
-    "unit": "箱",
-    "price": 7200,
-    "stock_quantity": null
-  },
-  {
-    "name": "Bonsoy棒豆奶買六送一(6搭1)",
-    "product_id": 510010,
-    "unit": "箱",
-    "price": 7200,
-    "stock_quantity": null
-  },
-  {
-    name: "Remedy康普茶(有機)-檸檬萊姆薄荷風味-330mL",
-    "product_id": 53001,
-    "unit": "箱",
-    "price": 160,
-    "stock_quantity": null
-  },
-  {
-    "name": "Remedy康普茶(有機)-檸檬覆盆莓風味-330mL",
-    "product_id": 53002,
-    "unit": "箱",
-    "price": 160,
-    "stock_quantity": null
-  },
-  {
-    "name": "Remedy康普茶(有機)-水蜜桃風味-330mL",
-    "product_id": 53003,
-    "unit": "箱",
-    "price": 160,
-    "stock_quantity": null
-  },
-  {
-    "name": "Chamellia薄荷茶-散茶50G",
-    "product_id": 23032,
-    "unit": "包",
-    "price": 400,
-    "stock_quantity": null
-  },
-  {
-    "name": "Chamellia伯爵紅茶-散茶375G",
-    "product_id": 23016,
-    "unit": "包",
-    "price": 800,
-    "stock_quantity": null
-  },
-  {
-    "name": "Chamellia薄荷茶-散茶200G",
-    "product_id": 23031,
-    "unit": "包",
-    "price": 700,
-    "stock_quantity": null
-  },
-  {
-    "name": "Chamellia洋甘菊茶-散茶200G",
-    "product_id": 23026,
-    "unit": "包",
-    "price": 800,
-    "stock_quantity": null
-  },
-  {
-    "name": "Chamellia舒緩花草茶-散茶200G",
-    "product_id": 23021,
-    "unit": "包",
-    "price": 800,
-    "stock_quantity": null
-  },
-  {
     "name": "澳廚經典芥花油-20L",
     "product_id": 11003,
     "unit": "桶",
     "price": 5000,
-    "stock_quantity": null
-  },
-  {
-    "name": "Bonsoy氣泡椰子水-320mL",
-    "product_id": 51003,
-    "unit": "組",
-    "price": 3600,
     "stock_quantity": null
   },
 ]  
