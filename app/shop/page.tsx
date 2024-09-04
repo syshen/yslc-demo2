@@ -187,7 +187,7 @@ function Shop() {
 
   const pageLoading = () => (
     <Box className="flex justify-center">
-      <Loader color="blue" type="dots" className="py-5"></Loader>
+      <Loader color="blue" type="dots" className="py-20"></Loader>
     </Box>
   );
 
