@@ -17,8 +17,20 @@ import {
   Loader,
 } from '@mantine/core';
 import { User } from '@supabase/supabase-js';
+import {
+  getProductsByCustomer,
+  getAllProducts,
+  deleteCustomerByCustomerID,
+  updateCustomer,
+  updateCustomerProducts,
+  addNewCustomer,
+} from './actions';
 import { createClient } from '../../utils/supabase/client';
-import { Customer, Product, CustomerProduct } from '../../utils/types';
+import {
+  Customer,
+  NewCustomerProducts,
+  ProductWithCustomPrice,
+} from '@/utils/db';
 import { logger, LogAction } from '@/utils/logger';
 
 export function CustomerModal(
@@ -32,12 +44,13 @@ export function CustomerModal(
 ) {
   const supabase = createClient();
   const [loginUser, setLoginUser] = useState<User>();
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer>(customer || { customer_id: '', name: '' });
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(customer);
+  const [products, setProducts] = useState<ProductWithCustomPrice[]>([]);
   const [productRows, setProductRows] = useState<JSX.Element[]>([]);
   const [productLoading, setProductLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  /*
   const getProductsByCustomer = async (customer_id:string) => {
     setProductLoading(true);
     const { data } = await supabase
@@ -64,28 +77,28 @@ export function CustomerModal(
     }
     setProductLoading(false);
   };
-  const isProductEnabled = (product: Product) => {
-    if (product.customer_products &&
-        product.customer_products.length > 0 &&
-        product.customer_products[0].is_available) {
+  */
+  const isProductEnabled = (product: ProductWithCustomPrice) => {
+    if (product.custom_price &&
+        product.custom_price.is_available) {
       return true;
     }
     return false;
   };
 
-  const handleCheckboxChange = (product_id: number) => {
+  const handleCheckboxChange = (product_id: string) => {
     // setChanged(true);
     setProducts(prevProducts => {
       const newProducts = prevProducts.map(product => {
         if (product.product_id === product_id) {
-          if (product.customer_products && product.customer_products.length > 0) {
-            product.customer_products[0].is_available = !product.customer_products[0].is_available;
-          } else {
-            product.customer_products = [
-              { customer_id: selectedCustomer.customer_id,
+          if (product.custom_price) {
+            product.custom_price.is_available = !product.custom_price.is_available;
+          } else if (selectedCustomer) {
+            product.custom_price = {
                 is_available: true,
-              },
-            ];
+                price: null,
+                product_id: product.product_id,
+              };
           }
         }
         return product;
@@ -94,15 +107,18 @@ export function CustomerModal(
     });
   };
 
-  const handlePriceChange = (product_id:number, newPrice:number | undefined) => {
+  const handlePriceChange = (product_id:string, newPrice:number | undefined) => {
     const newProducts = products.map((product) => {
       if (product.product_id === product_id) {
-        if (product.customer_products && product.customer_products.length > 0) {
-          product.customer_products[0].price = newPrice;
-        } else {
-          product.customer_products = [
-            { customer_id: selectedCustomer.customer_id, price: newPrice, is_available: true },
-          ];
+        if (product.custom_price) {
+          product.custom_price.price = newPrice || null;
+        } else if (selectedCustomer) {
+          product.custom_price =
+            {
+              price: newPrice || null,
+              is_available: true,
+              product_id: product.product_id,
+            };
         }
       }
       return product;
@@ -115,7 +131,7 @@ export function CustomerModal(
       <Table.Tr key={row.product_id}>
         <Table.Td>
           <Checkbox
-            id={row.product_id.toString()}
+            id={row.product_id?.toString()}
             checked={isProductEnabled(row)}
             onChange={() => {
               handleCheckboxChange(row.product_id);
@@ -134,8 +150,8 @@ export function CustomerModal(
               handlePriceChange(row.product_id, value);
             }}
             value={
-              (row.customer_products && row.customer_products.length > 0)
-                ? row.customer_products[0].price : undefined
+              (row.custom_price)
+                ? (row.custom_price.price || undefined) : undefined
             }
           />
         </Table.Td>
@@ -145,31 +161,37 @@ export function CustomerModal(
   };
 
   const deleteCustomer = async () => {
-    if (selectedCustomer.customer_id.length === 0) return;
-    setLoading(true);
-    await supabase.from('customers').delete().eq('customer_id', selectedCustomer.customer_id);
-    setSelectedCustomer({ customer_id: '', name: '' });
-    setLoading(false);
-    // setProducts([]);
-    // setProductRows([]);
-    logger.info(`Delete customer: ${selectedCustomer.customer_id}`, {
-      action: LogAction.DELETE_CUSTOMERS,
-      user: {
-        user_id: loginUser?.id || '',
-        email: loginUser?.email || '',
-      },
-      customer: selectedCustomer,
-    });
-    if (onChange) {
-      onChange();
+    try {
+      if (selectedCustomer === null || selectedCustomer.customer_id.length === 0) return;
+      setLoading(true);
+      await deleteCustomerByCustomerID(selectedCustomer.customer_id);
+      // await supabase.from('customers').delete().eq('customer_id', selectedCustomer.customer_id);
+      setSelectedCustomer(null);
+      setLoading(false);
+      // setProducts([]);
+      // setProductRows([]);
+      logger.info(`Delete customer: ${selectedCustomer.customer_id}`, {
+        action: LogAction.DELETE_CUSTOMERS,
+        user: {
+          user_id: loginUser?.id || '',
+          email: loginUser?.email || '',
+        },
+        customer: selectedCustomer,
+      });
+      if (onChange) {
+        onChange();
+      }
+    } catch (error) {
+      console.error(error);
+      Notifications.show({ message: '刪除失敗', color: 'red' });
     }
   };
 
   const saveChanges = async () => {
-    if (selectedCustomer.customer_id === '') return;
+    if (selectedCustomer === null || selectedCustomer.customer_id === '') return;
 
     // setLoading(true);
-    await supabase.from('customers').update({
+    await updateCustomer(selectedCustomer.customer_id, {
       customer_id: selectedCustomer!.customer_id.trim(),
       name: selectedCustomer!.name.trim(),
       parent_id: selectedCustomer!.parent_id,
@@ -180,27 +202,23 @@ export function CustomerModal(
       shipping_address:
         selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
       payment_options: selectedCustomer!.payment_options,
-    }).eq('customer_id', selectedCustomer.customer_id);
-    await supabase.from('customer_products').delete().eq('customer_id', selectedCustomer.customer_id);
+    });
 
     // 沒有母公司, 或者本身就是母公司的我們才儲存產品變動
     if (!selectedCustomer.parent_id || selectedCustomer.parent_id === '') {
-      const records:CustomerProduct[] = [];
+      const records:NewCustomerProducts[] = [];
 
       for (const product of products) {
         if (isProductEnabled(product)) {
           records.push({
             customer_id: selectedCustomer.customer_id,
             product_id: product.product_id,
-            price: product.customer_products![0].price,
+            price: product.custom_price?.price,
             is_available: true,
           });
         }
       }
-      if (records.length > 0) {
-        console.log(`insert ${JSON.stringify(records)}`);
-        await supabase.from('customer_products').insert(records);
-      }
+      await updateCustomerProducts(selectedCustomer.customer_id, records);
     }
   };
 
@@ -211,21 +229,26 @@ export function CustomerModal(
   useEffect(() => {
     setProducts([]);
     setProductRows([]);
-    setSelectedCustomer(customer || { customer_id: '', name: '' });
+    setSelectedCustomer(customer);
     if (customer) {
-      getProductsByCustomer(customer.customer_id);
-    } else {
-      const getData = async () => {
-        const { data } = await supabase
-        .from('products')
-        .select('*')
-        .order('product_id', { ascending: false });
-        if (data) {
-          setProducts(data);
-          setProductLoading(false);
+      setProductLoading(true);
+      getProductsByCustomer(customer.customer_id).then((results) => {
+        const rs:string[] = [];
+        for (const product of results) {
+          if (product.custom_price && product.custom_price.is_available) {
+            rs.push(product.product_id);
+          }
         }
-      };
-      getData();
+        setProducts(results);
+
+        setProductLoading(false);
+      });
+    } else {
+      getAllProducts().then((results) => {
+        setProducts(results as ProductWithCustomPrice[]);
+        setProductLoading(false);
+      });
+      // getData();
     }
   }, [customer]);
 
@@ -238,7 +261,18 @@ export function CustomerModal(
   }, []);
 
   const saveNewCustomer = async () => {
-    const resp = await supabase.from('customers').insert({
+    const records:NewCustomerProducts[] = [];
+    for (const product of products) {
+      if (isProductEnabled(product)) {
+        records.push({
+          customer_id: selectedCustomer!.customer_id,
+          product_id: product.product_id,
+          price: product.custom_price?.price,
+          is_available: true,
+        });
+      }
+    }
+    await addNewCustomer({
       customer_id: selectedCustomer!.customer_id.trim(),
       name: selectedCustomer!.name.trim(),
       parent_id: selectedCustomer!.parent_id,
@@ -249,57 +283,40 @@ export function CustomerModal(
       shipping_address:
         selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
       payment_options: selectedCustomer!.payment_options ? selectedCustomer!.payment_options : null,
-    });
-    if (resp.error) {
-      Notifications.show({
-        message: `新增失敗: ${resp.error.message}`,
-        color: 'red',
-      });
-      logger.error(resp.error);
-    }
-
-    const records:CustomerProduct[] = [];
-    for (const product of products) {
-      if (isProductEnabled(product)) {
-        records.push({
-          customer_id: selectedCustomer!.customer_id,
-          product_id: product.product_id,
-          price: product.customer_products![0].price,
-          is_available: true,
-        });
-      }
-    }
-    if (records.length > 0) {
-      console.log(`insert ${JSON.stringify(records)}`);
-      await supabase.from('customer_products').insert(records);
-    }
+    }, records);
   };
 
   const clickSave = async () => {
     setLoading(true);
     if (customer) {
-      await saveChanges();
-      logger.info('Update customer', {
-        action: LogAction.MODIFY_CUSTOMER,
-        customer,
-        user: {
-          user_id: loginUser?.id || '',
-          email: loginUser?.email || '',
-        },
-      });
+      try {
+        await saveChanges();
+        logger.info('Update customer', {
+          action: LogAction.MODIFY_CUSTOMER,
+          customer,
+          user: {
+            user_id: loginUser?.id || '',
+            email: loginUser?.email || '',
+          },
+        });
+      } catch (error) {
+        Notifications.show({ message: '更新失敗', color: 'red' });
+      }
     } else {
-      await saveNewCustomer();
-      logger.info('Add new customer', {
-        action: LogAction.ADD_CUSTOMER,
-        user: {
-          user_id: loginUser?.id || '',
-          email: loginUser?.email || '',
-        },
-      });
+      try {
+        await saveNewCustomer();
+        logger.info('Add new customer', {
+          action: LogAction.ADD_CUSTOMER,
+          user: {
+            user_id: loginUser?.id || '',
+            email: loginUser?.email || '',
+          },
+        });
+      } catch (error) {
+        Notifications.show({ message: '新增失敗', color: 'red' });
+      }
     }
     setLoading(false);
-    // setProducts([]);
-    // setProductRows([]);
     if (onChange) {
       onChange();
     }
@@ -322,14 +339,14 @@ export function CustomerModal(
           <TextInput
             label="客戶編號"
             required
-            value={selectedCustomer!.customer_id}
+            value={selectedCustomer?.customer_id}
             onChange={(event) => {
               setSelectedCustomer({ ...selectedCustomer!, customer_id: event.currentTarget.value });
             }} />
           <Select
             label="母公司編號"
             clearable
-            value={selectedCustomer!.parent_id}
+            value={selectedCustomer?.parent_id}
             onChange={(value) => {
               setSelectedCustomer({ ...selectedCustomer!, parent_id: value! });
             }}
@@ -342,7 +359,7 @@ export function CustomerModal(
           <TextInput
             label="客戶名稱"
             required
-            value={selectedCustomer!.name}
+            value={selectedCustomer?.name}
             onChange={(event) => {
               setSelectedCustomer({ ...selectedCustomer!, name: event.currentTarget.value });
             }} />
@@ -350,7 +367,7 @@ export function CustomerModal(
             label="付款方式"
             disabled={selectedCustomer !== null && selectedCustomer.parent_id !== undefined
               && selectedCustomer.parent_id !== null && selectedCustomer.parent_id.length !== 0}
-            value={selectedCustomer!.payment_options}
+            value={selectedCustomer?.payment_options}
             data={[
               { label: '月結', value: 'monthlyPayment' },
               { label: '貨到付款', value: 'payOnReceive' },
@@ -362,7 +379,7 @@ export function CustomerModal(
             } />
           <TextInput
             label="聯絡電話"
-            value={selectedCustomer!.contact_phone_1}
+            value={selectedCustomer?.contact_phone_1 || ''}
             onChange={(event) => {
               setSelectedCustomer({
                 ...selectedCustomer!, contact_phone_1: event.currentTarget.value,
@@ -370,7 +387,7 @@ export function CustomerModal(
             }} />
           <TextInput
             label="出貨地址"
-            value={selectedCustomer!.shipping_address}
+            value={selectedCustomer?.shipping_address || ''}
             onChange={(event) => {
               setSelectedCustomer({
                 ...selectedCustomer!, shipping_address: event.currentTarget.value,

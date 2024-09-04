@@ -18,6 +18,7 @@ import { Notifications } from '@mantine/notifications';
 import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import { OrderState, PaymentState } from '@/utils/types';
+import { updateOrderStatus, updatePaymentStatus } from './actions';
 import { logger, LogAction } from '@/utils/logger';
 
 export function ActionButton(
@@ -32,14 +33,15 @@ export function ActionButton(
   const [opened, setOpened] = useState(false);
   const [message, setMessage] = useState('');
 
-  const changeStatus = async (status: string) => {
+  const changeStatus = async (status: OrderState | PaymentState) => {
     try {
-      if (status === 'paid') {
-        await supabase
-          .from('orders')
-          .update({
-            payment_status: PaymentState.PAID,
-          }).eq('order_id', order_id);
+      if (status === PaymentState.PAID) {
+        await updatePaymentStatus(order_id, PaymentState.PAID);
+        // await supabase
+        //   .from('orders')
+        //   .update({
+        //     payment_status: PaymentState.PAID,
+        //   }).eq('order_id', order_id);
         logger.info(`Order ${order_id} payment status changed to ${PaymentState.PAID}`, {
           action: LogAction.CHANGE_STATUS,
           user: {
@@ -55,7 +57,8 @@ export function ActionButton(
           },
         });
       } else {
-        await supabase.from('orders').update({ state: status }).eq('order_id', order_id);
+        await updateOrderStatus(order_id, status as OrderState);
+        // await supabase.from('orders').update({ state: status }).eq('order_id', order_id);
         logger.info(`Order ${order_id} status changed to ${status}`, {
           action: LogAction.CHANGE_STATUS,
           user: {
@@ -139,7 +142,7 @@ export function ActionButton(
           <Menu.Label>改變訂單狀態</Menu.Label>
           <Menu.Item
             leftSection={<IconCash size={14} />}
-            onClick={() => changeStatus('paid')}
+            onClick={() => changeStatus(PaymentState.PAID)}
           >轉成已付款
           </Menu.Item>
           <Menu.Item

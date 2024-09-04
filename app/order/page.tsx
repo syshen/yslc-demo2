@@ -8,6 +8,7 @@ import {
   Badge,
   Stack,
 } from '@mantine/core';
+import { notFound } from 'next/navigation';
 import {
   IconCalendarEvent,
   IconUserCircle,
@@ -15,9 +16,9 @@ import {
   IconChefHat,
 } from '@tabler/icons-react';
 import liff from '@line/liff';
-import { createClient } from '@/utils/supabase/server';
-import { Customer, Order, OrderState, PaymentOption, TAX_RATE, PaymentState, OrderItem } from '@/utils/types';
+import { OrderState, PaymentOption, TAX_RATE, PaymentState } from '@/utils/types';
 import { logger, LogAction } from '@/utils/logger';
+import { db, OrderItem } from '@/utils/db';
 
 export default async function OrderPage({ searchParams }:
   {
@@ -27,50 +28,61 @@ export default async function OrderPage({ searchParams }:
   // const searchParams = useSearchParams();
 
   const order_id:string = searchParams?.oid || '';
-  // const { order_id } = params;
-  const supabase = createClient();
   await liff.init({
     liffId: '2006159272-j3vD3Kvk',
   });
-  const { data } = await supabase.from('orders').select().eq('order_id', order_id);
-  let order:Order = {
-    total: 0,
-    created_at: '',
-    items: [],
-    order_id: '',
-    payment_option: '',
-    account_number: '',
-    customer_id: '',
-    state: OrderState.NONE,
-    payment_status: PaymentState.PENDING,
-    tax: 0.0,
-    shipping_fee: 0.0,
-  };
-  let untax_total = 0;
-  if (data && data.length > 0) {
-    [order] = data;
-
-    order.items.forEach((item) => {
-      untax_total += item.subtotal;
-    });
+  const order = await db.selectFrom('orders').selectAll().where('order_id', '=', order_id).executeTakeFirst();
+  if (order === null || order === undefined) {
+    return notFound();
   }
-  let customer:Customer | undefined;
-  const resp = await supabase.from('customers').select(`
+  // const { data } = await supabase.from('orders').select().eq('order_id', order_id);
+  // let order:Order = {
+  //   total: 0,
+  //   created_at: '',
+  //   items: [],
+  //   order_id: '',
+  //   payment_option: '',
+  //   account_number: '',
+  //   customer_id: '',
+  //   state: OrderState.NONE,
+  //   payment_status: PaymentState.PENDING,
+  //   tax: 0.0,
+  //   shipping_fee: 0.0,
+  // };
+  let untax_total = 0;
+  // if (data && data.length > 0) {
+  //   [order] = data;
+
+  order.items.forEach((item) => {
+    untax_total += item.subtotal;
+  });
+  // }
+  // let customer:Customer | undefined;
+  const customer = await db.selectFrom('customers')
+  /*
+                          .leftJoin(
+                            (eb) => eb.selectFrom('customers').select(['customer_id', 'name', 'payment_options', 'parent_id']).as('stores'),
+                            (join) => join.onRef('customers.customer_id', '=', 'stores.parent_id'),
+                          )*/
+                            .selectAll().where('customer_id', '=', order.customer_id).executeTakeFirst();
+/*
+                            const resp = await supabase.from('customers').select(`
     *,
     customer:parent_id (customer_id, name, payment_options)
   `).eq('customer_id', order.customer_id);
   if (resp.data && resp.data.length > 0) {
     [customer] = resp.data;
-  }
+  }*/
 
-  const product_ids:number[] = [];
+  const product_ids:string[] = [];
   for (const item of order.items) {
-    if (item.id) {
-      product_ids.push(item.id);
+    if (item.product_id) {
+      product_ids.push(item.product_id);
     }
   }
-  const { data: products } = await supabase.from('products').select().in('product_id', product_ids);
-  const findProduct = (product_id:number) => {
+  const products = await db.selectFrom('products').selectAll().where('product_id', 'in', product_ids).execute();
+  // const { data: products } = await supabase.from('products').select().in('product_id', product_ids);
+  const findProduct = (product_id:string) => {
     if (products && products.length > 0) {
       for (const product of products) {
         if (product.product_id === product_id) {
@@ -112,7 +124,7 @@ export default async function OrderPage({ searchParams }:
     return '';
   };
 
-  const getPaymentOption = (option:string | undefined) => {
+  const getPaymentOption = (option:string | undefined | null) => {
     switch (option) {
       case PaymentOption.MONTHLY_PAYMENT:
         return '月結';
@@ -154,8 +166,14 @@ export default async function OrderPage({ searchParams }:
     return '';
   };
 
+  /**
+   * Return the name of the product, with spec if available.
+   * If the product is not found, return the item name.
+   * @param {Object} item an item in the order
+   * @return {string} a string that describes the item
+   */
   const itemInfo = (item:OrderItem) => {
-    const product = findProduct(item.id);
+    const product = findProduct(item.product_id);
     if (product && product.spec) {
       return `${product.name} (${product.spec})`;
     }
@@ -207,13 +225,13 @@ export default async function OrderPage({ searchParams }:
                 <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {item.quantity}{item.unit}</p>
               </div>
               <Text
-                hidden={order.payment_option.includes(PaymentOption.MONTHLY_PAYMENT)}
+                hidden={order.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT)}
                 className="font-medium text-lg leading-8">{Number(item.subtotal).toLocaleString()}
               </Text>
             </div>
           ))}
         </div>
-        { order.payment_option.includes(PaymentOption.MONTHLY_PAYMENT) ? '' : (
+        { order.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT) ? '' : (
         <Flex
           direction="column"
           gap="md"

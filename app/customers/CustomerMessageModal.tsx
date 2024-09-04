@@ -11,7 +11,7 @@ import {
   Stack,
 } from '@mantine/core';
 import { createClient } from '@/utils/supabase/client';
-import { Customer } from '@/utils/types';
+import { Customer } from '@/utils/db';
 import { logger, LogAction } from '@/utils/logger';
 
 // a js code to generate a file name with date and time, like 20240510123000.png

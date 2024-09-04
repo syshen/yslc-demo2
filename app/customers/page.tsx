@@ -24,16 +24,17 @@ import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
 import { BatchImportButton } from '@/components/buttons/BatchImportButton';
-import { Customer } from '@/utils/types';
 import { CustomerModal } from './CustomerModal';
 import { CustomerMessageModal } from './CustomerMessageModal';
 import { logger, LogAction } from '@/utils/logger';
+import { Customer, CustomerWithParent } from '@/utils/db';
+import { getAllCustomers, deleteCustomersIn } from './actions';
 
 export default function CustomersPage() {
   const supabase = createClient();
   const [loginUser, setLoginUser] = useState<User>();
   const [rows, setRows] = useState<JSX.Element[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<CustomerWithParent[]>([]);
   const [opened, setOpened] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -46,7 +47,7 @@ export default function CustomersPage() {
   /*
     Customers
   */
-  const paymentOptions = (options: string | undefined) => {
+  const paymentOptions = (options: string | null) => {
     if (!options) {
       return '';
     }
@@ -75,7 +76,7 @@ export default function CustomersPage() {
         </Table.Td>
         <Table.Td>{row.customer_id}</Table.Td>
         <Table.Td>{row.name}</Table.Td>
-        <Table.Td>{row.customers ? (<Pill>{row.customers.name}</Pill>) : ''}</Table.Td>
+        <Table.Td>{row.parent_name ? (<Pill>{row.parent_name}</Pill>) : ''}</Table.Td>
         <Table.Td>{row.line_group_name}</Table.Td>
         <Table.Td>{[row.contact_phone_1, row.contact_phone_2].filter((x) => x).join(',')}</Table.Td>
         <Table.Td>{row.shipping_address}</Table.Td>
@@ -97,17 +98,8 @@ export default function CustomersPage() {
   }, [customers, selectedRows]);
 
   const getCustomers = async () => {
-    const { data } = await supabase
-    .from('customers')
-    .select(`
-      *,
-      orders (order_id, customer_id, created_at, payment_status, total, items),
-      customers:parent_id (customer_id, name)
-      `).order('created_at', { ascending: false });
-
-    if (data) {
-      setCustomers(data);
-    }
+    const results = await getAllCustomers();
+    setCustomers(results);
   };
 
   /* Initial load */
@@ -130,7 +122,7 @@ export default function CustomersPage() {
       return;
     }
     setDeleteLoading(true);
-    await supabase.from('customers').delete().in('customer_id', customer_ids);
+    await deleteCustomersIn(customer_ids);
     logger.info('Delete customers', {
       action: LogAction.DELETE_CUSTOMERS,
       user: {
@@ -177,12 +169,14 @@ export default function CustomersPage() {
         opened={opened}
         onClose={() => { setOpened(false); }}
         onChange={() => { getCustomers(); setOpened(false); }}
-        customer={selectedCustomer}
+        customer={selectedCustomer as Customer}
         customers={customers} />
       <CustomerMessageModal
         opened={messageOpened}
         onClose={() => { setMessageOpened(false); }}
-        customers={customers.filter((customer) => selectedRows.includes(customer.customer_id))}
+        customers={
+          customers.filter((customer) => selectedRows.includes(customer.customer_id)) as Customer[]
+        }
       />
       <Box className="shadow-sm">
         <header>

@@ -37,7 +37,7 @@ export interface LineInfo {
   displayName: string
   pictureUrl: string
 }
-
+/*
 export interface Order {
   order_id: string
   created_at: string
@@ -69,6 +69,7 @@ export interface Customer {
   line_group_name?: string
   orders?: Order[]
   customers?: Customer // Parent customer
+  parent_name?: string
 }
 
 export interface CustomerProduct {
@@ -94,7 +95,7 @@ export interface Product {
   base_unit_quantity?: number
   gift_quantity?: number
   customer_products?: CustomerProduct[]
-}
+}*/
 
 export interface Cart {
   product_id: string

@@ -3,6 +3,7 @@ import '@mantine/core/styles.css';
 import React from 'react';
 import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { theme } from '../theme';
+import '@mantine/charts/styles.css';
 
 export const metadata = {
   title: '詠鑠生活 YSLC',

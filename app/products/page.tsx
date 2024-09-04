@@ -17,7 +17,9 @@ import {
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
-import { Product } from '@/utils/types';
+// import { Product } from '@/utils/types';
+import { Product } from '@/utils/db';
+import { getAllProducts, updateProduct } from './actions';
 import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { ProductModal } from './ProductModal';
 
@@ -30,7 +32,7 @@ export default function ProductsPage() {
   const [opened, setOpened] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [changedProductIds, setChangedProductIds] = useState<number[]>([]);
+  const [changedProductIds, setChangedProductIds] = useState<string[]>([]);
 
   const changeStockStatus = async (product:Product) => {
     let c = false;
@@ -71,11 +73,17 @@ export default function ProductsPage() {
     for (const product_id of changedProductIds) {
       const product = products.find((p) => p.product_id === product_id);
       if (product) {
-        await supabase.from('products').update({
-          unit_price: product.unit_price,
-          is_active: product.is_active,
-          stock_quantity: product.stock_quantity,
-        }).eq('product_id', product_id);
+        try {
+          await updateProduct(product_id, product);
+        } catch (error) {
+          console.error(error);
+          Notifications.show({ message: '更新失敗', color: 'red' });
+        }
+        // await supabase.from('products').update({
+        //   unit_price: product.unit_price,
+        //   is_active: product.is_active,
+        //   stock_quantity: product.stock_quantity,
+        // }).eq('product_id', product_id);
       }
     }
     setChangedProductIds([]);
@@ -129,12 +137,12 @@ export default function ProductsPage() {
   };
 
   const getProducts = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('*')
-      .order('product_id', { ascending: true });
-    if (data) {
-      setProducts(data);
+    try {
+      const results = await getAllProducts();
+      setProducts(results);
+    } catch (error) {
+      console.error(error);
+      Notifications.show({ message: '讀取失敗', color: 'red' });
     }
   };
 
@@ -146,8 +154,10 @@ export default function ProductsPage() {
     setLoading(true);
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        getProducts();
-        setLoading(false);
+        getAllProducts().then((results) => {
+          setProducts(results);
+          setLoading(false);
+        });
       } else {
         setLoading(false);
         router.push('/login');

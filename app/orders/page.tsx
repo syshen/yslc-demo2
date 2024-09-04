@@ -27,7 +27,9 @@ import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
 import { ChatMessage } from './ChatMessage';
-import { Order, OrderItem, PaymentOption, Product, OrderState, PaymentState } from '@/utils/types';
+import { Product, OrderWithCustomer, OrderItem } from '@/utils/database';
+import { getCustomers, getProducts, getOrders } from './actions';
+import { PaymentOption, OrderState, PaymentState } from '@/utils/types';
 import { ActionButton } from './ActionButton';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -57,7 +59,7 @@ export default function OrdersPage() {
   const router = useRouter();
   const supabase = createClient();
   const [loginUser, setLoginUser] = useState<User>();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderWithCustomer[]>([]);
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
@@ -73,7 +75,7 @@ export default function OrdersPage() {
       color: 'teal',
     });
   };
-  const paymentOption = (order:Order) => {
+  const paymentOption = (order:OrderWithCustomer) => {
     if (order.payment_option === PaymentOption.BANK_TRANSFER) {
       if (order.account_number) {
         return `銀行轉帳，帳號後五碼: ${order.account_number}`;
@@ -89,24 +91,24 @@ export default function OrdersPage() {
     return '<未指定>';
   };
 
-  const getProductById = (id:number) => products.find((product) => product.product_id === id);
+  const getProductById = (id:string) => products.find((product) => product.product_id === id);
 
-  const getTotalERPQuantity = (quantity:number, id:number) => {
-    const product = getProductById(id);
+  const getTotalERPQuantity = (quantity:number, product_id:string) => {
+    const product = getProductById(product_id);
     if (product === null || product === undefined) {
       return '';
     }
     return (quantity * (product.base_unit_quantity || 1)).toString();
   };
-  const getGiftQuantity = (quantity:number, id:number) => {
-    const product = getProductById(id);
+  const getGiftQuantity = (quantity:number, product_id:string) => {
+    const product = getProductById(product_id);
     if (product === null || product === undefined) {
       return '';
     }
     return (quantity * (product.gift_quantity || 0)).toString();
   };
 
-  const getPaymentStatus = (order:Order) => {
+  const getPaymentStatus = (order:OrderWithCustomer) => {
     if (order.payment_option === PaymentOption.MONTHLY_PAYMENT) {
       return '月結';
     }
@@ -131,22 +133,22 @@ export default function OrdersPage() {
             '發票型態代號': '',
             '發票型態': '',
             '付款條件代號': '',
-            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '緋月結',
+            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
             '單據日期': formatDate(new Date(order.created_at)),
             '客戶代號': order.customer_id,
-            '客戶簡稱': order.customers?.name || '',
+            '客戶簡稱': order.customer?.name || '',
             '物流人員代號': '',
             '業務人員名稱': '',
             '備註': '',
-            '送貨地址': order.customers?.shipping_address || '',
-            '聯絡電話(一)': order.customers?.contact_phone_1 || '',
-            '聯絡電話(二)': order.customers?.contact_phone_2 || '',
+            '送貨地址': order.customer?.shipping_address || '',
+            '聯絡電話(一)': order.customer?.contact_phone_1 || '',
+            '聯絡電話(二)': order.customer?.contact_phone_2 || '',
             '收貨人': '',
             '訂單單號 (=接單系統的訂單單號)': '',
-            '品號': item.id.toString(),
+            '品號': item.product_id.toString(),
             '品名': item.item,
-            '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
-            '贈品量': getGiftQuantity(item.quantity, item.id),
+            '銷貨數量': getTotalERPQuantity(item.quantity, item.product_id),
+            '贈品量': getGiftQuantity(item.quantity, item.product_id),
             '備品量': '0',
             '單價': item.unit_price.toString(),
             '是否匯款': getPaymentStatus(order),
@@ -164,35 +166,6 @@ export default function OrdersPage() {
       },
       exported_orders: selectedRows,
     });
-  };
-
-  const getCustomers = async () => {
-    const { data } = await supabase.from('customers')
-      .select(`
-        customer_id, 
-        name
-      `);
-
-    if (data) {
-      const rs = data.map((row) => ({
-          value: row.customer_id,
-          label: row.name,
-      }));
-      setCustomerOptions(rs);
-    }
-  };
-
-  const getProducts = async () => {
-    const { data } = await supabase.from('products').select(`
-      product_id,
-      name,
-      unit,
-      base_unit,
-      base_unit_quantity,
-      gift_quantity`);
-    if (data) {
-      setProducts(data);
-    }
   };
 
   useEffect(() => {
@@ -228,35 +201,35 @@ export default function OrdersPage() {
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(row.customers.customer_id); }}
+            onClick={() => { copy(row.customer_id); }}
           >
-            {row.customers.customer_id}
+            {row.customer_id}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(row.customers.name); }}
+            onClick={() => { copy(row.customer?.name); }}
           >
-            {row.customers.name}
+            {row.customer?.name}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(item.id.toString()); }}
+            onClick={() => { copy(item.product_id); }}
           >
-            {item.id}
+            {item.product_id}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
             onClick={() => { copy(item.item); }}
           >
-            <HoverCard disabled={!row.messages} width={280} shadow="md">
+            <HoverCard disabled={!row.message} width={280} shadow="md">
               <HoverCard.Target>
                 <Text>{item.item}</Text>
               </HoverCard.Target>
               <HoverCard.Dropdown>
                 <ChatMessage
-                  userName={row.messages ? row.messages.user_name : ''}
-                  profileUrl={row.messages ? row.messages.user_profile_url : ''}
-                  message={row.messages ? row.messages.message : ''}
+                  userName={row.message ? row.message.user_name : ''}
+                  profileUrl={row.message ? row.message.user_profile_url : ''}
+                  message={row.message ? row.message.message : ''}
                 />
               </HoverCard.Dropdown>
             </HoverCard>
@@ -278,9 +251,18 @@ export default function OrdersPage() {
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{orderStatus(row)}</Table.Td>
           <Table.Td>
             <ActionButton
-              customer_id={row.customers.customer_id}
+              customer_id={row.customer_id}
               order_id={row.order_id}
-              onAction={() => { getOrders(); }}
+              onAction={() => {
+                getOrders(
+                  cancelledChecked,
+                  pendingPaymentChecked,
+                  pendingShippingChecked,
+                  shippedChecked,
+                  dateRange,
+                  selectedCustomer
+                ).then((data) => { setOrders(data); });
+              }}
             />
           </Table.Td>
         </Table.Tr>
@@ -289,6 +271,7 @@ export default function OrdersPage() {
     setRows(rs);
   }, [orders, selectedRows]);
 
+/*
   const getOrders = async () => {
     let func = supabase
       .from('orders')
@@ -339,9 +322,9 @@ export default function OrdersPage() {
     if (data) {
       setOrders(data);
     }
-  };
+  };*/
 
-  const orderStatus = (order:Order) => {
+  const orderStatus = (order:OrderWithCustomer) => {
     if (order.state === OrderState.SHIPPED) {
       return (<Badge fullWidth color="green" size="lg">已出貨</Badge>);
     }
@@ -380,8 +363,23 @@ export default function OrdersPage() {
   // const [payChecked, setPayChecked] = useState(false);
 
   useEffect(() => {
-    getCustomers();
-    getOrders();
+    getCustomers().then((data) => {
+      const rs = data.map((row) => ({
+        value: row.customer_id,
+        label: row.name,
+      }));
+      setCustomerOptions(rs);
+    });
+    getOrders(
+      cancelledChecked,
+      pendingPaymentChecked,
+      pendingShippingChecked,
+      shippedChecked,
+      dateRange,
+      selectedCustomer
+    ).then((data) => {
+      setOrders(data);
+    });
   }, [
     cancelledChecked,
     pendingShippingChecked,
@@ -396,10 +394,24 @@ export default function OrdersPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setLoginUser(user);
-        getProducts();
-        getCustomers();
-        return getOrders()
-          .then(() => setPageLoading(false));
+        getProducts().then((data) => {
+          setProducts(data);
+        });
+        getCustomers().then((data) => {
+          const rs = data.map((row) => ({
+            value: row.customer_id,
+            label: row.name,
+          }));
+          setCustomerOptions(rs);
+        });
+        return getOrders(
+          cancelledChecked,
+          pendingPaymentChecked,
+          pendingShippingChecked,
+          shippedChecked,
+          dateRange,
+          selectedCustomer)
+          .then((data) => { setOrders(data); setPageLoading(false); });
       }
       setPageLoading(false);
       router.push('/login');

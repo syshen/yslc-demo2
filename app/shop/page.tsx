@@ -17,14 +17,13 @@ import liff, { Liff } from '@line/liff';
 import { IconPlus, IconMinus } from '@tabler/icons-react';
 import { createClient } from '@/utils/supabase/client';
 import {
-  Product,
-  Customer,
   PaymentOption,
-  Order,
   OrderState,
   PaymentState,
 } from '@/utils/types';
 import { shopCarts } from '@/app/actions';
+import { getCustomerBy, getProductsBy } from './actions';
+import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
 export default function ShopPage() {
@@ -57,13 +56,18 @@ function Shop() {
   }
 
   const [customer, setCustomer] = useState<Customer>();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductView[]>([]);
   const [cart, setCart] = useState<Cart>(carts);
   const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
   const [liffCtx, setLiffCtx] = useState<Liff>();
 
   const getCustomer = async () => {
+    const c = await getCustomerBy(customer_id);
+    if (c) {
+      setCustomer(c);
+    }
+    /*
     const { data } = await supabase
     .from('customers')
     .select('name, customer_id, payment_options')
@@ -72,9 +76,12 @@ function Shop() {
       const [c] = data;
       setCustomer(c);
     }
+      */
   };
 
   const getProducts = async () => {
+    const data = await getProductsBy(customer_id);
+    /*
     // 月結客戶我們不顯示金額
     const { data } = await supabase
     .from('AvailableProducts')
@@ -88,8 +95,9 @@ function Shop() {
     .eq('is_active', true)
     .eq('customer_id', customer_id)
     .order('product_id', { ascending: true });
+    */
     if (data) {
-      const ps:Product[] = data;
+      const ps:ProductView[] = data;
       let total = 0;
       for (const pid of Object.keys(cart)) {
         const quantity = cart[pid];
@@ -104,13 +112,13 @@ function Shop() {
   };
 
   const listProducts = () => {
-      const rs = products.map((product:Product) => (
+      const rs = products.map((product:ProductView) => (
         <li key={product.product_id} className="py-5">
           <Group className="flex justify-between">
             <Text className="py-2">{product.name}</Text>
             <Text
               className={(!customer ||
-              (customer.payment_options !== undefined &&
+              (customer.payment_options !== null &&
                 customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))) ? 'invisible' : 'py-2'}
             >單價: {Number(product.price).toLocaleString()}元
             </Text>
@@ -248,7 +256,7 @@ function Shop() {
                 <Text
                   hidden={(totalFee === 0) ||
                   (!customer ||
-                    (customer.payment_options !== undefined &&
+                    (customer.payment_options !== null &&
                     customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)))}
                   size="sm">
                   總金額: {Number(totalFee).toLocaleString()} 元
@@ -280,7 +288,7 @@ function Shop() {
             <Text
               hidden={(totalFee === 0) ||
               (!customer ||
-                (customer.payment_options !== undefined &&
+                (customer.payment_options !== null &&
                 customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT)))}
               size="sm">
               總金額: {Number(totalFee).toLocaleString()} 元
