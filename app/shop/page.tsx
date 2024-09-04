@@ -48,12 +48,14 @@ function Shop() {
     product_id: item.split(':')[0],
     quantity: item.split(':')[1],
   }));
+  console.log('product list', productList);
   const carts:Cart = {};
   if (productList) {
     for (const item of productList) {
       carts[item.product_id] = parseInt(item.quantity, 10);
     }
   }
+  console.log('carts', carts);
 
   const [customer, setCustomer] = useState<Customer>();
   const [products, setProducts] = useState<ProductView[]>([]);
