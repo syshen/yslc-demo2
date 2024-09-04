@@ -11,6 +11,7 @@ import {
   Group,
   Button,
   Modal,
+  Loader,
   ActionIcon,
 } from '@mantine/core';
 import liff, { Liff } from '@line/liff';
@@ -58,6 +59,7 @@ function Shop() {
   console.log('carts', carts);
 
   const [customer, setCustomer] = useState<Customer>();
+  const [loading, setLoading] = useState<boolean>(false);
   const [products, setProducts] = useState<ProductView[]>([]);
   const [cart, setCart] = useState<Cart>(carts);
   const [totalFee, setTotalFee] = useState<number>(0);
@@ -110,6 +112,7 @@ function Shop() {
       }
       setTotalFee(total);
       setProducts(ps);
+      setLoading(false);
     }
   };
 
@@ -182,6 +185,12 @@ function Shop() {
     }
   };
 
+  const pageLoading = () => (
+    <Box className="flex justify-center">
+      <Loader color="blue" type="dots" className="py-5"></Loader>
+    </Box>
+  );
+
   const orderDisabled = (o:Order | undefined) => {
     if (o === undefined) {
       return false;
@@ -203,6 +212,7 @@ function Shop() {
   }, [products, cart, customer]);
 
   useEffect(() => {
+    setLoading(true);
     liff.init({
       liffId: '2006159272-exyY23yE',
     }).then(() => {
@@ -284,7 +294,7 @@ function Shop() {
             </Group>
           </header>
         </Box>
-        {rows}
+        {loading ? pageLoading() : rows}
         <Box>
           <Group className="justify-between py-5 items-center">
             <Text
