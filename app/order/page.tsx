@@ -12,6 +12,7 @@ import {
   Text,
   Badge,
   Stack,
+  Loader,
 } from '@mantine/core';
 import {
   IconCalendarEvent,
@@ -33,9 +34,9 @@ export default function OrderPage() {
 }
 
 function OrderInfo() {
-  // const router = useRouter();
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order>();
+  const [loading, setLoading] = useState<boolean>(false);
   const [customer, setCustomer] = useState<Customer>();
   const [products, setProducts] = useState<Product[]>();
   const [tax, setTax] = useState<number>(TAX_RATE);
@@ -60,7 +61,7 @@ function OrderInfo() {
       return;
     }
 
-    getCustomerById(order.customer_id).then((c) => {
+    const p1 = getCustomerById(order.customer_id).then((c) => {
       if (c) {
         setCustomer(c);
       }
@@ -73,7 +74,7 @@ function OrderInfo() {
       }
     }
 
-    getProductsByIds(product_ids).then((ps) => {
+    const p2 = getProductsByIds(product_ids).then((ps) => {
       if (ps) {
         setProducts(ps);
       }
@@ -90,6 +91,10 @@ function OrderInfo() {
       });
       setUnTaxTotal(t);
     }
+
+    Promise.all([p1, p2]).then(() => {
+      setLoading(false);
+    });
   }, [order]);
 
   const findProduct = (product_id:string) => {
@@ -204,11 +209,19 @@ function OrderInfo() {
     liff.init({
       liffId: '2006159272-j3vD3Kvk',
     });
+    setLoading(true);
     getOrder();
   }, []);
 
+  const pageLoading = () => (
+    <Box className="flex justify-center">
+      <Loader color="blue" type="dots" className="py-20"></Loader>
+    </Box>
+  );
+
   return (
     <MantineProvider>
+      { loading ? pageLoading() : (
       <Flex direction="column" className="w-full border p-6 border-gray-200">
         <Stack className="pb-6">
           <h2
@@ -284,6 +297,7 @@ function OrderInfo() {
         </div>
 
       </Flex>
+      ) }
     </MantineProvider>
   );
 }
