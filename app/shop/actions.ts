@@ -43,7 +43,7 @@ export const shopCarts = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
+      JIDOU_API_KEY: `${process.env.JIDOU_API_KEY}`,
     },
     body: JSON.stringify({
       customer_id,
