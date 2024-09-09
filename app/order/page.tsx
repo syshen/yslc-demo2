@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, notFound } from 'next/navigation';
+// import { useRouter } from 'next/router';
 import {
   MantineProvider,
   Image,
@@ -32,6 +33,7 @@ export default function OrderPage() {
 }
 
 function OrderInfo() {
+  // const router = useRouter();
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order>();
   const [customer, setCustomer] = useState<Customer>();
@@ -42,11 +44,13 @@ function OrderInfo() {
   const [unTaxTotal, setUnTaxTotal] = useState<number>(0);
 
   const order_id:string = searchParams.get('oid') || '';
+  console.log(order_id);
 
   const getOrder = async () => {
     const o = await getOrderById(order_id);
     if (o === null || o === undefined) {
       // 404 not found
+      notFound();
     }
     setOrder(o);
   };
