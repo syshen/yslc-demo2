@@ -22,8 +22,7 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { shopCarts } from '@/app/actions';
-import { getCustomerBy, getProductsBy } from './actions';
+import { getCustomerBy, getProductsBy, shopCarts } from './actions';
 import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
