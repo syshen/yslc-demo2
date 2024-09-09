@@ -16,7 +16,6 @@ import {
 } from '@mantine/core';
 import liff, { Liff } from '@line/liff';
 import { IconPlus, IconMinus } from '@tabler/icons-react';
-// import { createClient } from '@/utils/supabase/client';
 import {
   PaymentOption,
   OrderState,
@@ -35,7 +34,6 @@ export default function ShopPage() {
 function Shop() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order>();
-  // const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   interface Cart {
     [productId:string]: number

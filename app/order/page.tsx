@@ -1,3 +1,7 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   MantineProvider,
   Image,
@@ -8,7 +12,6 @@ import {
   Badge,
   Stack,
 } from '@mantine/core';
-import { notFound } from 'next/navigation';
 import {
   IconCalendarEvent,
   IconUserCircle,
@@ -18,70 +21,68 @@ import {
 import liff from '@line/liff';
 import { OrderState, PaymentOption, TAX_RATE, PaymentState } from '@/utils/types';
 import { logger, LogAction } from '@/utils/logger';
-import { db, OrderItem } from '@/utils/db';
+import { OrderItem } from '@/utils/db';
+import { Customer, Order, Product } from '@/utils/database';
+import { getOrderById, getCustomerById, getProductsByIds } from './actions';
 
-export default async function OrderPage({ searchParams }:
-  {
-    //params: { slug: string };
-    searchParams?: { [key: string]: string | undefined }
-  }) {
-  // const searchParams = useSearchParams();
+export default function OrderPage() {
+  const searchParams = useSearchParams();
+  const [order, setOrder] = useState<Order>();
+  const [customer, setCustomer] = useState<Customer>();
+  const [products, setProducts] = useState<Product[]>();
+  const [tax, setTax] = useState<number>(TAX_RATE);
+  const [serviceFee, setServiceFee] = useState<number>(0);
+  const [shippingFee, setShippingFee] = useState<number>(0);
+  const [unTaxTotal, setUnTaxTotal] = useState<number>(0);
 
-  const order_id:string = searchParams?.oid || '';
-  await liff.init({
-    liffId: '2006159272-j3vD3Kvk',
-  });
-  const order = await db.selectFrom('orders').selectAll().where('order_id', '=', order_id).executeTakeFirst();
-  if (order === null || order === undefined) {
-    return notFound();
-  }
-  // const { data } = await supabase.from('orders').select().eq('order_id', order_id);
-  // let order:Order = {
-  //   total: 0,
-  //   created_at: '',
-  //   items: [],
-  //   order_id: '',
-  //   payment_option: '',
-  //   account_number: '',
-  //   customer_id: '',
-  //   state: OrderState.NONE,
-  //   payment_status: PaymentState.PENDING,
-  //   tax: 0.0,
-  //   shipping_fee: 0.0,
-  // };
-  let untax_total = 0;
-  // if (data && data.length > 0) {
-  //   [order] = data;
+  const order_id:string = searchParams.get('oid') || '';
+  console.log(order_id);
 
-  order.items.forEach((item) => {
-    untax_total += item.subtotal;
-  });
-  // }
-  // let customer:Customer | undefined;
-  const customer = await db.selectFrom('customers')
-  /*
-                          .leftJoin(
-                            (eb) => eb.selectFrom('customers').select(['customer_id', 'name', 'payment_options', 'parent_id']).as('stores'),
-                            (join) => join.onRef('customers.customer_id', '=', 'stores.parent_id'),
-                          )*/
-                            .selectAll().where('customer_id', '=', order.customer_id).executeTakeFirst();
-/*
-                            const resp = await supabase.from('customers').select(`
-    *,
-    customer:parent_id (customer_id, name, payment_options)
-  `).eq('customer_id', order.customer_id);
-  if (resp.data && resp.data.length > 0) {
-    [customer] = resp.data;
-  }*/
-
-  const product_ids:string[] = [];
-  for (const item of order.items) {
-    if (item.product_id) {
-      product_ids.push(item.product_id);
+  const getOrder = async () => {
+    const o = await getOrderById(order_id);
+    if (o === null || o === undefined) {
+      // 404 not found
     }
-  }
-  const products = await db.selectFrom('products').selectAll().where('product_id', 'in', product_ids).execute();
-  // const { data: products } = await supabase.from('products').select().in('product_id', product_ids);
+    setOrder(o);
+  };
+
+  useEffect(() => {
+    if (!order) {
+      return;
+    }
+
+    getCustomerById(order.customer_id).then((c) => {
+      if (c) {
+        setCustomer(c);
+      }
+    });
+
+    const product_ids:string[] = [];
+    for (const item of order.items) {
+      if (item.product_id) {
+        product_ids.push(item.product_id);
+      }
+    }
+
+    getProductsByIds(product_ids).then((ps) => {
+      if (ps) {
+        setProducts(ps);
+      }
+    });
+
+    setTax(order.tax ?? TAX_RATE);
+    setShippingFee(order.shipping_fee ?? 0);
+    setServiceFee(order.service_fee ?? 0);
+    if (order) {
+      let t = 0;
+
+      order.items.forEach((item) => {
+        t += item.subtotal;
+      });
+      setUnTaxTotal(t);
+    }
+  }, [order]);
+
   const findProduct = (product_id:string) => {
     if (products && products.length > 0) {
       for (const product of products) {
@@ -93,11 +94,10 @@ export default async function OrderPage({ searchParams }:
     return null;
   };
 
-  const tax = order.tax ?? TAX_RATE;
-  const shipping_fee = order.shipping_fee ?? 0;
-  const service_fee = order.service_fee ?? 0;
-  const total_with_tax = (untax_total + shipping_fee + service_fee) * (1 + tax);
   const getStatus = (state:string) => {
+    if (!order) {
+      return '';
+    }
     switch (state) {
       case OrderState.CANCELLED:
         return (<Badge fullWidth color="red" size="lg">已取消</Badge>);
@@ -137,6 +137,9 @@ export default async function OrderPage({ searchParams }:
   };
 
   const userProfile = () => {
+    if (!order) {
+      return '';
+    }
     if (order.line_user_info) {
       return (
       <Group>
@@ -188,6 +191,13 @@ export default async function OrderPage({ searchParams }:
     },
   });
 
+  useEffect(() => {
+    liff.init({
+      liffId: '2006159272-exyY23yE',
+    });
+    getOrder();
+  }, []);
+
   return (
     <MantineProvider>
       <Flex direction="column" className="w-full border p-6 border-gray-200">
@@ -206,19 +216,19 @@ export default async function OrderPage({ searchParams }:
             { userProfile()}
             <Group>
               <IconCalendarEvent color="gray" />
-              <Text size="sm">{new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString()}</Text>
+              <Text size="sm">{new Date(order?.created_at ?? '').toLocaleDateString()} {new Date(order?.created_at ?? '').toLocaleTimeString()}</Text>
             </Group>
             <Group>
               <IconNumber color="gray" />
-              <Text size="sm">{order.order_id}</Text>
+              <Text size="sm">{order?.order_id ?? ''}</Text>
             </Group>
           </Flex>
           <Box>
-            {getStatus(order.state)}
+            {order ? getStatus(order.state) : ''}
           </Box>
         </Flex>
         <div className="data py-6 border-b border-gray-200">
-          {order.items.map((item) => (
+          {order?.items.map((item) => (
             <div key={item.item} className="flex items-center justify-between gap-4 mb-5">
               <div className="flex flex-col">
                 <p className="font-normal text-lg leading-8 transition-all duration-500">{itemInfo(item)}</p>
@@ -231,7 +241,7 @@ export default async function OrderPage({ searchParams }:
             </div>
           ))}
         </div>
-        { order.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT) ? '' : (
+        { order?.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT) ? '' : (
         <Flex
           direction="column"
           gap="md"
@@ -239,29 +249,29 @@ export default async function OrderPage({ searchParams }:
         >
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">未稅價</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(untax_total).toLocaleString()}</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(unTaxTotal).toLocaleString()}</h5>
           </div>
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">運費</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(shipping_fee).toLocaleString()}</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(shippingFee).toLocaleString()}</h5>
           </div>
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">貨到付款手續費</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(service_fee).toLocaleString()}</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(serviceFee).toLocaleString()}</h5>
           </div>
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">稅金 (5%)</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((untax_total + shipping_fee) * tax)).toLocaleString()}</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal + shippingFee + serviceFee) * tax)).toLocaleString()}</h5>
           </div>
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">總金額</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round(total_with_tax)).toLocaleString()} 元</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal + shippingFee + serviceFee) * (1 + tax))).toLocaleString()} 元</h5>
           </div>
         </Flex>
         )}
         <div className="w-full total flex items-center justify-between pt-3">
           <p className="font-normal text-lg leading-8">付款方式</p>
-          <h5 className="font-manrope font-normal text-lg leading-9">{getPaymentOption(order.payment_option)}</h5>
+          <h5 className="font-manrope font-normal text-lg leading-9">{order ? getPaymentOption(order.payment_option) : ''}</h5>
         </div>
 
       </Flex>
