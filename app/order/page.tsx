@@ -202,7 +202,7 @@ function OrderInfo() {
 
   useEffect(() => {
     liff.init({
-      liffId: '2006159272-exyY23yE',
+      liffId: '2006159272-j3vD3Kvk',
     });
     getOrder();
   }, []);
