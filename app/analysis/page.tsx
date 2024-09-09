@@ -15,7 +15,6 @@ import {
 
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { analysisQuery } from '@/app/actions';
 
 export default function AnalysisPage() {
   const router = useRouter();

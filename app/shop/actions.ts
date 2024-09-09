@@ -29,6 +29,13 @@ export async function getProductsBy(customer_id:string) {
   return results;
 }
 
+export const getOrderById = async (order_id:string) => {
+  'use server';
+
+  const results = await db.selectFrom('orders').selectAll().where('order_id', '=', order_id).executeTakeFirst();
+  return results;
+};
+
 export const shopCarts = async (
   mode: string, order_id:string, carts: Cart[], customer_id:string) => {
   'use server';

@@ -16,13 +16,13 @@ import {
 } from '@mantine/core';
 import liff, { Liff } from '@line/liff';
 import { IconPlus, IconMinus } from '@tabler/icons-react';
-import { createClient } from '@/utils/supabase/client';
+// import { createClient } from '@/utils/supabase/client';
 import {
   PaymentOption,
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { getCustomerBy, getProductsBy, shopCarts } from './actions';
+import { getCustomerBy, getProductsBy, getOrderById, shopCarts } from './actions';
 import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -35,7 +35,7 @@ export default function ShopPage() {
 function Shop() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order>();
-  const supabase = createClient();
+  // const supabase = createClient();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   interface Cart {
     [productId:string]: number
@@ -70,35 +70,10 @@ function Shop() {
     if (c) {
       setCustomer(c);
     }
-    /*
-    const { data } = await supabase
-    .from('customers')
-    .select('name, customer_id, payment_options')
-    .eq('customer_id', customer_id);
-    if (data) {
-      const [c] = data;
-      setCustomer(c);
-    }
-      */
   };
 
   const getProducts = async () => {
     const data = await getProductsBy(customer_id);
-    /*
-    // 月結客戶我們不顯示金額
-    const { data } = await supabase
-    .from('AvailableProducts')
-    .select(`
-        name,
-        product_id,
-        unit,
-        stock_quantity,
-        spec,
-        price`)
-    .eq('is_active', true)
-    .eq('customer_id', customer_id)
-    .order('product_id', { ascending: true });
-    */
     if (data) {
       const ps:ProductView[] = data;
       let total = 0;
@@ -174,12 +149,8 @@ function Shop() {
   };
 
   const getOrder = async () => {
-    const { data } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('order_id', order_id);
-    if (data) {
-      const [o] = data;
+    const o = await getOrderById(order_id);
+    if (o) {
       setOrder(o);
     }
   };
