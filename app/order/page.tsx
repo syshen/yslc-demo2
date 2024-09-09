@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   MantineProvider,
@@ -26,6 +26,12 @@ import { Customer, Order, Product } from '@/utils/database';
 import { getOrderById, getCustomerById, getProductsByIds } from './actions';
 
 export default function OrderPage() {
+  return (
+    <Suspense><OrderInfo /></Suspense>
+  );
+}
+
+function OrderInfo() {
   const searchParams = useSearchParams();
   const [order, setOrder] = useState<Order>();
   const [customer, setCustomer] = useState<Customer>();
@@ -36,7 +42,6 @@ export default function OrderPage() {
   const [unTaxTotal, setUnTaxTotal] = useState<number>(0);
 
   const order_id:string = searchParams.get('oid') || '';
-  console.log(order_id);
 
   const getOrder = async () => {
     const o = await getOrderById(order_id);
