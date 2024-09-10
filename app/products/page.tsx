@@ -79,11 +79,6 @@ export default function ProductsPage() {
           console.error(error);
           Notifications.show({ message: '更新失敗', color: 'red' });
         }
-        // await supabase.from('products').update({
-        //   unit_price: product.unit_price,
-        //   is_active: product.is_active,
-        //   stock_quantity: product.stock_quantity,
-        // }).eq('product_id', product_id);
       }
     }
     setChangedProductIds([]);

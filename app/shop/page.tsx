@@ -62,6 +62,7 @@ function Shop() {
   const [opened, { open, close }] = useDisclosure(false);
   const [liffCtx, setLiffCtx] = useState<Liff>();
   const [lineProfile, setLineProfile] = useState<LineProfile>();
+  const [runningTime, setRunningTime] = useState<number>();
 
   const getCustomer = async () => {
     const c = await getCustomerBy(customer_id);
@@ -71,6 +72,8 @@ function Shop() {
   };
 
   const getProducts = async () => {
+    const startTime = new Date().getTime();
+    console.log('startTime', startTime);
     const data = await getProductsBy(customer_id);
     if (data) {
       const ps:ProductView[] = data;
@@ -82,6 +85,9 @@ function Shop() {
           total += product.price * quantity;
         }
       }
+      const endTime = new Date().getTime();
+      console.log('endTime', endTime, endTime - startTime);
+      setRunningTime(endTime - startTime);
       setTotalFee(total);
       setProducts(ps);
       setLoading(false);
@@ -301,6 +307,7 @@ function Shop() {
               }}
             >送出
             </Button>
+            <Text>{runningTime}</Text>
           </Group>
         </Box>
       </ul>
