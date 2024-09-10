@@ -181,19 +181,18 @@ function Shop() {
   }, [products, cart, customer]);
 
   useEffect(() => {
+    liffCtx?.getProfile().then((profile) => {
+      console.log(profile);
+      setLineProfile(profile);
+    });
+  }, [liffCtx]);
+
+  useEffect(() => {
     setLoading(true);
     liff.init({
       liffId: '2006159272-exyY23yE',
     }).then(() => {
       setLiffCtx(liff);
-      if (liffCtx) {
-        return liffCtx.getProfile();
-      }
-      return null;
-    }).then((profile) => {
-      if (profile) {
-        setLineProfile(profile);
-      }
     });
     getOrder();
     getCustomer();
