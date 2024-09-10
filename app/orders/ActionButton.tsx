@@ -37,11 +37,6 @@ export function ActionButton(
     try {
       if (status === PaymentState.PAID) {
         await updatePaymentStatus(order_id, PaymentState.PAID);
-        // await supabase
-        //   .from('orders')
-        //   .update({
-        //     payment_status: PaymentState.PAID,
-        //   }).eq('order_id', order_id);
         logger.info(`Order ${order_id} payment status changed to ${PaymentState.PAID}`, {
           action: LogAction.CHANGE_STATUS,
           user: {
@@ -92,6 +87,7 @@ export function ActionButton(
         body: JSON.stringify({
           action: status,
           order_id,
+          customer_id,
           payload,
         }),
       });
