@@ -57,6 +57,7 @@ function Shop() {
 
   const [customer, setCustomer] = useState<Customer>();
   const [loading, setLoading] = useState<boolean>(false);
+  const [sending, setSending] = useState<boolean>(false);
   const [products, setProducts] = useState<ProductView[]>([]);
   const [cart, setCart] = useState<Cart>(carts);
   const [totalFee, setTotalFee] = useState<number>(0);
@@ -252,8 +253,10 @@ function Shop() {
                 <Button
                   size="lg"
                   radius="xl"
+                  loading={sending}
                   disabled={!(Object.values(cart).some(value => value > 0))}
                   onClick={() => {
+                    setSending(true);
                     shopCarts(
                       mode,
                       order_id,
@@ -285,8 +288,10 @@ function Shop() {
             <Button
               size="lg"
               radius="xl"
+              loading={sending}
               disabled={!(Object.values(cart).some(value => value > 0))}
               onClick={() => {
+                setSending(true);
                 shopCarts(
                   mode,
                   order_id,

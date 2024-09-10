@@ -72,5 +72,6 @@ export const shopCarts = async (
   });
   if (resp.status !== 200) {
     logger.error(`Calling ${url} with error: ${await resp.text()}`);
+    throw new Error('Failed to send request');
   }
 };
