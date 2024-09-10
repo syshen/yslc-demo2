@@ -21,7 +21,7 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { getCustomerBy, getProductsBy, getOrderById, shopCarts, LineProfile } from './actions';
+import { getCustomerBy, getProductsBy, getOrderById, shopCarts, LineProfile, measureTest } from './actions';
 import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -87,7 +87,6 @@ function Shop() {
       }
       const endTime = new Date().getTime();
       console.log('endTime', endTime, endTime - startTime);
-      setRunningTime(endTime - startTime);
       setTotalFee(total);
       setProducts(ps);
       setLoading(false);
@@ -201,6 +200,9 @@ function Shop() {
     getOrder();
     getCustomer();
     getProducts();
+    measureTest(customer_id).then((result) => {
+      setRunningTime(result.endTime - result.startTime);
+    });
     logger.info(`View shop page for customer: ${customer_id}`, {
       action: LogAction.VIEW_PAGE,
       page: 'shop',
