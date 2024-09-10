@@ -21,7 +21,7 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { getCustomerBy, getProductsBy, getOrderById, shopCarts, LineProfile, measureTest } from './actions';
+import { getCustomerBy, getProductsBy, getOrderById, shopCarts, LineProfile } from './actions';
 import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -62,7 +62,7 @@ function Shop() {
   const [opened, { open, close }] = useDisclosure(false);
   const [liffCtx, setLiffCtx] = useState<Liff>();
   const [lineProfile, setLineProfile] = useState<LineProfile>();
-  const [runningTime, setRunningTime] = useState<number>();
+  // const [runningTime, setRunningTime] = useState<number>();
 
   const getCustomer = async () => {
     const c = await getCustomerBy(customer_id);
@@ -200,9 +200,9 @@ function Shop() {
     getOrder();
     getCustomer();
     getProducts();
-    measureTest(customer_id).then((result) => {
-      setRunningTime(result.endTime - result.startTime);
-    });
+    // measureTest(customer_id).then((result) => {
+    //   setRunningTime(result.endTime - result.startTime);
+    // });
     logger.info(`View shop page for customer: ${customer_id}`, {
       action: LogAction.VIEW_PAGE,
       page: 'shop',
@@ -309,7 +309,6 @@ function Shop() {
               }}
             >送出
             </Button>
-            <Text>{runningTime}</Text>
           </Group>
         </Box>
       </ul>

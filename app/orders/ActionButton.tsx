@@ -53,7 +53,6 @@ export function ActionButton(
         });
       } else {
         await updateOrderStatus(order_id, status as OrderState);
-        // await supabase.from('orders').update({ state: status }).eq('order_id', order_id);
         logger.info(`Order ${order_id} status changed to ${status}`, {
           action: LogAction.CHANGE_STATUS,
           user: {

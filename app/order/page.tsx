@@ -283,11 +283,11 @@ function OrderInfo() {
           </div>
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">稅金 (5%)</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal + shippingFee + serviceFee) * tax)).toLocaleString()}</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal) * tax)).toLocaleString()}</h5>
           </div>
           <div className="w-full total flex items-center justify-between pt-3">
             <p className="font-normal text-lg leading-8">總金額</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal + shippingFee + serviceFee) * (1 + tax))).toLocaleString()} 元</h5>
+            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal * (1 + tax)) + shippingFee + serviceFee)).toLocaleString()} 元</h5>
           </div>
         </Flex>
         )}

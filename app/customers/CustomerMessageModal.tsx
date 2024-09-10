@@ -100,7 +100,7 @@ export function CustomerMessageModal(
       opened={opened}
       onClose={onClose}
       size="md"
-      title="發送訊息"
+      title="廣播訊息"
       transitionProps={{ duration: 200, transition: 'slide-down' }}
       >
       <Stack>
