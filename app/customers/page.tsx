@@ -80,7 +80,7 @@ export default function CustomersPage() {
         <Table.Td>{row.line_group_name}</Table.Td>
         <Table.Td>{[row.contact_phone_1, row.contact_phone_2].filter((x) => x).join(',')}</Table.Td>
         <Table.Td>{row.shipping_address}</Table.Td>
-        <Table.Td>{paymentOptions(row.payment_options)}</Table.Td>
+        <Table.Td>{(row.parent_id !== null && row.parent_id !== '') ? ' - ' : paymentOptions(row.payment_options)}</Table.Td>
         <Table.Td w={60}>
           <Text
             td="underline"
