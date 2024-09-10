@@ -6,6 +6,12 @@ import {
 import { Cart } from '@/utils/types';
 import { logger } from '@/utils/logger';
 
+export interface LineProfile {
+  userId: string;
+  displayName: string;
+  pictureUrl?: string;
+}
+
 export async function getCustomerBy(customer_id: string) {
   'use server';
 
@@ -37,7 +43,12 @@ export const getOrderById = async (order_id:string) => {
 };
 
 export const shopCarts = async (
-  mode: string, order_id:string, carts: Cart[], customer_id:string) => {
+  mode: string,
+  order_id:string,
+  carts: Cart[],
+  customer_id:string,
+  profile?:LineProfile
+) => {
   'use server';
 
   let url = '';
@@ -56,6 +67,7 @@ export const shopCarts = async (
       customer_id,
       order_id,
       carts,
+      profile,
     }),
   });
   if (resp.status !== 200) {

@@ -21,7 +21,7 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { getCustomerBy, getProductsBy, getOrderById, shopCarts } from './actions';
+import { getCustomerBy, getProductsBy, getOrderById, shopCarts, LineProfile } from './actions';
 import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -62,6 +62,7 @@ function Shop() {
   const [totalFee, setTotalFee] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
   const [liffCtx, setLiffCtx] = useState<Liff>();
+  const [lineProfile, setLineProfile] = useState<LineProfile>();
 
   const getCustomer = async () => {
     const c = await getCustomerBy(customer_id);
@@ -185,6 +186,14 @@ function Shop() {
       liffId: '2006159272-exyY23yE',
     }).then(() => {
       setLiffCtx(liff);
+      if (liffCtx) {
+        return liffCtx.getProfile();
+      }
+      return null;
+    }).then((profile) => {
+      if (profile) {
+        setLineProfile(profile);
+      }
     });
     getOrder();
     getCustomer();
@@ -252,7 +261,8 @@ function Shop() {
                       Object.entries(cart)
                         .map(([key, value]) => ({ product_id: key, quantity: value }))
                         .filter((item) => item.quantity > 0),
-                      customer_id
+                      customer_id,
+                      lineProfile,
                     ).then(() => { open(); setTimeout(() => { liffCtx?.closeWindow(); }, 3000); });
                   }
                 }
@@ -284,7 +294,8 @@ function Shop() {
                   Object.entries(cart)
                       .map(([key, value]) => ({ product_id: key, quantity: value }))
                       .filter((item) => item.quantity > 0),
-                  customer_id
+                  customer_id,
+                  lineProfile,
                 ).then(() => { open(); setTimeout(() => { liffCtx?.closeWindow(); }, 3000); });
               }}
             >送出
