@@ -47,6 +47,8 @@ export async function getProductsBy(customer_id:string) {
     .selectFrom('view_products')
     .selectAll()
     .where('customer_id', '=', customer_id)
+    .where('is_active', 'is', true)
+    .where('is_available', 'is', true)
     .orderBy('product_id', 'asc')
     .execute();
   return results;
