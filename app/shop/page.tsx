@@ -289,7 +289,7 @@ function Shop() {
                         .filter((item) => item.quantity > 0),
                       customer_id,
                       lineProfile,
-                    ).then(() => { open(); setTimeout(() => { liffCtx?.closeWindow(); }, 3000); });
+                    ).then(() => { open(); setTimeout(() => { liffCtx?.closeWindow(); }, 2000); });
                   }
                 }
                 >送出
