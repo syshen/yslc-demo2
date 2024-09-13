@@ -47,7 +47,7 @@ function Shop() {
   }
   const mode:string = searchParams.get('mode') || 'test';
   const customer_id:string = searchParams.get('cid') || '';
-  let order_id:string = searchParams.get('oid') || '';
+  const order_id:string = searchParams.get('oid') || '';
   // list=1011:1,2003:2
   const productList = searchParams.get('list')?.split(',').map((item) => ({
     product_id: item.split(':')[0],
@@ -69,6 +69,7 @@ function Shop() {
   const [opened, { open, close }] = useDisclosure(false);
   const [liffCtx, setLiffCtx] = useState<Liff>();
   const [lineProfile, setLineProfile] = useState<LineProfile>();
+  const [orderId, setOrderId] = useState<string>(order_id);
   // const [runningTime, setRunningTime] = useState<number>();
 
   const getCustomer = async () => {
@@ -159,14 +160,22 @@ function Shop() {
   };
 
   const getOrder = async () => {
-    if (order_id === '') {
-      order_id = await uniqueOrderIdentity();
-    }
-    const o = await getOrderById(order_id);
-    if (o) {
-      setOrder(o);
+    if (orderId === '') {
+      const oid = await uniqueOrderIdentity();
+      if (oid !== null) {
+        setOrderId(oid);
+      }
+    } else {
+      const o = await getOrderById(orderId);
+      if (o) {
+        setOrder(o);
+      }
     }
   };
+
+  useEffect(() => {
+    getOrder();
+  }, [orderId]);
 
   const pageLoading = () => (
     <Box className="flex justify-center">
@@ -274,7 +283,7 @@ function Shop() {
                     setSending(true);
                     shopCarts(
                       mode,
-                      order_id,
+                      orderId,
                       Object.entries(cart)
                         .map(([key, value]) => ({ product_id: key, quantity: value }))
                         .filter((item) => item.quantity > 0),
@@ -309,7 +318,7 @@ function Shop() {
                 setSending(true);
                 shopCarts(
                   mode,
-                  order_id,
+                  orderId,
                   Object.entries(cart)
                       .map(([key, value]) => ({ product_id: key, quantity: value }))
                       .filter((item) => item.quantity > 0),

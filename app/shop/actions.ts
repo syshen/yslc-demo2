@@ -104,38 +104,42 @@ function dateStrForToday() {
   return `${year}${month}${day}`;
 }
 
-export async function uniqueOrderIdentity():Promise<string> {
+export async function uniqueOrderIdentity():Promise<string | null> {
   'use server';
 
-  const dateStr = dateStrForToday();
-  let currentCounter = 0;
+  try {
+    const dateStr = dateStrForToday();
+    let currentCounter = 0;
 
-  const redis = createClient({
-    url: process.env.REDIS_URL,
-  });
+    const redis = createClient({
+      url: process.env.REDIS_URL,
+    });
 
-  await redis
-  .on('error', console.error)
-  .connect();
+    redis.on('error', console.error);
+    await redis.connect();
 
-  const o = await redis.hGetAll('yslc');
-  if (o) {
-    if (dateStr !== o.date_str) {
-      currentCounter = 0;
-    } else {
-      currentCounter = parseInt(o.id, 10) + 1;
+    const o = await redis.hGetAll('yslc');
+    if (o) {
+      if (dateStr !== o.date_str) {
+        currentCounter = 0;
+      } else {
+        currentCounter = parseInt(o.id, 10) + 1;
+      }
     }
+
+    const counterStr = String(currentCounter).padStart(4, '0');
+
+    const str = `${dateStr}${counterStr}`;
+    currentCounter += 1;
+    if (currentCounter > 9999) {
+      currentCounter = 0;
+    }
+
+    await redis.hSet('yslc', 'date_str', dateStr);
+    await redis.hSet('yslc', 'id', String(currentCounter));
+
+    return str;
+  } catch (error) {
+    return null;
   }
-  const counterStr = String(currentCounter).padStart(4, '0');
-
-  const str = `${dateStr}${counterStr}`;
-  currentCounter += 1;
-  if (currentCounter > 9999) {
-    currentCounter = 0;
-  }
-
-  await redis.hSet('yslc', 'date_str', dateStr);
-  await redis.hSet('yslc', 'id', String(currentCounter));
-
-  return str;
 }
