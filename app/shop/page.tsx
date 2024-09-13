@@ -21,7 +21,14 @@ import {
   OrderState,
   PaymentState,
 } from '@/utils/types';
-import { getCustomerBy, getProductsBy, getOrderById, shopCarts, LineProfile } from './actions';
+import {
+  getCustomerBy,
+  getProductsBy,
+  getOrderById,
+  shopCarts,
+  LineProfile,
+  uniqueOrderIdentity,
+} from './actions';
 import { ProductView, Customer, Order } from '@/utils/database';
 import { logger, LogAction } from '@/utils/logger';
 
@@ -40,7 +47,7 @@ function Shop() {
   }
   const mode:string = searchParams.get('mode') || 'test';
   const customer_id:string = searchParams.get('cid') || '';
-  const order_id:string = searchParams.get('oid') || '';
+  let order_id:string = searchParams.get('oid') || '';
   // list=1011:1,2003:2
   const productList = searchParams.get('list')?.split(',').map((item) => ({
     product_id: item.split(':')[0],
@@ -152,6 +159,9 @@ function Shop() {
   };
 
   const getOrder = async () => {
+    if (order_id === '') {
+      order_id = await uniqueOrderIdentity();
+    }
     const o = await getOrderById(order_id);
     if (o) {
       setOrder(o);

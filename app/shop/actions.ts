@@ -1,5 +1,6 @@
 'use server';
 
+import { createClient } from 'redis';
 import {
   db,
 } from '@/utils/db';
@@ -94,3 +95,47 @@ export const shopCarts = async (
     throw new Error('Failed to send request');
   }
 };
+
+function dateStrForToday() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+export async function uniqueOrderIdentity():Promise<string> {
+  'use server';
+
+  const dateStr = dateStrForToday();
+  let currentCounter = 0;
+
+  const redis = createClient({
+    url: process.env.REDIS_URL,
+  });
+
+  await redis
+  .on('error', console.error)
+  .connect();
+
+  const o = await redis.hGetAll('yslc');
+  if (o) {
+    if (dateStr !== o.date_str) {
+      currentCounter = 0;
+    } else {
+      currentCounter = parseInt(o.id, 10) + 1;
+    }
+  }
+  const counterStr = String(currentCounter).padStart(4, '0');
+
+  const str = `${dateStr}${counterStr}`;
+  currentCounter += 1;
+  if (currentCounter > 9999) {
+    currentCounter = 0;
+  }
+
+  await redis.hSet('yslc', 'date_str', dateStr);
+  await redis.hSet('yslc', 'id', String(currentCounter));
+
+  return str;
+}
