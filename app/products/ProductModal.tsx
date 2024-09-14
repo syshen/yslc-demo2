@@ -112,7 +112,6 @@ export function ProductModal(
       <TextInput
         label="品號"
         required
-        disabled={product !== null}
         value={selectedProduct?.product_id}
         onChange={(event) => {
           if (selectedProduct) {
@@ -200,6 +199,7 @@ export function ProductModal(
       <Group>
         <TextInput
           label="ERP 數量"
+          required
           value={selectedProduct ? (selectedProduct.base_unit_quantity || undefined) : undefined}
           onChange={(event) => {
             if (selectedProduct) {
@@ -228,6 +228,7 @@ export function ProductModal(
         />
         <Select
           label="ERP 單位"
+          required
           value={selectedProduct?.base_unit}
           data={['罐', '箱', '桶', '瓶', '包']}
           onChange={(value) => {
