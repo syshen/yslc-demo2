@@ -56,7 +56,7 @@ function Shop() {
   const carts:Cart = {};
   if (productList) {
     for (const item of productList) {
-      carts[item.id] = parseInt(item.quantity, 10);
+      carts[String(item.id)] = parseInt(item.quantity, 10);
     }
   }
 
@@ -285,7 +285,7 @@ function Shop() {
                       mode,
                       orderId,
                       Object.entries(cart)
-                        .map(([key, value]) => ({ id: key, quantity: value }))
+                        .map(([key, value]) => ({ id: Number(key), quantity: value }))
                         .filter((item) => item.quantity > 0),
                       customer_id,
                       lineProfile,
@@ -320,7 +320,7 @@ function Shop() {
                   mode,
                   orderId,
                   Object.entries(cart)
-                      .map(([key, value]) => ({ id: key, quantity: value }))
+                      .map(([key, value]) => ({ id: Number(key), quantity: value }))
                       .filter((item) => item.quantity > 0),
                   customer_id,
                   lineProfile,
