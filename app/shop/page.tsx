@@ -102,6 +102,9 @@ function Shop() {
   };
 
   const listProducts = () => {
+    if (products.length === 0) {
+      setRows([(<Text fs="italic" fw={300}>尚未完成商品設定</Text>)]);
+    } else {
       const rs = products.map((product:ProductView) => (
         <li key={product.id} className="py-5">
           <Group className="flex justify-between">
@@ -157,6 +160,7 @@ function Shop() {
         </li>
       ));
       setRows(rs);
+    }
   };
 
   const getOrder = async () => {
