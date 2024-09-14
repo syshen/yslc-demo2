@@ -91,17 +91,17 @@ export default function OrdersPage() {
     return '<未指定>';
   };
 
-  const getProductById = (id:string) => products.find((product) => product.product_id === id);
+  const getProductById = (id:number) => products.find((product) => product.id === id);
 
-  const getTotalERPQuantity = (quantity:number, product_id:string) => {
-    const product = getProductById(product_id);
+  const getTotalERPQuantity = (quantity:number, id:number) => {
+    const product = getProductById(id);
     if (product === null || product === undefined) {
       return '';
     }
     return (quantity * (product.base_unit_quantity || 1)).toString();
   };
-  const getGiftQuantity = (quantity:number, product_id:string) => {
-    const product = getProductById(product_id);
+  const getGiftQuantity = (quantity:number, id:number) => {
+    const product = getProductById(id);
     if (product === null || product === undefined) {
       return '';
     }
@@ -147,8 +147,8 @@ export default function OrdersPage() {
             '訂單單號 (=接單系統的訂單單號)': '',
             '品號': item.product_id.toString(),
             '品名': item.item,
-            '銷貨數量': getTotalERPQuantity(item.quantity, item.product_id),
-            '贈品量': getGiftQuantity(item.quantity, item.product_id),
+            '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
+            '贈品量': getGiftQuantity(item.quantity, item.id),
             '備品量': '0',
             '單價': item.unit_price.toString(),
             '是否匯款': getPaymentStatus(order),

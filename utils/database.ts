@@ -33,6 +33,7 @@ export interface CustomersTable {
 
 export interface OrderItem {
   item: string
+  id: number
   product_id: string
   unit_price: number
   unit: string
@@ -97,6 +98,7 @@ export interface CustomerProductsTable {
   id: Generated<number>
   customer_id: string
   product_id: string
+  pid: number
   price: number | null
   is_available: boolean | null
   created_at: ColumnType<Date, string | undefined, never>
@@ -147,6 +149,7 @@ export type NewCustomer = Insertable<CustomersTable>;
 export type NewCustomerProducts = Insertable<CustomerProductsTable>;
 export interface ProductWithCustomPrice extends Product {
   custom_price: {
+    id: number,
     product_id: string,
     price: number | null,
     is_available: boolean | null

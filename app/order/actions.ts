@@ -18,9 +18,9 @@ export const getCustomerById = async (customer_id:string) => {
   return results;
 };
 
-export const getProductsByIds = async (product_ids:string[]) => {
+export const getProductsByIds = async (pids:number[]) => {
   'use server';
 
-  const products = await db.selectFrom('products').selectAll().where('product_id', 'in', product_ids).execute();
+  const products = await db.selectFrom('products').selectAll().where('id', 'in', pids).execute();
   return products;
 };

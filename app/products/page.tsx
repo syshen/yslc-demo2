@@ -17,7 +17,6 @@ import {
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
-// import { Product } from '@/utils/types';
 import { Product } from '@/utils/db';
 import { getAllProducts, updateProduct } from './actions';
 import { BatchImportButton } from '@/components/buttons/BatchImportButton';
@@ -32,12 +31,12 @@ export default function ProductsPage() {
   const [opened, setOpened] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [changedProductIds, setChangedProductIds] = useState<string[]>([]);
+  const [changedProductIds, setChangedProductIds] = useState<number[]>([]);
 
   const changeStockStatus = async (product:Product) => {
     let c = false;
     const ps = products.map((p) => {
-      if (p.product_id === product.product_id) {
+      if (p.id === product.id) {
         p.is_active = !p.is_active;
         c = true;
       }
@@ -45,7 +44,7 @@ export default function ProductsPage() {
     });
     if (c) {
       setProducts(ps);
-      setChangedProductIds([...changedProductIds, product.product_id]);
+      setChangedProductIds([...changedProductIds, product.id]);
       setChanged(true);
     }
   };
@@ -54,7 +53,7 @@ export default function ProductsPage() {
     let c = false;
     const val = value === '' ? null : parseInt(value, 10);
     const ps = products.map((p) => {
-      if (p.product_id === product.product_id) {
+      if (p.id === product.id) {
         p.stock_quantity = val;
         c = true;
       }
@@ -62,7 +61,7 @@ export default function ProductsPage() {
     });
     if (c) {
       setProducts(ps);
-      setChangedProductIds([...changedProductIds, product.product_id]);
+      setChangedProductIds([...changedProductIds, product.id]);
       setChanged(true);
     }
   };
@@ -70,11 +69,11 @@ export default function ProductsPage() {
   const saveChanges = async () => {
     setLoading(true);
     setChanged(false);
-    for (const product_id of changedProductIds) {
-      const product = products.find((p) => p.product_id === product_id);
+    for (const pid of changedProductIds) {
+      const product = products.find((p) => p.id === pid);
       if (product) {
         try {
-          await updateProduct(product_id, product);
+          await updateProduct(pid, product);
         } catch (error) {
           console.error(error);
           Notifications.show({ message: '更新失敗', color: 'red' });

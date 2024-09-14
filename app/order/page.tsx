@@ -67,14 +67,12 @@ function OrderInfo() {
       }
     });
 
-    const product_ids:string[] = [];
+    const pids:number[] = [];
     for (const item of order.items) {
-      if (item.product_id) {
-        product_ids.push(item.product_id);
-      }
+      pids.push(item.id);
     }
 
-    const p2 = getProductsByIds(product_ids).then((ps) => {
+    const p2 = getProductsByIds(pids).then((ps) => {
       if (ps) {
         setProducts(ps);
       }
@@ -97,10 +95,10 @@ function OrderInfo() {
     });
   }, [order]);
 
-  const findProduct = (product_id:string) => {
+  const findProduct = (id:number) => {
     if (products && products.length > 0) {
       for (const product of products) {
-        if (product.product_id === product_id) {
+        if (product.id === id) {
           return product;
         }
       }
@@ -190,7 +188,7 @@ function OrderInfo() {
    * @return {string} a string that describes the item
    */
   const itemInfo = (item:OrderItem) => {
-    const product = findProduct(item.product_id);
+    const product = findProduct(item.id);
     if (product && product.spec) {
       return `${product.name} (${product.spec})`;
     }

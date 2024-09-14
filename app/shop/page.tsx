@@ -43,20 +43,20 @@ function Shop() {
   const [order, setOrder] = useState<Order>();
   const [rows, setRows] = useState<JSX.Element[]>([]);
   interface Cart {
-    [productId:string]: number
+    [id:string]: number
   }
   const mode:string = searchParams.get('mode') || 'test';
   const customer_id:string = searchParams.get('cid') || '';
   const order_id:string = searchParams.get('oid') || '';
   // list=1011:1,2003:2
   const productList = searchParams.get('list')?.split(',').map((item) => ({
-    product_id: item.split(':')[0],
+    id: item.split(':')[0],
     quantity: item.split(':')[1],
   }));
   const carts:Cart = {};
   if (productList) {
     for (const item of productList) {
-      carts[item.product_id] = parseInt(item.quantity, 10);
+      carts[item.id] = parseInt(item.quantity, 10);
     }
   }
 
@@ -88,7 +88,7 @@ function Shop() {
       let total = 0;
       for (const pid of Object.keys(cart)) {
         const quantity = cart[pid];
-        const product = ps.find((p) => String(p.product_id) === pid);
+        const product = ps.find((p) => String(p.id) === pid);
         if (product && product.price) {
           total += product.price * quantity;
         }
@@ -103,7 +103,7 @@ function Shop() {
 
   const listProducts = () => {
       const rs = products.map((product:ProductView) => (
-        <li key={product.product_id} className="py-5">
+        <li key={product.id} className="py-5">
           <Group className="flex justify-between">
             <Text className="py-2">{product.name}</Text>
             <Text
@@ -114,8 +114,8 @@ function Shop() {
             </Text>
           </Group>
           <div className="flex justify-between items-center">
-            <Text size="sm" fw={cart[product.product_id] ? 700 : 100}>
-              數量:{cart[product.product_id] ? cart[product.product_id] : 0} {product.unit}
+            <Text size="sm" fw={cart[product.id] ? 700 : 100}>
+              數量:{cart[product.id] ? cart[product.id] : 0} {product.unit}
             </Text>
             <Text className={!product.spec ? 'invisible' : ''} size="sm">({product.spec})</Text>
             <div className="grid grap-x-8 grid-cols-2">
@@ -128,8 +128,8 @@ function Shop() {
                   () => {
                     setCart({
                       ...cart,
-                      [product.product_id]:
-                        cart[product.product_id] ? cart[product.product_id] + 1 : 1,
+                      [product.id]:
+                        cart[product.id] ? cart[product.id] + 1 : 1,
                     });
                     setTotalFee(totalFee + Number(product.price));
                   }
@@ -140,13 +140,13 @@ function Shop() {
                 radius="xl"
                 size="lg"
                 className="rounded-full border-2 border-gray-400 size-8 flex justify-center items-center"
-                disabled={cart[product.product_id] === 0 || cart[product.product_id] === undefined}
+                disabled={cart[product.id] === 0 || cart[product.id] === undefined}
                 onClick={
                   () => {
                     setCart({
                       ...cart,
-                      [product.product_id]:
-                      cart[product.product_id] ? cart[product.product_id] - 1 : 1,
+                      [product.id]:
+                      cart[product.id] ? cart[product.id] - 1 : 1,
                     });
                     setTotalFee(totalFee - Number(product.price));
                   }
@@ -285,7 +285,7 @@ function Shop() {
                       mode,
                       orderId,
                       Object.entries(cart)
-                        .map(([key, value]) => ({ product_id: key, quantity: value }))
+                        .map(([key, value]) => ({ id: key, quantity: value }))
                         .filter((item) => item.quantity > 0),
                       customer_id,
                       lineProfile,
@@ -320,7 +320,7 @@ function Shop() {
                   mode,
                   orderId,
                   Object.entries(cart)
-                      .map(([key, value]) => ({ product_id: key, quantity: value }))
+                      .map(([key, value]) => ({ id: key, quantity: value }))
                       .filter((item) => item.quantity > 0),
                   customer_id,
                   lineProfile,

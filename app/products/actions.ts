@@ -19,21 +19,21 @@ export async function addNewProduct(values:NewProduct) {
   await db.insertInto('products').values(values).execute();
 }
 
-export async function updateProduct(product_id: string, values:UpdateProduct) {
+export async function updateProduct(pid: number, values:UpdateProduct) {
   'use server';
 
   await db
     .updateTable('products')
     .set(values)
-    .where('product_id', '=', product_id)
+    .where('id', '=', pid)
     .execute();
 }
 
-export async function deleteProduct(product_id: string) {
+export async function deleteProduct(pid: number) {
   'use server';
 
   await db
     .deleteFrom('products')
-    .where('product_id', '=', product_id)
+    .where('id', '=', pid)
     .execute();
 }

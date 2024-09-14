@@ -9,8 +9,6 @@ import {
   Select,
   TextInput,
 } from '@mantine/core';
-// import { createClient } from '@/utils/supabase/client';
-// import { Product } from '@/utils/types';
 import { Product } from '@/utils/db';
 import { addNewProduct, updateProduct, deleteProduct } from './actions';
 
@@ -47,34 +45,8 @@ export function ProductModal(
         base_unit: selectedProduct?.base_unit || '',
         base_unit_quantity: selectedProduct?.base_unit_quantity || 0,
       });
-      /*
-      const resp = await supabase.from('products').insert([
-        {
-          name: selectedProduct?.name || '',
-          product_id: selectedProduct?.product_id || '',
-          unit: selectedProduct?.unit || '',
-          unit_price: selectedProduct?.unit_price || 0,
-          gift_quantity: selectedProduct?.gift_quantity || 0,
-          base_unit: selectedProduct?.base_unit || '',
-          base_unit_quantity: selectedProduct?.base_unit_quantity || 0,
-        },
-      ]);
-      if (resp.error) {
-        Notifications.show({ message: `新增失敗: ${resp.error.message}`, color: 'red' });
-      }*/
     } else {
-      await updateProduct(selectedProduct.product_id, selectedProduct);
-/*      const resp = await supabase.from('products').update({
-        name: selectedProduct?.name || '',
-        unit: selectedProduct?.unit || '',
-        unit_price: selectedProduct?.unit_price || 0,
-        gift_quantity: selectedProduct?.gift_quantity || 0,
-        base_unit: selectedProduct?.base_unit || '',
-        base_unit_quantity: selectedProduct?.base_unit_quantity || 0,
-      }).eq('product_id', selectedProduct?.product_id);*/
-/*      if (resp.error) {
-        Notifications.show({ message: `更新失敗: ${resp.error.message}`, color: 'red' });
-      }*/
+      await updateProduct(selectedProduct.id, selectedProduct);
     }
     setLoading(false);
     setSelectedProduct(undefined);
@@ -89,8 +61,7 @@ export function ProductModal(
     }
 
     setLoading(true);
-    await deleteProduct(selectedProduct.product_id);
-    // await supabase.from('products').delete().eq('product_id', selectedProduct?.product_id);
+    await deleteProduct(selectedProduct.id);
     setLoading(false);
     setSelectedProduct(undefined);
     if (onChange) {
@@ -118,9 +89,6 @@ export function ProductModal(
             setSelectedProduct({
               ...selectedProduct,
               name: event.currentTarget.value,
-            // product_id: selectedProduct?.product_id,
-            // unit: selectedProduct?.unit || '',
-            // unit_price: selectedProduct?.unit_price || 0,
             });
           } else {
             setSelectedProduct({
@@ -151,9 +119,6 @@ export function ProductModal(
             setSelectedProduct({
               ...selectedProduct,
               product_id: event.currentTarget.value,
-              // name: selectedProduct?.name || '',
-              // unit: selectedProduct?.unit || '',
-              // unit_price: selectedProduct?.unit_price || 0,
             });
           } else {
             setSelectedProduct({
@@ -184,9 +149,6 @@ export function ProductModal(
             setSelectedProduct({
               ...selectedProduct,
               unit: value || '',
-              // name: selectedProduct?.name || '',
-              // product_id: selectedProduct?.product_id,
-              // unit_price: selectedProduct?.unit_price || null,
             });
           } else {
             setSelectedProduct({
@@ -215,9 +177,6 @@ export function ProductModal(
             setSelectedProduct({
               ...selectedProduct,
               spec: event.currentTarget.value,
-              // name: selectedProduct?.name || '',
-              // product_id: selectedProduct?.product_id,
-              // unit: selectedProduct?.unit || '',
             });
           } else {
             setSelectedProduct({
@@ -247,9 +206,6 @@ export function ProductModal(
               setSelectedProduct({
                 ...selectedProduct,
                 base_unit_quantity: Number(event.currentTarget.value),
-                // name: selectedProduct?.name || '',
-                // product_id: selectedProduct?.product_id,
-                // unit: selectedProduct?.unit || '',
               });
             } else {
               setSelectedProduct({
@@ -279,9 +235,6 @@ export function ProductModal(
               setSelectedProduct({
                 ...selectedProduct,
                 base_unit: value || '',
-                // name: selectedProduct?.name || '',
-                // product_id: selectedProduct?.product_id,
-                // unit: selectedProduct?.unit || '',
               });
             } else {
               setSelectedProduct({
@@ -310,9 +263,6 @@ export function ProductModal(
               setSelectedProduct({
                 ...selectedProduct,
                 gift_quantity: Number(event.currentTarget.value),
-                // name: selectedProduct?.name || '',
-                // product_id: selectedProduct?.product_id || '',
-                // unit: selectedProduct?.unit || '',
               });
             } else {
               setSelectedProduct({
@@ -343,9 +293,6 @@ export function ProductModal(
             setSelectedProduct({
               ...selectedProduct,
               unit_price: Number(event.currentTarget.value),
-              // name: selectedProduct?.name || '',
-              // product_id: selectedProduct?.product_id || 0,
-              // unit: selectedProduct?.unit || '',
             });
           } else {
             setSelectedProduct({

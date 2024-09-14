@@ -50,34 +50,6 @@ export function CustomerModal(
   const [productLoading, setProductLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  /*
-  const getProductsByCustomer = async (customer_id:string) => {
-    setProductLoading(true);
-    const { data } = await supabase
-    .from('products')
-    .select(`
-      *,
-      customer_products:product_id (
-        product_id,
-        customer_id,
-        price,
-        is_available
-      )
-      `)
-    .eq('customer_products.customer_id', customer_id)
-    .order('product_id', { ascending: false });
-    if (data) {
-      const rs:string[] = [];
-      for (const product of data) {
-        if (product.customer_products.length > 0 && product.customer_products[0].is_available) {
-          rs.push(product.product_id);
-        }
-      }
-      setProducts(data);
-    }
-    setProductLoading(false);
-  };
-  */
   const isProductEnabled = (product: ProductWithCustomPrice) => {
     if (product.custom_price &&
         product.custom_price.is_available) {
@@ -86,11 +58,11 @@ export function CustomerModal(
     return false;
   };
 
-  const handleCheckboxChange = (product_id: string) => {
+  const handleCheckboxChange = (pid: number) => {
     // setChanged(true);
     setProducts(prevProducts => {
       const newProducts = prevProducts.map(product => {
-        if (product.product_id === product_id) {
+        if (product.id === pid) {
           if (product.custom_price) {
             product.custom_price.is_available = !product.custom_price.is_available;
           } else if (selectedCustomer) {
@@ -98,6 +70,7 @@ export function CustomerModal(
                 is_available: true,
                 price: null,
                 product_id: product.product_id,
+                id: product.id,
               };
           }
         }
@@ -107,14 +80,15 @@ export function CustomerModal(
     });
   };
 
-  const handlePriceChange = (product_id:string, newPrice:number | undefined) => {
+  const handlePriceChange = (pid:number, newPrice:number | undefined) => {
     const newProducts = products.map((product) => {
-      if (product.product_id === product_id) {
+      if (product.id === pid) {
         if (product.custom_price) {
           product.custom_price.price = newPrice || null;
         } else if (selectedCustomer) {
           product.custom_price =
             {
+              id: product.id,
               price: newPrice || null,
               is_available: true,
               product_id: product.product_id,
@@ -128,13 +102,13 @@ export function CustomerModal(
 
   const listProducts = () => {
     const rs = products.map((row) => (
-      <Table.Tr key={row.product_id}>
+      <Table.Tr key={row.id}>
         <Table.Td>
           <Checkbox
             id={row.product_id?.toString()}
             checked={isProductEnabled(row)}
             onChange={() => {
-              handleCheckboxChange(row.product_id);
+              handleCheckboxChange(row.id);
             }}
           />
         </Table.Td>
@@ -147,7 +121,7 @@ export function CustomerModal(
             onChange={(event) => {
               const value = (event.currentTarget.value.length === 0)
                 ? undefined : Number(event.currentTarget.value);
-              handlePriceChange(row.product_id, value);
+              handlePriceChange(row.id, value);
             }}
             value={
               (row.custom_price)
@@ -211,6 +185,7 @@ export function CustomerModal(
       for (const product of products) {
         if (isProductEnabled(product)) {
           records.push({
+            pid: product.id,
             customer_id: selectedCustomer.customer_id,
             product_id: product.product_id,
             price: product.custom_price?.price,
@@ -233,12 +208,12 @@ export function CustomerModal(
     if (customer) {
       setProductLoading(true);
       getProductsByCustomer(customer.customer_id).then((results) => {
-        const rs:string[] = [];
-        for (const product of results) {
-          if (product.custom_price && product.custom_price.is_available) {
-            rs.push(product.product_id);
-          }
-        }
+        // const rs:string[] = [];
+        // for (const product of results) {
+        //   if (product.custom_price && product.custom_price.is_available) {
+        //     rs.push(product.product_id);
+        //   }
+        // }
         setProducts(results);
 
         setProductLoading(false);
@@ -265,6 +240,7 @@ export function CustomerModal(
     for (const product of products) {
       if (isProductEnabled(product)) {
         records.push({
+          pid: product.id,
           customer_id: selectedCustomer!.customer_id,
           product_id: product.product_id,
           price: product.custom_price?.price,

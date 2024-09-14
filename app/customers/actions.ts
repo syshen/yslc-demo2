@@ -59,8 +59,8 @@ export async function getProductsByCustomer(customer_id: string):Promise<Product
       'gift_quantity',
       jsonObjectFrom(
         eb.selectFrom('customer_products')
-          .select(['price', 'product_id', 'is_available'])
-          .whereRef('customer_products.product_id', '=', 'products.product_id')
+          .select(['id', 'price', 'product_id', 'is_available'])
+          .whereRef('customer_products.pid', '=', 'products.id')
           .where('customer_products.customer_id', '=', customer_id)
       ).as('custom_price'),
     ])
