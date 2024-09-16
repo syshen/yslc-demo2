@@ -45,7 +45,6 @@ function OrderInfo() {
   const [unTaxTotal, setUnTaxTotal] = useState<number>(0);
 
   const order_id:string = searchParams.get('oid') || '';
-  console.log(order_id);
 
   const getOrder = async () => {
     const o = await getOrderById(order_id);
@@ -203,6 +202,13 @@ function OrderInfo() {
     },
   });
 
+  const orderQuantity = (item:OrderItem) => {
+    if (item.gift) {
+      return `${item.quantity} + ${item.gift} ${item.unit}`;
+    }
+    return `${item.quantity} ${item.unit}`;
+  };
+
   useEffect(() => {
     liff.init({
       liffId: '2006159272-j3vD3Kvk',
@@ -252,7 +258,7 @@ function OrderInfo() {
             <div key={item.item} className="flex items-center justify-between gap-4 mb-5">
               <div className="flex flex-col">
                 <p className="font-normal text-lg leading-8 transition-all duration-500">{itemInfo(item)}</p>
-                <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {item.quantity}{item.unit}</p>
+                <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {orderQuantity(item)}</p>
               </div>
               <Text
                 hidden={order.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT)}

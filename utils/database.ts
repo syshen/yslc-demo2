@@ -34,12 +34,12 @@ export interface CustomersTable {
 export interface OrderItem {
   item: string
   id: number
-  product_id: string
   price: number
   unit: string
   product: string
   quantity: number
   subtotal: number
+  gift?: number
 }
 
 export interface OrdersTable {

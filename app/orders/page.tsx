@@ -100,12 +100,15 @@ export default function OrdersPage() {
     }
     return (quantity * (product.base_unit_quantity || 1)).toString();
   };
-  const getGiftQuantity = (quantity:number, id:number) => {
-    const product = getProductById(id);
+  const getGiftQuantity = (item:OrderItem) => {
+    const product = getProductById(item.id);
     if (product === null || product === undefined) {
       return '';
     }
-    return (quantity * (product.gift_quantity || 0)).toString();
+    if (!item.gift) {
+      return '';
+    }
+    return (item.gift * product.base_unit_quantity!).toString();
   };
 
   const getPaymentStatus = (order:OrderWithCustomer) => {
@@ -156,7 +159,7 @@ export default function OrdersPage() {
             '品號': getProductById(item.id)?.product_id.toString() ?? '',
             '品名': item.item,
             '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
-            '贈品量': getGiftQuantity(item.quantity, item.id),
+            '贈品量': getGiftQuantity(item),
             '備品量': '0',
             '單價': getUnitPrice(item).toString(),
             '是否匯款': getPaymentStatus(order),
@@ -215,19 +218,16 @@ export default function OrdersPage() {
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(row.customer?.name); }}
           >
             {row.customer?.name}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(item.product_id); }}
           >
             {getProductById(item.id)?.product_id}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(item.item); }}
           >
             <HoverCard disabled={!row.message} width={280} shadow="md">
               <HoverCard.Target>
@@ -244,13 +244,11 @@ export default function OrdersPage() {
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(item.quantity.toString()); }}
           >
-            {item.quantity}
+            {item.quantity} {item.gift ? `+ ${item.gift}` : ''}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(item.price.toString()); }}
           >
             {item.price ? item.price.toLocaleString() : ''}
           </Table.Td>
@@ -368,7 +366,6 @@ export default function OrdersPage() {
   const [pendingShippingChecked, setPendingShippingChecked] = useState(true);
   const [pendingPaymentChecked, setPendingPaymentChecked] = useState(true);
   const [shippedChecked, setShippedChecked] = useState(true);
-  // const [payChecked, setPayChecked] = useState(false);
 
   useEffect(() => {
     getCustomers().then((data) => {
