@@ -192,6 +192,8 @@ export function ActionButton(
         <Textarea
           label="訊息內容"
           value={message}
+          data-autofocus
+          autosize
           onChange={(event) => setMessage(event.currentTarget.value)}
           className="pb-5"
         >
