@@ -36,7 +36,6 @@ export interface OrderItem {
   id: number
   price: number
   unit: string
-  product: string
   quantity: number
   subtotal: number
   gift?: number

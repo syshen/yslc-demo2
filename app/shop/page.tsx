@@ -101,6 +101,16 @@ function Shop() {
     }
   };
 
+  const getQuantity = (id:number) => {
+    if (cart[id] && cart[id]) {
+      if ((id === 112 || id === 5) && (cart[id] % 6 === 0) && cart[id] !== 0) {
+        return `${cart[id]} + ${cart[id] % 6}`;
+      }
+      return cart[id].toString();
+    }
+    return '0';
+  };
+
   const listProducts = () => {
     if (products.length === 0) {
       setRows([(<Text fs="italic" fw={300}>尚未完成商品設定</Text>)]);
@@ -118,7 +128,7 @@ function Shop() {
           </Group>
           <div className="flex justify-between items-center">
             <Text size="sm" fw={cart[product.id] ? 700 : 100}>
-              數量:{cart[product.id] ? cart[product.id] : 0} {product.unit}
+              數量:{getQuantity(product.id)} {product.unit}
             </Text>
             <Text className={!product.spec ? 'invisible' : ''} size="sm">({product.spec})</Text>
             <div className="grid grap-x-8 grid-cols-2">
