@@ -111,6 +111,13 @@ function Shop() {
     return '0';
   };
 
+  const getUnitPrice = (product:ProductView) => {
+    if ((product.id === 112 || product.id === 5) && cart[product.id] && cart[product.id] >= 10) {
+      return 720;
+    }
+    return product.price;
+  }
+
   const listProducts = () => {
     if (products.length === 0) {
       setRows([(<Text fs="italic" fw={300}>尚未完成商品設定</Text>)]);
@@ -123,7 +130,7 @@ function Shop() {
               className={(!customer ||
               (customer.payment_options !== null &&
                 customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))) ? 'invisible' : 'py-2'}
-            >售價: {Number(product.price).toLocaleString()}元
+            >售價: {Number(getUnitPrice(product)).toLocaleString()}元
             </Text>
           </Group>
           <div className="flex justify-between items-center">
