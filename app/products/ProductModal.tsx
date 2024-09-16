@@ -8,6 +8,7 @@ import {
   Modal,
   Select,
   TextInput,
+  Stack,
 } from '@mantine/core';
 import { Product } from '@/utils/db';
 import { addNewProduct, updateProduct, deleteProduct } from './actions';
@@ -69,6 +70,22 @@ export function ProductModal(
     }
   };
 
+  const productPrice = (target:Product | null | undefined) => {
+    if (target === null || target === undefined) {
+      return undefined;
+    }
+
+    if (target.unit_price === null || target.unit_price === undefined) {
+      return undefined;
+    }
+
+    if (target.base_unit_quantity === null || target.base_unit_quantity === undefined) {
+      return undefined;
+    }
+
+    return target.unit_price * target.base_unit_quantity;
+  };
+
   useEffect(() => {
     setSelectedProduct(product);
   }, [product]);
@@ -80,143 +97,56 @@ export function ProductModal(
       title={product ? '編輯產品' : '新增產品'}
       transitionProps={{ duration: 200, transition: 'slide-down' }}
       onClose={() => { setSelectedProduct(undefined); onClose(); }}>
-      <TextInput
-        label="名稱"
-        required
-        value={selectedProduct?.name}
-        onChange={(event) => {
-          if (selectedProduct) {
-            setSelectedProduct({
-              ...selectedProduct,
-              name: event.currentTarget.value,
-            });
-          } else {
-            setSelectedProduct({
-              name: event.currentTarget.value,
-              id: 0,
-              product_id: '',
-              unit: null,
-              unit_price: null,
-              gift_quantity: null,
-              base_unit: null,
-              base_unit_quantity: null,
-              spec: null,
-              stock_quantity: null,
-              stock_status: null,
-              is_active: null,
-              created_at: new Date(),
-            });
-          }
-        }}
-      />
-      <TextInput
-        label="品號"
-        required
-        value={selectedProduct?.product_id}
-        onChange={(event) => {
-          if (selectedProduct) {
-            setSelectedProduct({
-              ...selectedProduct,
-              product_id: event.currentTarget.value,
-            });
-          } else {
-            setSelectedProduct({
-              product_id: event.currentTarget.value,
-              name: '',
-              id: 0,
-              unit: null,
-              unit_price: null,
-              gift_quantity: null,
-              base_unit: null,
-              base_unit_quantity: null,
-              spec: null,
-              stock_quantity: null,
-              stock_status: null,
-              is_active: null,
-              created_at: new Date(),
-            });
-          }
-        }}
-      />
-      <Select
-        label="銷售單位"
-        required
-        data={['箱', '組', '桶', '包']}
-        value={selectedProduct?.unit}
-        onChange={(value) => {
-          if (selectedProduct) {
-            setSelectedProduct({
-              ...selectedProduct,
-              unit: value || '',
-            });
-          } else {
-            setSelectedProduct({
-              unit: value || '',
-              product_id: '',
-              name: '',
-              id: 0,
-              unit_price: null,
-              gift_quantity: null,
-              base_unit: null,
-              base_unit_quantity: null,
-              spec: null,
-              stock_quantity: null,
-              stock_status: null,
-              is_active: null,
-              created_at: new Date(),
-            });
-          }
-        }}
-      />
-      <TextInput
-        label="規格說明"
-        value={selectedProduct ? (selectedProduct.spec || undefined) : undefined}
-        onChange={(event) => {
-          if (selectedProduct) {
-            setSelectedProduct({
-              ...selectedProduct,
-              spec: event.currentTarget.value,
-            });
-          } else {
-            setSelectedProduct({
-              spec: event.currentTarget.value,
-              product_id: event.currentTarget.value,
-              name: '',
-              id: 0,
-              unit: null,
-              unit_price: null,
-              gift_quantity: null,
-              base_unit: null,
-              base_unit_quantity: null,
-              stock_quantity: null,
-              stock_status: null,
-              is_active: null,
-              created_at: new Date(),
-            });
-          }
-        }}
-      />
-      <Group>
+      <Stack>
         <TextInput
-          label="ERP 數量"
+          label="名稱"
           required
-          value={selectedProduct ? (selectedProduct.base_unit_quantity || undefined) : undefined}
+          value={selectedProduct?.name}
           onChange={(event) => {
             if (selectedProduct) {
               setSelectedProduct({
                 ...selectedProduct,
-                base_unit_quantity: Number(event.currentTarget.value),
+                name: event.currentTarget.value,
               });
             } else {
               setSelectedProduct({
-                base_unit_quantity: Number(event.currentTarget.value),
+                name: event.currentTarget.value,
+                id: 0,
                 product_id: '',
+                unit: null,
+                unit_price: null,
+                gift_quantity: null,
+                base_unit: null,
+                base_unit_quantity: null,
+                spec: null,
+                stock_quantity: null,
+                stock_status: null,
+                is_active: null,
+                created_at: new Date(),
+              });
+            }
+          }}
+        />
+        <TextInput
+          label="品號"
+          required
+          value={selectedProduct?.product_id}
+          onChange={(event) => {
+            if (selectedProduct) {
+              setSelectedProduct({
+                ...selectedProduct,
+                product_id: event.currentTarget.value,
+              });
+            } else {
+              setSelectedProduct({
+                product_id: event.currentTarget.value,
                 name: '',
                 id: 0,
                 unit: null,
                 unit_price: null,
                 gift_quantity: null,
                 base_unit: null,
+                base_unit_quantity: null,
                 spec: null,
                 stock_quantity: null,
                 stock_status: null,
@@ -227,52 +157,24 @@ export function ProductModal(
           }}
         />
         <Select
-          label="ERP 單位"
+          label="銷售單位"
           required
-          value={selectedProduct?.base_unit}
-          data={['罐', '箱', '桶', '瓶', '包']}
+          data={['箱', '組', '桶', '包']}
+          value={selectedProduct?.unit}
           onChange={(value) => {
             if (selectedProduct) {
               setSelectedProduct({
                 ...selectedProduct,
-                base_unit: value || '',
+                unit: value || '',
               });
             } else {
               setSelectedProduct({
-                base_unit: value || '',
+                unit: value || '',
                 product_id: '',
                 name: '',
                 id: 0,
-                unit: null,
                 unit_price: null,
                 gift_quantity: null,
-                base_unit_quantity: null,
-                spec: null,
-                stock_quantity: null,
-                stock_status: null,
-                is_active: null,
-                created_at: new Date(),
-              });
-            }
-          }}
-        />
-        <TextInput
-          label="贈品數量"
-          value={selectedProduct ? (selectedProduct.gift_quantity || undefined) : undefined}
-          onChange={(event) => {
-            if (selectedProduct) {
-              setSelectedProduct({
-                ...selectedProduct,
-                gift_quantity: Number(event.currentTarget.value),
-              });
-            } else {
-              setSelectedProduct({
-                gift_quantity: Number(event.currentTarget.value),
-                product_id: '',
-                name: '',
-                id: 0,
-                unit: null,
-                unit_price: null,
                 base_unit: null,
                 base_unit_quantity: null,
                 spec: null,
@@ -284,36 +186,162 @@ export function ProductModal(
             }
           }}
         />
-      </Group>
-      <TextInput
-        label="牌價"
-        required
-        value={selectedProduct ? (selectedProduct.unit_price || undefined) : undefined}
-        onChange={(event) => {
-          if (selectedProduct) {
-            setSelectedProduct({
-              ...selectedProduct,
-              unit_price: Number(event.currentTarget.value),
-            });
-          } else {
-            setSelectedProduct({
-              unit_price: Number(event.currentTarget.value),
-              product_id: event.currentTarget.value,
-              name: '',
-              id: 0,
-              unit: null,
-              gift_quantity: null,
-              base_unit: null,
-              base_unit_quantity: null,
-              spec: null,
-              stock_quantity: null,
-              stock_status: null,
-              is_active: null,
-              created_at: new Date(),
-            });
-          }
-        }}
-      />
+        <TextInput
+          label="規格說明"
+          value={selectedProduct ? (selectedProduct.spec || undefined) : undefined}
+          onChange={(event) => {
+            if (selectedProduct) {
+              setSelectedProduct({
+                ...selectedProduct,
+                spec: event.currentTarget.value,
+              });
+            } else {
+              setSelectedProduct({
+                spec: event.currentTarget.value,
+                product_id: event.currentTarget.value,
+                name: '',
+                id: 0,
+                unit: null,
+                unit_price: null,
+                gift_quantity: null,
+                base_unit: null,
+                base_unit_quantity: null,
+                stock_quantity: null,
+                stock_status: null,
+                is_active: null,
+                created_at: new Date(),
+              });
+            }
+          }}
+        />
+        <Group>
+          <TextInput
+            label="ERP 單位數量"
+            required
+            value={selectedProduct ? (selectedProduct.base_unit_quantity || undefined) : undefined}
+            onChange={(event) => {
+              if (selectedProduct) {
+                setSelectedProduct({
+                  ...selectedProduct,
+                  base_unit_quantity: Number(event.currentTarget.value),
+                });
+              } else {
+                setSelectedProduct({
+                  base_unit_quantity: Number(event.currentTarget.value),
+                  product_id: '',
+                  name: '',
+                  id: 0,
+                  unit: null,
+                  unit_price: null,
+                  gift_quantity: null,
+                  base_unit: null,
+                  spec: null,
+                  stock_quantity: null,
+                  stock_status: null,
+                  is_active: null,
+                  created_at: new Date(),
+                });
+              }
+            }}
+          />
+          <Select
+            label="ERP 單位"
+            required
+            value={selectedProduct?.base_unit}
+            data={['罐', '箱', '桶', '瓶', '包']}
+            onChange={(value) => {
+              if (selectedProduct) {
+                setSelectedProduct({
+                  ...selectedProduct,
+                  base_unit: value || '',
+                });
+              } else {
+                setSelectedProduct({
+                  base_unit: value || '',
+                  product_id: '',
+                  name: '',
+                  id: 0,
+                  unit: null,
+                  unit_price: null,
+                  gift_quantity: null,
+                  base_unit_quantity: null,
+                  spec: null,
+                  stock_quantity: null,
+                  stock_status: null,
+                  is_active: null,
+                  created_at: new Date(),
+                });
+              }
+            }}
+          />
+          <TextInput
+            label="贈品數量"
+            value={selectedProduct ? (selectedProduct.gift_quantity || undefined) : undefined}
+            onChange={(event) => {
+              if (selectedProduct) {
+                setSelectedProduct({
+                  ...selectedProduct,
+                  gift_quantity: Number(event.currentTarget.value),
+                });
+              } else {
+                setSelectedProduct({
+                  gift_quantity: Number(event.currentTarget.value),
+                  product_id: '',
+                  name: '',
+                  id: 0,
+                  unit: null,
+                  unit_price: null,
+                  base_unit: null,
+                  base_unit_quantity: null,
+                  spec: null,
+                  stock_quantity: null,
+                  stock_status: null,
+                  is_active: null,
+                  created_at: new Date(),
+                });
+              }
+            }}
+          />
+        </Group>
+        <Group>
+          <TextInput
+            label="單位訂價"
+            description="此為ERP中最小單位定價"
+            required
+            value={selectedProduct ? (selectedProduct.unit_price || undefined) : undefined}
+            onChange={(event) => {
+              if (selectedProduct) {
+                setSelectedProduct({
+                  ...selectedProduct,
+                  unit_price: Number(event.currentTarget.value),
+                });
+              } else {
+                setSelectedProduct({
+                  unit_price: Number(event.currentTarget.value),
+                  product_id: event.currentTarget.value,
+                  name: '',
+                  id: 0,
+                  unit: null,
+                  gift_quantity: null,
+                  base_unit: null,
+                  base_unit_quantity: null,
+                  spec: null,
+                  stock_quantity: null,
+                  stock_status: null,
+                  is_active: null,
+                  created_at: new Date(),
+                });
+              }
+            }}
+          />
+          <TextInput
+            disabled
+            label="銷售單價"
+            description="銷售牌價為單位訂價乘於單位數量"
+            value={productPrice(selectedProduct)}
+          />
+        </Group>
+      </Stack>
       <Group>
         <Button
           mt="xl"

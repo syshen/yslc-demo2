@@ -34,12 +34,16 @@ export async function getCustomers() {
 }
 
 export async function updateOrderStatus(order_id:string, state:OrderState) {
+  'use server';
+
   await db.updateTable('orders').set({
     state,
   }).where('order_id', '=', order_id).execute();
 }
 
 export async function updatePaymentStatus(order_id:string, state:PaymentState) {
+  'use server';
+
   await db.updateTable('orders').set({
     payment_status: state,
   }).where('order_id', '=', order_id).execute();

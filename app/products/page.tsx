@@ -97,7 +97,13 @@ export default function ProductsPage() {
           {row.unit}
         </Table.Td>
         <Table.Td>
-          {row.unit_price.toLocaleString()}
+          {row.unit_price}
+        </Table.Td>
+        <Table.Td>
+          {row.base_unit_quantity} {row.base_unit} {row.gift_quantity ? (<Text size="xs">加贈 {row.gift_quantity} {row.base_unit} </Text>) : '' }
+        </Table.Td>
+        <Table.Td>
+          {Number(row.unit_price * row.base_unit_quantity).toLocaleString()}
         </Table.Td>
         <Table.Td>
           <Checkbox
@@ -212,7 +218,9 @@ export default function ProductsPage() {
                 <Table.Th>商品名稱</Table.Th>
                 <Table.Th>品號</Table.Th>
                 <Table.Th>銷售單位</Table.Th>
-                <Table.Th>單位價格</Table.Th>
+                <Table.Th>單價</Table.Th>
+                <Table.Th>規格</Table.Th>
+                <Table.Th>銷售牌價</Table.Th>
                 <Table.Th>銷售中</Table.Th>
                 <Table.Th>剩餘庫存</Table.Th>
                 <Table.Th></Table.Th>

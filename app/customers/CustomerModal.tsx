@@ -68,7 +68,7 @@ export function CustomerModal(
           } else if (selectedCustomer) {
             product.custom_price = {
                 is_available: true,
-                price: null,
+                unit_price: null,
                 product_id: product.product_id,
                 id: product.id,
               };
@@ -84,12 +84,12 @@ export function CustomerModal(
     const newProducts = products.map((product) => {
       if (product.id === pid) {
         if (product.custom_price) {
-          product.custom_price.price = newPrice || null;
+          product.custom_price.unit_price = newPrice || null;
         } else if (selectedCustomer) {
           product.custom_price =
             {
               id: product.id,
-              price: newPrice || null,
+              unit_price: newPrice || null,
               is_available: true,
               product_id: product.product_id,
             };
@@ -125,7 +125,7 @@ export function CustomerModal(
             }}
             value={
               (row.custom_price)
-                ? (row.custom_price.price || undefined) : undefined
+                ? (row.custom_price.unit_price || undefined) : undefined
             }
           />
         </Table.Td>
@@ -188,7 +188,7 @@ export function CustomerModal(
             pid: product.id,
             customer_id: selectedCustomer.customer_id,
             product_id: product.product_id,
-            price: product.custom_price?.price,
+            unit_price: product.custom_price?.unit_price,
             is_available: true,
           });
         }
@@ -243,7 +243,7 @@ export function CustomerModal(
           pid: product.id,
           customer_id: selectedCustomer!.customer_id,
           product_id: product.product_id,
-          price: product.custom_price?.price,
+          unit_price: product.custom_price?.unit_price,
           is_available: true,
         });
       }
@@ -381,8 +381,8 @@ export function CustomerModal(
                 <Table.Tr>
                   <Table.Th>啟用</Table.Th>
                   <Table.Th>產品名稱</Table.Th>
-                  <Table.Th>牌價</Table.Th>
-                  <Table.Th>特殊價</Table.Th>
+                  <Table.Th>原始單價</Table.Th>
+                  <Table.Th>特殊單價</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{productRows}</Table.Tbody>

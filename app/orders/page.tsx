@@ -121,6 +121,14 @@ export default function OrdersPage() {
     return '否';
   };
 
+  const getUnitPrice = (item:OrderItem) => {
+    const product = getProductById(item.id);
+    if (product === null || product === undefined) {
+      return '';
+    }
+    return item.price / (item.quantity * (product.base_unit_quantity ?? 0));
+  };
+
   const exportOrders = () => {
     if (selectedRows.length === 0) {
       return;
@@ -150,7 +158,7 @@ export default function OrdersPage() {
             '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
             '贈品量': getGiftQuantity(item.quantity, item.id),
             '備品量': '0',
-            '單價': item.unit_price.toString(),
+            '單價': getUnitPrice(item).toString(),
             '是否匯款': getPaymentStatus(order),
           });
         });
@@ -242,9 +250,9 @@ export default function OrdersPage() {
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
-            onClick={() => { copy(item.unit_price.toString()); }}
+            onClick={() => { copy(item.price.toString()); }}
           >
-            {item.unit_price ? item.unit_price.toLocaleString() : ''}
+            {item.price ? item.price.toLocaleString() : ''}
           </Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{paymentOption(row)}</Table.Td>
           <Table.Td className={row.cancelled ? 'line-through' : ''}>{row.total ? Number(row.total).toLocaleString() : ''}</Table.Td>

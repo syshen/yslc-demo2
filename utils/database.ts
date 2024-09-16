@@ -35,7 +35,7 @@ export interface OrderItem {
   item: string
   id: number
   product_id: string
-  unit_price: number
+  price: number
   unit: string
   product: string
   quantity: number
@@ -99,7 +99,7 @@ export interface CustomerProductsTable {
   customer_id: string
   product_id: string
   pid: number
-  price: number | null
+  unit_price: number | null
   is_available: boolean | null
   created_at: ColumnType<Date, string | undefined, never>
 }
@@ -128,7 +128,8 @@ export interface ProductsView {
   name: string
   product_id: string
   unit: string
-  unit_price: number
+  orig_unit_price: number
+  custom_unit_price:number
   spec: string | null
   stock_status: string
   stock_quantity: number | null
@@ -151,7 +152,7 @@ export interface ProductWithCustomPrice extends Product {
   custom_price: {
     id: number,
     product_id: string,
-    price: number | null,
+    unit_price: number | null,
     is_available: boolean | null
   } | null
 }
