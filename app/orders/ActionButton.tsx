@@ -159,19 +159,26 @@ export function ActionButton(
           <Menu.Divider />
 
           <Menu.Label>訊息通知客戶</Menu.Label>
-          <Menu.Item
+          {/* <Menu.Item
             leftSection={<IconSpeakerphone size={14} />}
             onClick={() => notifyCustomer('paid')}
           >付款完成通知
-          </Menu.Item>
+          </Menu.Item> */}
           <Menu.Item
             leftSection={<IconSpeakerphone size={14} />}
-            onClick={() => notifyCustomer('shipped')}
+            onClick={() => {
+              setMessage(`訂單完成，預計1-3個工作天到貨喔。
+
+訂單編號：${order_id}
+
+訂單明細：${process.env.NEXT_PUBLIC_ORDER_PAGE_URL}?oid=${order_id}`);
+              setOpened(true);
+            }}
           >出貨通知
           </Menu.Item>
           <Menu.Item
             leftSection={<IconSpeakerphone size={14} />}
-            onClick={() => setOpened(true)}
+            onClick={() => { setMessage(''); setOpened(true); }}
           >自訂訊息通知
           </Menu.Item>
         </Menu.Dropdown>

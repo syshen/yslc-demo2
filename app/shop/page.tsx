@@ -113,7 +113,7 @@ function Shop() {
               className={(!customer ||
               (customer.payment_options !== null &&
                 customer.payment_options.includes(PaymentOption.MONTHLY_PAYMENT))) ? 'invisible' : 'py-2'}
-            >單價: {Number(product.price).toLocaleString()}元
+            >售價: {Number(product.price).toLocaleString()}元
             </Text>
           </Group>
           <div className="flex justify-between items-center">

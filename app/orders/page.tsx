@@ -367,7 +367,7 @@ export default function OrdersPage() {
   const [cancelledChecked, setCancelledChecked] = useState(false);
   const [pendingShippingChecked, setPendingShippingChecked] = useState(true);
   const [pendingPaymentChecked, setPendingPaymentChecked] = useState(true);
-  const [shippedChecked, setShippedChecked] = useState(false);
+  const [shippedChecked, setShippedChecked] = useState(true);
   // const [payChecked, setPayChecked] = useState(false);
 
   useEffect(() => {
