@@ -9,7 +9,7 @@ import {
 export async function getAllProducts() {
   'use server';
 
-  const results = await db.selectFrom('products').selectAll().orderBy('created_at', 'desc').execute();
+  const results = await db.selectFrom('products').selectAll().orderBy('product_id', 'asc').execute();
   return results;
 }
 

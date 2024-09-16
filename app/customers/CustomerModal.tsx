@@ -100,6 +100,18 @@ export function CustomerModal(
     setProducts(newProducts);
   };
 
+  const sellingPrice = (p:ProductWithCustomPrice) => {
+    if (p.custom_price) {
+      if (p.base_unit_quantity && p.custom_price.unit_price) {
+        return Number(p.base_unit_quantity * p.custom_price.unit_price).toLocaleString();
+      }
+    }
+    if (p.base_unit_quantity && p.unit_price) {
+        return Number(p.base_unit_quantity * p.unit_price).toLocaleString();
+    }
+    return null;
+  };
+
   const listProducts = () => {
     const rs = products.map((row) => (
       <Table.Tr key={row.id}>
@@ -113,7 +125,7 @@ export function CustomerModal(
           />
         </Table.Td>
         <Table.Td>{row.name}</Table.Td>
-        <Table.Td>{row.unit_price}</Table.Td>
+        <Table.Td>{row.unit_price?.toLocaleString()}</Table.Td>
         <Table.Td>
           <TextInput
             disabled={!isProductEnabled(row)}
@@ -129,6 +141,9 @@ export function CustomerModal(
             }
           />
         </Table.Td>
+        <Table.Td>
+          <Text fw={200} size="sm">{ sellingPrice(row) }</Text>
+        </Table.Td>
       </Table.Tr>
     ));
     setProductRows(rs);
@@ -139,11 +154,8 @@ export function CustomerModal(
       if (selectedCustomer === null || selectedCustomer.customer_id.length === 0) return;
       setLoading(true);
       await deleteCustomerByCustomerID(selectedCustomer.customer_id);
-      // await supabase.from('customers').delete().eq('customer_id', selectedCustomer.customer_id);
       setSelectedCustomer(null);
       setLoading(false);
-      // setProducts([]);
-      // setProductRows([]);
       logger.info(`Delete customer: ${selectedCustomer.customer_id}`, {
         action: LogAction.DELETE_CUSTOMERS,
         user: {
@@ -375,6 +387,7 @@ export function CustomerModal(
                   <Table.Th>產品名稱</Table.Th>
                   <Table.Th>原始單價</Table.Th>
                   <Table.Th>特殊單價</Table.Th>
+                  <Table.Th>銷售價</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>{productRows}</Table.Tbody>
