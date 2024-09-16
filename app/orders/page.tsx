@@ -126,7 +126,7 @@ export default function OrdersPage() {
     if (product === null || product === undefined) {
       return '';
     }
-    return item.price / (item.quantity * (product.base_unit_quantity ?? 0));
+    return item.price / (product.base_unit_quantity ?? 0);
   };
 
   const exportOrders = () => {
@@ -153,7 +153,7 @@ export default function OrdersPage() {
             '聯絡電話(二)': order.customer?.contact_phone_2 || '',
             '收貨人': '',
             '訂單單號 (=接單系統的訂單單號)': '',
-            '品號': item.product_id.toString(),
+            '品號': getProductById(item.id)?.product_id.toString() ?? '',
             '品名': item.item,
             '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
             '贈品量': getGiftQuantity(item.quantity, item.id),
@@ -223,7 +223,7 @@ export default function OrdersPage() {
             className={row.cancelled ? 'line-through' : ''}
             onClick={() => { copy(item.product_id); }}
           >
-            {item.product_id}
+            {getProductById(item.id)?.product_id}
           </Table.Td>
           <Table.Td
             className={row.cancelled ? 'line-through' : ''}
@@ -277,7 +277,7 @@ export default function OrdersPage() {
       ));
     });
     setRows(rs);
-  }, [orders, selectedRows]);
+  }, [orders, selectedRows, products]);
 
 /*
   const getOrders = async () => {
@@ -457,7 +457,7 @@ export default function OrdersPage() {
               <Table.Th>品號</Table.Th>
               <Table.Th>品名</Table.Th>
               <Table.Th>銷貨數量</Table.Th>
-              <Table.Th>訂單單價</Table.Th>
+              <Table.Th>銷售單價</Table.Th>
               <Table.Th>付款方式</Table.Th>
               <Table.Th>訂單總額</Table.Th>
               <Table.Th>訂單狀態</Table.Th>
