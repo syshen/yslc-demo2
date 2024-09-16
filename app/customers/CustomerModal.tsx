@@ -208,12 +208,6 @@ export function CustomerModal(
     if (customer) {
       setProductLoading(true);
       getProductsByCustomer(customer.customer_id).then((results) => {
-        // const rs:string[] = [];
-        // for (const product of results) {
-        //   if (product.custom_price && product.custom_price.is_available) {
-        //     rs.push(product.product_id);
-        //   }
-        // }
         setProducts(results);
 
         setProductLoading(false);
@@ -306,8 +300,6 @@ export function CustomerModal(
         title={customer ? '編輯客戶' : '新增客戶'}
         transitionProps={{ duration: 200, transition: 'slide-down' }}
         onClose={() => {
-          // setProducts([]);
-          // setProductRows([]);
           if (onClose) {
             onClose();
           }
