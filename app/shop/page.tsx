@@ -104,7 +104,7 @@ function Shop() {
   const getQuantity = (id:number) => {
     if (cart[id] && cart[id]) {
       if ((id === 112 || id === 5) && (cart[id] % 6 === 0) && cart[id] !== 0) {
-        return `${cart[id]} + ${cart[id] % 6}`;
+        return `${cart[id]} + ${Math.round(cart[id] / 6)}`;
       }
       return cart[id].toString();
     }
