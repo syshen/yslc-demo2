@@ -90,7 +90,7 @@ function Shop() {
         const quantity = cart[pid];
         const product = ps.find((p) => String(p.id) === pid);
         if (product && product.price) {
-          total += product.price * quantity;
+          total += Math.round(product.price * quantity);
         }
       }
       const endTime = new Date().getTime();
@@ -116,7 +116,7 @@ function Shop() {
       return 720;
     }
     return product.price;
-  }
+  };
 
   const listProducts = () => {
     if (products.length === 0) {

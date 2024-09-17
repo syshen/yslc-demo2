@@ -63,6 +63,16 @@ export interface OrdersTable {
   created_at: ColumnType<Date, string | undefined, never>
 }
 
+export interface SpecialOffer {
+  match?: {
+    quantity: number
+  }
+  offer?: {
+    gift?: number
+    unit_price?: number
+  }
+}
+
 export interface ProductsTable {
   id: Generated<number>
   name: string

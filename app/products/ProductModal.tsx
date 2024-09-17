@@ -9,9 +9,15 @@ import {
   Select,
   TextInput,
   Stack,
+  // Divider,
 } from '@mantine/core';
-import { Product } from '@/utils/db';
+// import { IconSquareRoundedPlus } from '@tabler/icons-react';
+import {
+  Product,
+  // SpecialOffer
+} from '@/utils/db';
 import { addNewProduct, updateProduct, deleteProduct } from './actions';
+// import { SpecialOfferCard } from './SpecailOfferCard';
 
 export function ProductModal(
 { opened, onClose, onChange, product }:
@@ -20,8 +26,9 @@ export function ProductModal(
     onChange: () => void,
     product: Product | null | undefined,
 }) {
-  // const supabase = createClient();
+  const [unitPrice, setUnitPrice] = useState<string>();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>();
+  // const [offers, setOffers] = useState<SpecialOffer[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const clickSave = async () => {
@@ -83,11 +90,12 @@ export function ProductModal(
       return undefined;
     }
 
-    return target.unit_price * target.base_unit_quantity;
+    return Math.round(target.unit_price * target.base_unit_quantity);
   };
 
   useEffect(() => {
     setSelectedProduct(product);
+    setUnitPrice(product?.unit_price?.toString());
   }, [product]);
 
   return (
@@ -274,7 +282,7 @@ export function ProductModal(
               }
             }}
           />
-          <TextInput
+          {/* <TextInput
             label="贈品數量"
             value={selectedProduct ? (selectedProduct.gift_quantity || undefined) : undefined}
             onChange={(event) => {
@@ -301,15 +309,16 @@ export function ProductModal(
                 });
               }
             }}
-          />
+          /> */}
         </Group>
         <Group>
           <TextInput
             label="單位訂價"
             description="此為ERP中最小單位定價"
             required
-            value={selectedProduct ? (selectedProduct.unit_price || undefined) : undefined}
+            value={selectedProduct ? (unitPrice || undefined) : undefined}
             onChange={(event) => {
+              setUnitPrice(event.target.value);
               if (selectedProduct) {
                 setSelectedProduct({
                   ...selectedProduct,
@@ -341,6 +350,46 @@ export function ProductModal(
             value={productPrice(selectedProduct)}
           />
         </Group>
+        {/* <Divider />
+        <Button
+          leftSection={<IconSquareRoundedPlus size={14} />}
+          variant="transparent"
+          onClick={() => {
+            setOffers(
+              [
+                ...offers,
+                {},
+              ]
+            );
+          }}
+        >新增優惠方案
+        </Button>
+        {
+          offers.map(
+            (offer, id) => (
+              <Stack key={id}>
+              <SpecialOfferCard
+                key={id}
+                offer={offer}
+                onChange={(no) => {
+                  const updated = offers.map((oo, idx) => {
+                    if (idx === id) {
+                      return no;
+                    }
+                    return oo;
+                  });
+                  console.log(updated);
+                  setOffers(updated);
+                }}
+                onRemove={() => {
+                  setOffers(offers.filter((item, idx) => idx !== id));
+                }}
+              />
+              <Divider />
+              </Stack>
+            )
+          )
+        } */}
       </Stack>
       <Group>
         <Button
