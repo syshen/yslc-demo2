@@ -103,7 +103,7 @@ export default function ProductsPage() {
           {row.base_unit_quantity} {row.base_unit} {row.gift_quantity ? (<Text size="xs">加贈 {row.gift_quantity} {row.base_unit} </Text>) : '' }
         </Table.Td>
         <Table.Td>
-          {Number(row.unit_price * row.base_unit_quantity).toLocaleString()}
+          {Number(Math.round(row.unit_price * row.base_unit_quantity)).toLocaleString()}
         </Table.Td>
         <Table.Td>
           <Checkbox
