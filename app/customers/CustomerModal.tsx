@@ -103,11 +103,13 @@ export function CustomerModal(
   const sellingPrice = (p:ProductWithCustomPrice) => {
     if (p.custom_price) {
       if (p.base_unit_quantity && p.custom_price.unit_price) {
-        return Number(p.base_unit_quantity * p.custom_price.unit_price).toLocaleString();
+        return Number(
+          Math.round(p.base_unit_quantity * p.custom_price.unit_price)
+        ).toLocaleString();
       }
     }
     if (p.base_unit_quantity && p.unit_price) {
-        return Number(p.base_unit_quantity * p.unit_price).toLocaleString();
+        return Number(Math.round(p.base_unit_quantity * p.unit_price)).toLocaleString();
     }
     return null;
   };
