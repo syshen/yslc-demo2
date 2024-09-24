@@ -57,6 +57,7 @@ export async function getProductsByCustomer(customer_id: string):Promise<Product
       'base_unit',
       'base_unit_quantity',
       'gift_quantity',
+      'category',
       jsonObjectFrom(
         eb.selectFrom('customer_products')
           .select(['id', 'unit_price', 'product_id', 'is_available'])

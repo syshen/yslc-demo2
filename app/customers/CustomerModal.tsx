@@ -126,7 +126,7 @@ export function CustomerModal(
             }}
           />
         </Table.Td>
-        <Table.Td>{row.name}</Table.Td>
+        <Table.Td>{row.name}{row.is_active ? '' : (<Text span size="sm" fs="italic"> (停售中) </Text>)}</Table.Td>
         <Table.Td>{row.unit_price?.toLocaleString()}</Table.Td>
         <Table.Td>
           <TextInput

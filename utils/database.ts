@@ -15,6 +15,7 @@ export interface Database {
   orders: OrdersTable
   view_products: ProductsView
   view_customers: CustomersView
+  categories: CategoriesTable
 }
 
 export interface CustomersTable {
@@ -86,6 +87,7 @@ export interface ProductsTable {
   base_unit: string | null,
   base_unit_quantity: number | null,
   gift_quantity: number | null,
+  category: number | null,
   created_at: ColumnType<Date, string | undefined, never>
 }
 
@@ -110,6 +112,12 @@ export interface CustomerProductsTable {
   pid: number
   unit_price: number | null
   is_available: boolean | null
+  created_at: ColumnType<Date, string | undefined, never>
+}
+
+export interface CategoriesTable {
+  id: Generated<number>
+  name: string
   created_at: ColumnType<Date, string | undefined, never>
 }
 
@@ -165,6 +173,9 @@ export interface ProductWithCustomPrice extends Product {
     is_available: boolean | null
   } | null
 }
+export interface ProductWithCategory extends Product {
+  category_ref: Category | null | undefined
+}
 
 export type Order = Selectable<OrdersTable>;
 export interface OrderWithCustomer extends Order {
@@ -186,3 +197,6 @@ export type ProductView = Selectable<ProductsView>;
 
 export type Message = Selectable<MessagesTable>;
 export type NewMessage = Insertable<MessagesTable>;
+
+export type Category = Selectable<CategoriesTable>;
+export type NewCategory = Insertable<CategoriesTable>;

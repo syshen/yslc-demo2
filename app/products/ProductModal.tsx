@@ -14,8 +14,10 @@ import {
 // import { IconSquareRoundedPlus } from '@tabler/icons-react';
 import {
   Product,
+  ProductWithCategory,
   // SpecialOffer
 } from '@/utils/db';
+import { CategorySelect } from './CategorySelect';
 import { addNewProduct, updateProduct, deleteProduct } from './actions';
 // import { SpecialOfferCard } from './SpecailOfferCard';
 
@@ -24,7 +26,7 @@ export function ProductModal(
 { opened: boolean,
     onClose: () => void,
     onChange: () => void,
-    product: Product | null | undefined,
+    product: ProductWithCategory | null | undefined,
 }) {
   const [unitPrice, setUnitPrice] = useState<string>();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>();
@@ -52,8 +54,10 @@ export function ProductModal(
         spec: selectedProduct?.spec || '',
         base_unit: selectedProduct?.base_unit || '',
         base_unit_quantity: selectedProduct?.base_unit_quantity || 0,
+        category: selectedProduct?.category || null,
       });
     } else {
+      delete (selectedProduct as ProductWithCategory).category_ref;
       await updateProduct(selectedProduct.id, selectedProduct);
     }
     setLoading(false);
@@ -130,6 +134,7 @@ export function ProductModal(
                 stock_quantity: null,
                 stock_status: null,
                 is_active: null,
+                category: null,
                 created_at: new Date(),
               });
             }
@@ -159,10 +164,47 @@ export function ProductModal(
                 stock_quantity: null,
                 stock_status: null,
                 is_active: null,
+                category: null,
                 created_at: new Date(),
               });
             }
           }}
+        />
+        <CategorySelect
+          category={product?.category_ref}
+          onChange={(category) => {
+            if (category) {
+              if (selectedProduct) {
+                setSelectedProduct({
+                  ...selectedProduct,
+                  category: category.id,
+                });
+              } else {
+                setSelectedProduct({
+                  product_id: '',
+                  name: '',
+                  id: 0,
+                  unit: null,
+                  unit_price: null,
+                  gift_quantity: null,
+                  base_unit: null,
+                  base_unit_quantity: null,
+                  spec: null,
+                  stock_quantity: null,
+                  stock_status: null,
+                  is_active: null,
+                  category: category.id,
+                  created_at: new Date(),
+                });
+              }
+            } else if (selectedProduct) {
+                setSelectedProduct({
+                  ...selectedProduct,
+                  category: null,
+                });
+              }
+            }
+          }
         />
         <Select
           label="銷售單位"
@@ -189,6 +231,7 @@ export function ProductModal(
                 stock_quantity: null,
                 stock_status: null,
                 is_active: null,
+                category: null,
                 created_at: new Date(),
               });
             }
@@ -217,6 +260,7 @@ export function ProductModal(
                 stock_quantity: null,
                 stock_status: null,
                 is_active: null,
+                category: null,
                 created_at: new Date(),
               });
             }
@@ -247,6 +291,7 @@ export function ProductModal(
                   stock_quantity: null,
                   stock_status: null,
                   is_active: null,
+                  category: null,
                   created_at: new Date(),
                 });
               }
@@ -277,6 +322,7 @@ export function ProductModal(
                   stock_quantity: null,
                   stock_status: null,
                   is_active: null,
+                  category: null,
                   created_at: new Date(),
                 });
               }
@@ -338,6 +384,7 @@ export function ProductModal(
                   stock_quantity: null,
                   stock_status: null,
                   is_active: null,
+                  category: null,
                   created_at: new Date(),
                 });
               }

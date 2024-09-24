@@ -13,27 +13,30 @@ import {
   Checkbox,
   TextInput,
   Loader,
+  Select,
 } from '@mantine/core';
 import '@mantine/notifications/styles.css';
 import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
-import { Product } from '@/utils/db';
-import { getAllProducts, updateProduct } from './actions';
+import { ProductWithCategory, Category } from '@/utils/db';
+import { getAllProducts, updateProduct, getCategories } from './actions';
 import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { ProductModal } from './ProductModal';
 
 export default function ProductsPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [rows, setRows] = useState<JSX.Element[]>([]);
   const [changed, setChanged] = useState<boolean>(false);
   const [opened, setOpened] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithCategory | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [changedProductIds, setChangedProductIds] = useState<number[]>([]);
 
-  const changeStockStatus = async (product:Product) => {
+  const changeStockStatus = async (product:ProductWithCategory) => {
     let c = false;
     const ps = products.map((p) => {
       if (p.id === product.id) {
@@ -49,7 +52,7 @@ export default function ProductsPage() {
     }
   };
 
-  const changeStockQuantity = async (product:Product, value:string) => {
+  const changeStockQuantity = async (product:ProductWithCategory, value:string) => {
     let c = false;
     const val = value === '' ? null : parseInt(value, 10);
     const ps = products.map((p) => {
@@ -73,6 +76,7 @@ export default function ProductsPage() {
       const product = products.find((p) => p.id === pid);
       if (product) {
         try {
+          delete (product as ProductWithCategory).category_ref;
           await updateProduct(pid, product);
         } catch (error) {
           console.error(error);
@@ -85,13 +89,18 @@ export default function ProductsPage() {
   };
 
   const listProducts = async () => {
-    const rs = products.map((row:any, idx) => (
+    const rs = products
+      .filter((p) => selectedCategory ? p.category === parseInt(selectedCategory, 10) : true)
+      .map((row:any, idx) => (
       <Table.Tr key={idx}>
         <Table.Td>
           {row.name}
         </Table.Td>
         <Table.Td>
           {row.product_id}
+        </Table.Td>
+        <Table.Td>
+          {row.category_ref?.name}
         </Table.Td>
         <Table.Td>
           {row.unit}
@@ -136,12 +145,15 @@ export default function ProductsPage() {
     setRows(rs);
   };
 
+  useEffect(() => {
+    listProducts();
+  }, [selectedCategory]);
+
   const getProducts = async () => {
     try {
       const results = await getAllProducts();
       setProducts(results);
     } catch (error) {
-      console.error(error);
       Notifications.show({ message: '讀取失敗', color: 'red' });
     }
   };
@@ -157,6 +169,9 @@ export default function ProductsPage() {
         getAllProducts().then((results) => {
           setProducts(results);
           setLoading(false);
+        });
+        getCategories().then((results) => {
+          setCategories(results);
         });
       } else {
         setLoading(false);
@@ -188,26 +203,35 @@ export default function ProductsPage() {
       <Box>
         <Box className="shadow-sm">
           <header>
-            <Group justify="flex-end" className="py-3 pr-4">
-              <Button
-                disabled={!changed}
-                onClick={() => saveChanges()}
-              >
-                套用變更
-              </Button>
-              <Button
-                onClick={() => { setSelectedProduct(null); setOpened(true); }}
-              >
-                新增產品
-              </Button>
-              <BatchImportButton
-                label="匯入商品"
-                description="匯入資料的格式必須是 CSV，你可以由 Excel 去轉換成 CSV。裡面要包含一些必要的欄位，像是 品名、品號、單位、標準售價、規格。"
-                uploadPath="yslc/products/upload"
-                onImport={() => {
-                  getProducts();
-                }}
+            <Group justify="space-between">
+              <Select
+                clearable
+                placeholder="選擇類別"
+                data={categories.map((c) => ({ label: c.name, value: String(c.id) }))}
+                onChange={(c) => { setSelectedCategory(c); }}
               />
+
+              <Group justify="flex-end" className="py-3 pr-4">
+                <Button
+                  disabled={!changed}
+                  onClick={() => saveChanges()}
+                >
+                  套用變更
+                </Button>
+                <Button
+                  onClick={() => { setSelectedProduct(null); setOpened(true); }}
+                >
+                  新增產品
+                </Button>
+                <BatchImportButton
+                  label="匯入商品"
+                  description="匯入資料的格式必須是 CSV，你可以由 Excel 去轉換成 CSV。裡面要包含一些必要的欄位，像是 品名、品號、單位、標準售價、規格。"
+                  uploadPath="yslc/products/upload"
+                  onImport={() => {
+                    getProducts();
+                  }}
+                />
+              </Group>
             </Group>
           </header>
         </Box>
@@ -217,6 +241,7 @@ export default function ProductsPage() {
               <Table.Tr>
                 <Table.Th>商品名稱</Table.Th>
                 <Table.Th>品號</Table.Th>
+                <Table.Th>類別</Table.Th>
                 <Table.Th>銷售單位</Table.Th>
                 <Table.Th>單價</Table.Th>
                 <Table.Th>規格</Table.Th>
