@@ -28,7 +28,7 @@ export function SignInButton() {
   return currentUser ? (
     <Group>
         <Box
-          w={150}
+          w={100}
           pos="relative"
           style={{ display: 'flex', justifyContent: 'end', margin: 'auto' }}
         >
@@ -80,7 +80,7 @@ export function SignInButton() {
     <div>
       <Group>
         <Link href="/login">
-          <Button className="ml-4 md:ml-0" variant="default">登入</Button>
+          <Button className="ml-4 md:ml-0" variant="default" w={100}>登入</Button>
         </Link>
       </Group>
     </div>
