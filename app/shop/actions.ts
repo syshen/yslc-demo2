@@ -63,7 +63,7 @@ export const getOrderById = async (order_id:string) => {
 };
 
 export const shopCarts = async (
-  mode: string,
+  env: string,
   order_id:string,
   carts: Cart[],
   customer_id:string,
@@ -72,7 +72,7 @@ export const shopCarts = async (
   'use server';
 
   let url = '';
-  if (mode === 'test') {
+  if (env === 'staging') {
     url = `${process.env.NEXT_PUBLIC_BACKEND_TEST_URL}yslc/shop`;
   } else {
     url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/shop`;

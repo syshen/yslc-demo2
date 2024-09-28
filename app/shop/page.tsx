@@ -45,7 +45,7 @@ function Shop() {
   interface Cart {
     [id:string]: number
   }
-  const mode:string = searchParams.get('mode') || 'test';
+  const env:string = searchParams.get('env') || 'staging';
   const customer_id:string = searchParams.get('cid') || '';
   const order_id:string = searchParams.get('oid') || '';
   // list=1011:1,2003:2
@@ -303,7 +303,7 @@ function Shop() {
                   onClick={() => {
                     setSending(true);
                     shopCarts(
-                      mode,
+                      env,
                       orderId,
                       Object.entries(cart)
                         .map(([key, value]) => ({ id: Number(key), quantity: value }))
@@ -338,7 +338,7 @@ function Shop() {
               onClick={() => {
                 setSending(true);
                 shopCarts(
-                  mode,
+                  env,
                   orderId,
                   Object.entries(cart)
                       .map(([key, value]) => ({ id: Number(key), quantity: value }))
