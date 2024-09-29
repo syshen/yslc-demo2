@@ -23,9 +23,9 @@ import {
 import liff from '@line/liff';
 import { OrderState, PaymentOption, TAX_RATE, PaymentState } from '@/utils/types';
 import { logger, LogAction } from '@/utils/logger';
-import { OrderItem } from '@/utils/db';
-import { Customer, Order, Product } from '@/utils/database';
-import { getOrderById, getCustomerById, getProductsByIds } from './actions';
+import { OrderItemExtended } from '@/utils/db';
+import { OrderView } from '@/utils/database';
+import { getOrderById } from './actions';
 
 export default function OrderPage() {
   return (
@@ -35,10 +35,8 @@ export default function OrderPage() {
 
 function OrderInfo() {
   const searchParams = useSearchParams();
-  const [order, setOrder] = useState<Order>();
+  const [order, setOrder] = useState<OrderView>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [customer, setCustomer] = useState<Customer>();
-  const [products, setProducts] = useState<Product[]>();
   const [tax, setTax] = useState<number>(TAX_RATE);
   const [serviceFee, setServiceFee] = useState<number>(0);
   const [shippingFee, setShippingFee] = useState<number>(0);
@@ -57,25 +55,9 @@ function OrderInfo() {
 
   useEffect(() => {
     if (!order) {
+      setLoading(false);
       return;
     }
-
-    const p1 = getCustomerById(order.customer_id).then((c) => {
-      if (c) {
-        setCustomer(c);
-      }
-    });
-
-    const pids:number[] = [];
-    for (const item of order.items) {
-      pids.push(item.id);
-    }
-
-    const p2 = getProductsByIds(pids).then((ps) => {
-      if (ps) {
-        setProducts(ps);
-      }
-    });
 
     setTax(order.tax ?? TAX_RATE);
     setShippingFee(order.shipping_fee ?? 0);
@@ -88,22 +70,8 @@ function OrderInfo() {
       });
       setUnTaxTotal(t);
     }
-
-    Promise.all([p1, p2]).then(() => {
-      setLoading(false);
-    });
+    setLoading(false);
   }, [order]);
-
-  const findProduct = (id:number) => {
-    if (products && products.length > 0) {
-      for (const product of products) {
-        if (product.id === id) {
-          return product;
-        }
-      }
-    }
-    return null;
-  };
 
   const getStatus = (state:string) => {
     if (!order) {
@@ -166,12 +134,12 @@ function OrderInfo() {
     return '';
   };
   const customerInfo = () => {
-    if (customer) {
+    if (order?.customer) {
       return (
         <Group>
           <IconChefHat color="gray" />
           <Flex direction="column">
-            <Text size="sm">{customer.name}</Text>
+            <Text size="sm">{order.customer.name}</Text>
             {/* <Text size="sm">{customer.shipping_address}</Text> */}
           </Flex>
         </Group>
@@ -186,10 +154,10 @@ function OrderInfo() {
    * @param {Object} item an item in the order
    * @return {string} a string that describes the item
    */
-  const itemInfo = (item:OrderItem) => {
-    const product = findProduct(item.id);
-    if (product && product.spec) {
-      return `${product.name} (${product.spec})`;
+  const itemInfo = (item:OrderItemExtended) => {
+    // const product = findProduct(item.id);
+    if (item.spec) {
+      return `${item.item} (${item.spec})`;
     }
     return `${item.item}`;
   };
@@ -202,7 +170,7 @@ function OrderInfo() {
     },
   });
 
-  const orderQuantity = (item:OrderItem) => {
+  const orderQuantity = (item:OrderItemExtended) => {
     if (item.gift) {
       return `${item.quantity} + ${item.gift} ${item.unit}`;
     }
@@ -242,7 +210,7 @@ function OrderInfo() {
             { userProfile()}
             <Group>
               <IconCalendarEvent color="gray" />
-              <Text size="sm">{new Date(order?.created_at ?? '').toLocaleDateString()} {new Date(order?.created_at ?? '').toLocaleTimeString()}</Text>
+              <Text size="sm">{order?.created_at ? new Date(order.created_at).toLocaleDateString() : ''} {order?.created_at ? new Date(order.created_at).toLocaleTimeString() : ''}</Text>
             </Group>
             <Group>
               <IconNumber color="gray" />
@@ -254,7 +222,7 @@ function OrderInfo() {
           </Box>
         </Flex>
         <div className="data py-6 border-b border-gray-200">
-          {order?.items.map((item) => (
+          {order?.pitems.map((item) => (
             <div key={item.item} className="flex items-center justify-between gap-4 mb-5">
               <div className="flex flex-col">
                 <p className="font-normal text-lg leading-8 transition-all duration-500">{itemInfo(item)}</p>

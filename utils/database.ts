@@ -16,6 +16,7 @@ export interface Database {
   view_products: ProductsView
   view_customers: CustomersView
   categories: CategoriesTable
+  view_orders: OrdersView
 }
 
 export interface CustomersTable {
@@ -156,6 +157,18 @@ export interface ProductsView {
   is_available: boolean
 }
 
+export interface OrderItemExtended extends OrderItem {
+  spec: string | null
+}
+
+export interface OrdersView extends OrdersTable {
+  customer: JSONColumnType<{
+    name: string
+    shipping_address: string | null
+  }>
+  pitems: JSONColumnType<OrderItemExtended[]>
+}
+
 export type Customer = Selectable<CustomersTable>;
 export interface CustomerWithParent extends Customer {
   parent_name: string | null
@@ -187,6 +200,7 @@ export interface OrderWithCustomer extends Order {
     contact_phone_2: string | null
   } | null
 }
+export type OrderView = Selectable<OrdersView>;
 export type NewOrder = Insertable<OrdersTable>;
 export type UpdateOrder = Updateable<OrdersTable>;
 
