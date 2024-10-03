@@ -1,9 +1,11 @@
-import { TextInput, PasswordInput } from '@mantine/core';
+import { Text, TextInput, PasswordInput } from '@mantine/core';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { SubmitButton } from './SubmitButton';
 
-export default function Login() {
+export default function Login({ searchParams }:{ searchParams: { message?: string } }) {
+  const { message } = searchParams;
+
   const signIn = async (formData: FormData) => {
     'use server';
 
@@ -17,7 +19,8 @@ export default function Login() {
     });
 
     if (error) {
-      return redirect('/login?message=Could not authenticate user');
+      const m = encodeURIComponent('登入失敗，請檢查帳號密碼');
+      return redirect(`/login?message=${m}`);
     }
 
     return redirect('/orders');
@@ -43,6 +46,7 @@ export default function Login() {
           name="password"
           placeholder="Your password"
         />
+        {message && <Text color="red">{message}</Text>}
         <SubmitButton
           formAction={signIn}
           className="bg-green-700 rounded-md px-4 py-2 text-foreground mb-2"
