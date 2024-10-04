@@ -16,6 +16,7 @@ import {
   Loader,
   Pill,
   Stack,
+  TextInput,
   ActionIcon,
   Flex,
 } from '@mantine/core';
@@ -34,6 +35,7 @@ export default function CustomersPage() {
   const supabase = createClient();
   const [loginUser, setLoginUser] = useState<User>();
   const [rows, setRows] = useState<JSX.Element[]>([]);
+  const [search, setSearch] = useState<string>('');
   const [customers, setCustomers] = useState<CustomerWithParent[]>([]);
   const [opened, setOpened] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -60,7 +62,7 @@ export default function CustomersPage() {
   };
 
   useEffect(() => {
-    const rs = customers.map((row) => (
+    const rs = customers.filter((customer) => customer.name.includes(search)).map((row) => (
       <Table.Tr key={row.customer_id}>
         <Table.Td>
           <Checkbox
@@ -95,7 +97,7 @@ export default function CustomersPage() {
       </Table.Tr>
     ));
     setRows(rs);
-  }, [customers, selectedRows]);
+  }, [customers, selectedRows, search]);
 
   const getCustomers = async () => {
     const results = await getAllCustomers();
@@ -200,6 +202,11 @@ export default function CustomersPage() {
                 onClick={() => { setDeleteConfirmOpened(true); }}>
                   <IconTrash size={16} stroke={2} />
               </ActionIcon>
+              <TextInput
+                placeholder="搜尋客戶名稱"
+                value={search}
+                onChange={(event) => setSearch(event.currentTarget.value)}
+              />
             </Group>
             <Group className="py-3 pr-4">
               <Button
