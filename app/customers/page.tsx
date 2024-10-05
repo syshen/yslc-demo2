@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
+import { nprogress } from '@mantine/nprogress';
 import '@mantine/notifications/styles.css';
 import {
   MantineProvider,
@@ -97,12 +98,18 @@ export default function CustomersPage() {
     setRows(rs);
   }, [customers, selectedRows, search]);
 
-  const getCustomers = async () => {
+  const getCustomers = () => {
+    nprogress.start();
     getAllCustomers().then((results) => {
       if (typeof window !== 'undefined' && window.localStorage) {
         localStorage.setItem('customers', JSON.stringify(results));
       }
       setCustomers(results);
+      nprogress.complete();
+    }).catch((error) => {
+      nprogress.complete();
+      console.error(error);
+      Notifications.show({ message: '讀取失敗', color: 'red' });
     });
   };
 
