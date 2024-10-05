@@ -12,7 +12,7 @@ import {
   Text,
   Checkbox,
   TextInput,
-  Loader,
+  // Loader,
   Select,
 } from '@mantine/core';
 import '@mantine/notifications/styles.css';
@@ -33,7 +33,6 @@ export default function ProductsPage() {
   const [changed, setChanged] = useState<boolean>(false);
   const [opened, setOpened] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithCategory | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
   const [changedProductIds, setChangedProductIds] = useState<number[]>([]);
 
   const changeStockStatus = async (product:ProductWithCategory) => {
@@ -70,7 +69,7 @@ export default function ProductsPage() {
   };
 
   const saveChanges = async () => {
-    setLoading(true);
+    // setLoading(true);
     setChanged(false);
     for (const pid of changedProductIds) {
       const product = products.find((p) => p.id === pid);
@@ -85,7 +84,7 @@ export default function ProductsPage() {
       }
     }
     setChangedProductIds([]);
-    setLoading(false);
+    // setLoading(false);
   };
 
   const listProducts = async () => {
@@ -143,6 +142,7 @@ export default function ProductsPage() {
       </Table.Tr>
     ));
     setRows(rs);
+    console.log('list products, timestamp:', new Date().getTime());
   };
 
   useEffect(() => {
@@ -151,8 +151,12 @@ export default function ProductsPage() {
 
   const getProducts = async () => {
     try {
-      const results = await getAllProducts();
-      setProducts(results);
+      getAllProducts().then((results) => {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('products', JSON.stringify(results));
+        }
+        setProducts(results);
+      });
     } catch (error) {
       Notifications.show({ message: '讀取失敗', color: 'red' });
     }
@@ -163,28 +167,30 @@ export default function ProductsPage() {
   }, [products]);
 
   useEffect(() => {
-    setLoading(true);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const localUser = localStorage.getItem('user');
+      if (localUser) {
+        const localProducts = localStorage.getItem('products');
+        if (localProducts) {
+          setProducts(JSON.parse(localProducts));
+        }
+      }
+    }
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        getAllProducts().then((results) => {
-          setProducts(results);
-          setLoading(false);
-        });
+        getProducts();
         getCategories().then((results) => {
           setCategories(results);
         });
       } else {
-        setLoading(false);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('products');
+        }
         router.push('/login');
       }
     });
   }, []);
-
-  const pageLoading = () => (
-    <Box className="flex justify-center">
-      <Loader color="blue" type="dots" className="py-5"></Loader>
-    </Box>
-  );
 
   return (
     <MantineProvider>
@@ -199,7 +205,7 @@ export default function ProductsPage() {
         }}
         product={selectedProduct}
       />
-      { loading ? pageLoading() :
+      {/* { loading ? pageLoading() : */}
       <Box>
         <Box className="shadow-sm">
           <header>
@@ -255,7 +261,7 @@ export default function ProductsPage() {
           </Table>
         </Table.ScrollContainer>
       </Box>
-      }
+      {/* } */}
     </MantineProvider>
   );
 }

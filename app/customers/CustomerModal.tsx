@@ -178,36 +178,40 @@ export function CustomerModal(
   const saveChanges = async () => {
     if (selectedCustomer === null || selectedCustomer.customer_id === '') return;
 
-    // setLoading(true);
-    await updateCustomer(selectedCustomer.customer_id, {
-      customer_id: selectedCustomer!.customer_id.trim(),
-      name: selectedCustomer!.name.trim(),
-      parent_id: selectedCustomer!.parent_id,
-      contact_phone_1:
-        selectedCustomer!.contact_phone_1 ? selectedCustomer!.contact_phone_1.trim() : null,
-      contact_phone_2:
-        selectedCustomer!.contact_phone_2 ? selectedCustomer!.contact_phone_2.trim() : null,
-      shipping_address:
-        selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
-      payment_options: selectedCustomer!.payment_options,
-    });
+    try {
+      await updateCustomer(selectedCustomer.customer_id, {
+        customer_id: selectedCustomer!.customer_id.trim(),
+        name: selectedCustomer!.name.trim(),
+        parent_id: selectedCustomer!.parent_id,
+        contact_phone_1:
+          selectedCustomer!.contact_phone_1 ? selectedCustomer!.contact_phone_1.trim() : null,
+        contact_phone_2:
+          selectedCustomer!.contact_phone_2 ? selectedCustomer!.contact_phone_2.trim() : null,
+        shipping_address:
+          selectedCustomer!.shipping_address ? selectedCustomer!.shipping_address.trim() : null,
+        payment_options: selectedCustomer!.payment_options,
+      });
 
-    // 沒有母公司, 或者本身就是母公司的我們才儲存產品變動
-    if (!selectedCustomer.parent_id || selectedCustomer.parent_id === '') {
-      const records:NewCustomerProducts[] = [];
+      // 沒有母公司, 或者本身就是母公司的我們才儲存產品變動
+      if (!selectedCustomer.parent_id || selectedCustomer.parent_id === '') {
+        const records:NewCustomerProducts[] = [];
 
-      for (const product of products) {
-        if (isProductEnabled(product)) {
-          records.push({
-            pid: product.id,
-            customer_id: selectedCustomer.customer_id,
-            product_id: product.product_id,
-            unit_price: product.custom_price?.unit_price,
-            is_available: true,
-          });
+        for (const product of products) {
+          if (isProductEnabled(product)) {
+            records.push({
+              pid: product.id,
+              customer_id: selectedCustomer.customer_id,
+              product_id: product.product_id,
+              unit_price: product.custom_price?.unit_price,
+              is_available: true,
+            });
+          }
         }
+        await updateCustomerProducts(selectedCustomer.customer_id, records);
       }
-      await updateCustomerProducts(selectedCustomer.customer_id, records);
+    } catch (error) {
+      console.error(error);
+      Notifications.show({ message: '更新失敗', color: 'red' });
     }
   };
 

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { Transition, Text, Paper, Box, Group, Flex, Button, Avatar } from '@mantine/core';
+import { Transition, Text, Paper, Box, Group, Flex, Button, Avatar, Space } from '@mantine/core';
 import { useClickOutside } from '@mantine/hooks';
 import { createClient } from '@/utils/supabase/client';
 
@@ -18,10 +18,27 @@ export function SignInButton() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const supabase = createClient();
   const [opened, setOpened] = useState(false);
+  const [loading, setLoading] = useState(true);
   const clickOutsideRef = useClickOutside(() => setOpened(false));
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const localUser = localStorage.getItem('user');
+      if (localUser) {
+        setCurrentUser(JSON.parse(localUser));
+        setLoading(false);
+      }
+    }
+
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUser(user);
+      if (user) {
+        setCurrentUser(user);
+        setLoading(false);
+      } else if (typeof window !== 'undefined' && window.localStorage) {
+        setLoading(false);
+        localStorage.removeItem('user');
+      } else {
+        setLoading(false);
+      }
     });
   }, []);
 
@@ -67,7 +84,13 @@ export function SignInButton() {
                   <Text
                     p="sm"
                     className="cursor-pointer hover:bg-slate-100"
-                    onClick={() => { supabase.auth.signOut(); router.push('/'); }}
+                    onClick={() => {
+                      supabase.auth.signOut();
+                      if (typeof window !== 'undefined' && window.localStorage) {
+                        localStorage.removeItem('user');
+                      }
+                      router.push('/');
+                    }}
                   >登出
                   </Text>
                 </Flex>
@@ -76,7 +99,7 @@ export function SignInButton() {
           </Transition>
         </Box>
     </Group>
-  ) : (
+  ) : loading ? (<Space w={100}></Space>) : (
     <div>
       <Group>
         <Link href="/login">

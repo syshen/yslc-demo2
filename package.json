@@ -27,6 +27,7 @@
     "@mantine/form": "^7.12.1",
     "@mantine/hooks": "^7.11.2",
     "@mantine/notifications": "^7.11.2",
+    "@mantine/nprogress": "^7.13.2",
     "@mantinex/mantine-logo": "^1.0.1",
     "@next/bundle-analyzer": "^14.2.5",
     "@sentry/nextjs": "^8",

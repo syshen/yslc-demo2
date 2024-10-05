@@ -8,6 +8,7 @@ import { Notifications } from '@mantine/notifications';
 import { DatePickerInput } from '@mantine/dates';
 import { IconDownload } from '@tabler/icons-react';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
+import { nprogress } from '@mantine/nprogress';
 import '@mantine/dates/styles.css';
 import {
     MantineProvider,
@@ -17,7 +18,6 @@ import {
     Group,
     Button,
     Box,
-    Loader,
     Text,
     Badge,
     HoverCard,
@@ -64,7 +64,7 @@ export default function OrdersPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
-  const [pageLoading, setPageLoading] = useState(true);
+  // const [pageLoading, setPageLoading] = useState(false);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(recentWeek());
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
@@ -368,23 +368,9 @@ export default function OrdersPage() {
   const [shippedChecked, setShippedChecked] = useState(true);
 
   useEffect(() => {
-    getCustomers().then((data) => {
-      const rs = data.map((row) => ({
-        value: row.customer_id,
-        label: row.name,
-      }));
-      setCustomerOptions(rs);
-    });
-    getOrders(
-      cancelledChecked,
-      pendingPaymentChecked,
-      pendingShippingChecked,
-      shippedChecked,
-      dateRange,
-      selectedCustomer
-    ).then((data) => {
-      setOrders(data);
-    });
+    if (loginUser) {
+      getFilteredOrders();
+    }
   }, [
     cancelledChecked,
     pendingShippingChecked,
@@ -394,41 +380,75 @@ export default function OrdersPage() {
     dateRange,
   ]);
 
+  const getFilteredOrders = async () => {
+    nprogress.start();
+    getCustomers().then((data) => {
+      const rs = data.map((row) => ({
+        value: row.customer_id,
+        label: row.name,
+      }));
+      setCustomerOptions(rs);
+    });
+    getProducts().then((data) => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('order_products', JSON.stringify(data));
+      }
+      setProducts(data);
+    });
+    getOrders(
+      cancelledChecked,
+      pendingPaymentChecked,
+      pendingShippingChecked,
+      shippedChecked,
+      dateRange,
+      selectedCustomer
+    ).then((data) => {
+      if (data && typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('orders', JSON.stringify(data));
+      }
+      setOrders(data);
+      nprogress.complete();
+    }).catch((err) => {
+      console.error(err);
+      nprogress.complete();
+    });
+  };
   useEffect(() => {
-    setPageLoading(true);
+    let interval:NodeJS.Timeout;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const localUser = localStorage.getItem('user');
+      if (localUser) {
+        setLoginUser(JSON.parse(localUser));
+        const localOrders = localStorage.getItem('orders');
+        if (localOrders) {
+          setOrders(JSON.parse(localOrders));
+        }
+        const localOrderProducts = localStorage.getItem('order_products');
+        if (localOrderProducts) {
+          setProducts(JSON.parse(localOrderProducts));
+        }
+      }
+    }
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setLoginUser(user);
-        getProducts().then((data) => {
-          setProducts(data);
-        });
-        getCustomers().then((data) => {
-          const rs = data.map((row) => ({
-            value: row.customer_id,
-            label: row.name,
-          }));
-          setCustomerOptions(rs);
-        });
-        return getOrders(
-          cancelledChecked,
-          pendingPaymentChecked,
-          pendingShippingChecked,
-          shippedChecked,
-          dateRange,
-          selectedCustomer)
-          .then((data) => { setOrders(data); setPageLoading(false); });
-      }
-      setPageLoading(false);
-      router.push('/login');
-      return null;
-    });
-  }, []);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        getFilteredOrders();
 
-  const loading = () => (
-      <Box className="flex justify-center">
-        <Loader color="blue" type="dots" className="py-5"></Loader>
-      </Box>
-    );
+        interval = setInterval(() => getFilteredOrders(), 5 * 60 * 1000);
+        return;
+      }
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('orders');
+        localStorage.removeItem('order_products');
+      }
+      router.push('/login');
+    });
+    return () => clearInterval(interval);
+  }, []);
 
   const orderTable = () => (
       <Table.ScrollContainer minWidth={700}>
@@ -524,7 +544,7 @@ export default function OrdersPage() {
             </Button>
           </Group>
         </div>
-        { pageLoading ? loading() : orderTable() }
+        { orderTable() }
       </Box>
     </MantineProvider>
   );

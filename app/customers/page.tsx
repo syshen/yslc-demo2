@@ -13,7 +13,6 @@ import {
   Table,
   Checkbox,
   Text,
-  Loader,
   Pill,
   Stack,
   TextInput,
@@ -39,7 +38,6 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<CustomerWithParent[]>([]);
   const [opened, setOpened] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [deleteConfirmOpened, setDeleteConfirmOpened] = useState<boolean>(false);
@@ -100,21 +98,38 @@ export default function CustomersPage() {
   }, [customers, selectedRows, search]);
 
   const getCustomers = async () => {
-    const results = await getAllCustomers();
-    setCustomers(results);
+    getAllCustomers().then((results) => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('customers', JSON.stringify(results));
+      }
+      setCustomers(results);
+    });
   };
 
   /* Initial load */
   useEffect(() => {
-    setLoading(true);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const localUser = localStorage.getItem('user');
+      if (localUser) {
+        setLoginUser(JSON.parse(localUser));
+        const localCustomers = localStorage.getItem('customers');
+        if (localCustomers) {
+          setCustomers(JSON.parse(localCustomers));
+        }
+      }
+    }
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('user', JSON.stringify(user));
+        }
         setLoginUser(user);
         getCustomers();
-        setLoading(false);
         return null;
       }
-      setLoading(false);
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem('user');
+      }
       router.push('/login');
       return null;
     });
@@ -139,16 +154,15 @@ export default function CustomersPage() {
     getCustomers();
   };
 
-  const pageLoading = () => (
-    <Box className="flex justify-center">
-      <Loader color="blue" type="dots" className="py-5"></Loader>
-    </Box>
-  );
+  // const pageLoading = () => (
+  //   <Box className="flex justify-center">
+  //     <Loader color="blue" type="dots" className="py-5"></Loader>
+  //   </Box>
+  // );
 
   return (
     <MantineProvider>
       <Notifications />
-      { loading ? pageLoading() :
       <>
       <Modal
         size="md"
@@ -255,7 +269,6 @@ export default function CustomersPage() {
         </Table>
       </Table.ScrollContainer>
       </>
-      }
     </MantineProvider>
   );
 }
