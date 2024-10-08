@@ -3,6 +3,9 @@
 import {
   jsonObjectFrom,
 } from 'kysely/helpers/postgres';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
 import {
   db,
   OrderState,
@@ -76,6 +79,7 @@ export async function getOrders(
       'shipping_fee',
       'service_fee',
       'payment_option',
+      'account_message_id',
       jsonObjectFrom(
         eb.selectFrom('customers')
           .select(['customer_id', 'name', 'shipping_address', 'contact_phone_1', 'contact_phone_2'])
@@ -86,6 +90,11 @@ export async function getOrders(
           .select(['message_id', 'message', 'user_name', 'user_profile_url'])
           .whereRef('orders.message_id', '=', 'messages.message_id')
       ).as('message'),
+      jsonObjectFrom(
+        eb.selectFrom('messages')
+          .select(['image_key'])
+          .whereRef('orders.account_message_id', '=', 'messages.message_id')
+      ).as('account_message'),
     ])
     .$if(!includeCancelled, (eb) => eb.where('state', '!=', OrderState.CANCELLED))
     .$if(!includePendingPayment, (eb) => eb.where((fb) => fb.or([
@@ -149,4 +158,27 @@ export async function getOrders(
   const results = await builder.execute();
   // console.log(results);
   return results;
+}
+
+export async function getImageUrl(key:string) {
+  'use server';
+
+  const s3Client = new S3Client({
+    endpoint: process.env.SPACE_ENDPOINT!,
+    region: 'region',
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  });
+  const command = new GetObjectCommand({
+    Bucket: process.env.SPACE_BUCKET!,
+    Key: key,
+  });
+
+  // 生成簽名網址
+  const expiresInSeconds = 60 * 5;
+  const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: expiresInSeconds });
+
+  return signedUrl;
 }

@@ -78,6 +78,18 @@ export default function OrdersPage() {
   const paymentOption = (order:OrderWithCustomer) => {
     if (order.payment_option === PaymentOption.BANK_TRANSFER) {
       if (order.account_number) {
+        if (order.account_message && order.account_message.image_key) {
+          return (
+          <>
+            <Text size="sm">銀行轉帳，帳號後五碼: </Text>
+            <a
+              target="_blank"
+              rel="noreferrer"
+              style={{ textDecoration: 'underline' }}
+              href={`/image/${order.account_message.image_key}`}>{order.account_number}
+            </a>
+          </>);
+        }
         return `銀行轉帳，帳號後五碼: ${order.account_number}`;
       }
       return '銀行轉帳，尚未提供帳號';

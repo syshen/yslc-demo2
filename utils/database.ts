@@ -57,6 +57,7 @@ export interface OrdersTable {
   shipping_fee: number | null
   payment_status: string | null
   service_fee: number | null
+  account_message_id: string | null
   line_user_info: JSONColumnType<{
     userId: string
     displayName: string
@@ -103,6 +104,7 @@ export interface MessagesTable {
   message: string
   customer_id: string | null
   user_profile_url: string | null
+  image_key: string | null
   created_at: ColumnType<Date, string | undefined | never, never>
 }
 
@@ -198,6 +200,9 @@ export interface OrderWithCustomer extends Order {
     shipping_address: string | null
     contact_phone_1: string | null
     contact_phone_2: string | null
+  } | null,
+  account_message: {
+    image_key: string | null
   } | null
 }
 export type OrderView = Selectable<OrdersView>;
