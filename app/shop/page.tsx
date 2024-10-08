@@ -233,7 +233,7 @@ function Shop() {
   useEffect(() => {
     setLoading(true);
     liff.init({
-      liffId: '2006159272-exyY23yE',
+      liffId: process.env.NEXT_PUBLIC_SHOP_LIFF_ID || '',
     }).then(() => {
       setLiffCtx(liff);
     });
