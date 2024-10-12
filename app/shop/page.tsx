@@ -209,9 +209,10 @@ function Shop() {
       return false;
     }
     if (o.state === OrderState.CANCELLED
-    || o.state === OrderState.COMPLETED
-    || o.state === OrderState.SHIPPED
-    || o.state === OrderState.DELIVERED) {
+      || o.state === OrderState.CONFIRMED
+      || o.state === OrderState.COMPLETED
+      || o.state === OrderState.SHIPPED
+      || o.state === OrderState.DELIVERED) {
       return true;
     }
     if (o.payment_status === PaymentState.PAID) {
