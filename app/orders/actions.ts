@@ -3,7 +3,7 @@
 import {
   jsonObjectFrom,
 } from 'kysely/helpers/postgres';
-
+import dayjs from 'dayjs';
 import {
   db,
   OrderState,
@@ -59,6 +59,11 @@ export async function getOrders(
   selectedCustomer:string | null): Promise<OrderWithCustomer[]> {
   'use server';
 
+  if (dateRanges[1] !== null) {
+    dateRanges[1] = dayjs(dateRanges[1]).add(1, 'day').toDate();
+  } else if (dateRanges[0] !== null && dateRanges[1] === null) {
+    dateRanges[1] = dayjs(dateRanges[0]).add(1, 'day').toDate();
+  }
   const builder = db
     .selectFrom('orders')
     .select((eb) => [

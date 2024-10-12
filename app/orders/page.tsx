@@ -153,7 +153,7 @@ export default function OrdersPage() {
       if (selectedRows.includes(order.order_id)) {
         order.items.forEach((item) => {
           data.push({
-            '發票型態代號': '',
+            '發票型態代號': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '2301' : '2302',
             '發票型態': '',
             '付款條件代號': '',
             '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
@@ -167,7 +167,7 @@ export default function OrdersPage() {
             '聯絡電話(一)': order.customer?.contact_phone_1 || '',
             '聯絡電話(二)': order.customer?.contact_phone_2 || '',
             '收貨人': '',
-            '訂單單號 (=接單系統的訂單單號)': '',
+            '訂單單號 (=接單系統的訂單單號)': order.order_id,
             '品號': getProductById(item.id)?.product_id.toString() ?? '',
             '品名': item.item,
             '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
@@ -177,6 +177,58 @@ export default function OrdersPage() {
             '是否匯款': getPaymentStatus(order),
           });
         });
+        if (order.shipping_fee && order.shipping_fee > 0) {
+          data.push({
+            '發票型態代號': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '2301' : '2302',
+            '發票型態': '',
+            '付款條件代號': '',
+            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
+            '單據日期': formatDate(new Date(order.created_at)),
+            '客戶代號': order.customer_id,
+            '客戶簡稱': order.customer?.name || '',
+            '物流人員代號': '',
+            '業務人員名稱': '',
+            '備註': '',
+            '送貨地址': order.customer?.shipping_address || '',
+            '聯絡電話(一)': order.customer?.contact_phone_1 || '',
+            '聯絡電話(二)': order.customer?.contact_phone_2 || '',
+            '收貨人': '',
+            '訂單單號 (=接單系統的訂單單號)': order.order_id,
+            '品號': '',
+            '品名': '運費',
+            '銷貨數量': '1',
+            '贈品量': '',
+            '備品量': '',
+            '單價': order.shipping_fee.toString(),
+            '是否匯款': getPaymentStatus(order),
+          });
+        }
+        if (order.service_fee && order.service_fee > 0) {
+          data.push({
+            '發票型態代號': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '2301' : '2302',
+            '發票型態': '',
+            '付款條件代號': '',
+            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
+            '單據日期': formatDate(new Date(order.created_at)),
+            '客戶代號': order.customer_id,
+            '客戶簡稱': order.customer?.name || '',
+            '物流人員代號': '',
+            '業務人員名稱': '',
+            '備註': '',
+            '送貨地址': order.customer?.shipping_address || '',
+            '聯絡電話(一)': order.customer?.contact_phone_1 || '',
+            '聯絡電話(二)': order.customer?.contact_phone_2 || '',
+            '收貨人': '',
+            '訂單單號 (=接單系統的訂單單號)': order.order_id,
+            '品號': '',
+            '品名': '收款手續費',
+            '銷貨數量': '1',
+            '贈品量': '',
+            '備品量': '',
+            '單價': order.service_fee.toString(),
+            '是否匯款': getPaymentStatus(order),
+          });
+        }
       }
     });
     const csv = generateCsv(csvConfig)(data);
