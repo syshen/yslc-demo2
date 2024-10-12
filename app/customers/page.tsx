@@ -24,7 +24,7 @@ import { IconTrash, IconSend } from '@tabler/icons-react';
 import { User } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
 import classes from './customers.module.css';
-import { BatchImportButton } from '@/components/buttons/BatchImportButton';
+// import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { CustomerModal } from './CustomerModal';
 import { CustomerMessageModal } from './CustomerMessageModal';
 import { logger, LogAction } from '@/utils/logger';
@@ -237,12 +237,14 @@ export default function CustomersPage() {
                 }}
               >新增客戶
               </Button>
+              {/*
               <BatchImportButton
                 label="匯入客戶資料"
                 description="匯入資料的格式必須是 CSV，你可以由 Excel 去轉換成 CSV。裡面要包含一些必要的欄位，像是 客戶代號、客戶簡稱、送貨地址、TEL_NO(一)、TEL NO(二)。"
                 uploadPath="yslc/customers/upload"
                 onImport={() => { getCustomers(); }}
               />
+              */}
             </Group>
           </Flex>
         </header>
