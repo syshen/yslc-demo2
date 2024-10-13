@@ -1,13 +1,11 @@
-/* eslint-disable quote-props */
-
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useDisclosure } from '@mantine/hooks';
 import { useState, useEffect } from 'react';
 import { Notifications } from '@mantine/notifications';
 import { DatePickerInput } from '@mantine/dates';
-import { IconDownload } from '@tabler/icons-react';
-import { mkConfig, generateCsv, download } from 'export-to-csv';
+import { IconDownload, IconCalculatorOff, IconCash, IconTruck, IconChecks, IconSpeakerphone } from '@tabler/icons-react';
 import { nprogress } from '@mantine/nprogress';
 import '@mantine/dates/styles.css';
 import {
@@ -28,9 +26,12 @@ import { createClient } from '@/utils/supabase/client';
 import classes from './orders.module.css';
 import { ChatMessage } from './ChatMessage';
 import { Product, OrderWithCustomer, OrderItem } from '@/utils/database';
-import { getCustomers, getProducts, getOrders } from './actions';
+import { getCustomers, getProducts, getOrders, updateOrderStatus, updatePaymentStatus } from './actions';
 import { PaymentOption, OrderState, PaymentState } from '@/utils/types';
 import { ActionButton } from './ActionButton';
+import { SendMessageModal } from './MessageModal';
+import { ConfirmModal } from './ConfirmModal';
+import { exportOrders } from './export';
 import { logger, LogAction } from '@/utils/logger';
 
 const recentWeek = ():[Date, Date] => {
@@ -40,20 +41,12 @@ const recentWeek = ():[Date, Date] => {
   return [oneWeekAgo, today];
 };
 
-function formatDate(date:Date) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1; // getMonth() 返回 0-11
-  const day = date.getDate();
-
-  return `${year}/${month}/${day}`;
+enum ActionType {
+  CHANGE_PAYMENT_PAID = 'CHANGE_PAYMENT_PAID',
+  CHANGE_ORDER_SHIPPED = 'CHANGE_ORDER_SHIPPED',
+  CHANGE_ORDER_COMPLETED = 'CHANGE_ORDER_COMPLETED',
+  CHANGE_ORDER_CANCELLED = 'CHANGE_ORDER_CANCELLED',
 }
-
-const csvConfig = mkConfig({
-  filename: `匯出訂單-${formatDate(new Date())}`,
-  fieldSeparator: ',',
-  decimalSeparator: '.',
-  useKeysAsHeaders: true,
-});
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -64,9 +57,19 @@ export default function OrdersPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [customerOptions, setCustomerOptions] = useState<{ value:string, label:string }[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
-  // const [pageLoading, setPageLoading] = useState(false);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>(recentWeek());
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [cancelledChecked, setCancelledChecked] = useState(false);
+  const [pendingShippingChecked, setPendingShippingChecked] = useState(true);
+  const [pendingPaymentChecked, setPendingPaymentChecked] = useState(true);
+  const [shippedChecked, setShippedChecked] = useState(true);
+  const [pendingConfirmChecked, setPendingConfirmChecked] = useState(false);
+  const [testDataChecked, setTestDataChecked] = useState(false);
+  const [messageModalOpened, setMessageModalOpened] = useState(false);
+  const [confirmModalOpened,
+    { open: openConfirmModal, close: closeConfirmModal }] = useDisclosure(false);
+  const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<ActionType | null>(null);
 
   const copy = (text:string) => {
     navigator.clipboard.writeText(text);
@@ -104,135 +107,11 @@ export default function OrdersPage() {
   };
 
   const getProductById = (id:number) => products.find((product) => product.id === id);
-
-  const getTotalERPQuantity = (quantity:number, id:number) => {
-    const product = getProductById(id);
-    if (product === null || product === undefined) {
-      return '';
-    }
-    return (quantity * (product.base_unit_quantity || 1)).toString();
-  };
-  const getGiftQuantity = (item:OrderItem) => {
-    const product = getProductById(item.id);
-    if (product === null || product === undefined) {
-      return '';
-    }
-    if (!item.gift) {
-      return '';
-    }
-    return (item.gift * product.base_unit_quantity!).toString();
-  };
-
-  const getPaymentStatus = (order:OrderWithCustomer) => {
-    if (order.payment_option === PaymentOption.MONTHLY_PAYMENT) {
-      return '月結';
-    }
-    if (order.payment_option === PaymentOption.PAY_ON_RECEIVE) {
-      return '貨到付款';
-    }
-    if (order.state === OrderState.COMPLETED) {
-      return '是';
-    }
-    return '否';
-  };
-
-  const getUnitPrice = (item:OrderItem) => {
-    const product = getProductById(item.id);
-    if (product === null || product === undefined) {
-      return '';
-    }
-    return item.price / (product.base_unit_quantity ?? 0);
-  };
-
-  const exportOrders = () => {
+  const exportSelectedOrders = () => {
     if (selectedRows.length === 0) {
       return;
     }
-    const data:Record<string, string>[] = [];
-    orders.forEach((order) => {
-      if (selectedRows.includes(order.order_id)) {
-        order.items.forEach((item) => {
-          data.push({
-            '發票型態代號': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '2301' : '2302',
-            '發票型態': '',
-            '付款條件代號': '',
-            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
-            '單據日期': formatDate(new Date(order.created_at)),
-            '客戶代號': order.customer_id,
-            '客戶簡稱': order.customer?.name || '',
-            '物流人員代號': '',
-            '業務人員名稱': '',
-            '備註': '',
-            '送貨地址': order.customer?.shipping_address || '',
-            '聯絡電話(一)': order.customer?.contact_phone_1 || '',
-            '聯絡電話(二)': order.customer?.contact_phone_2 || '',
-            '收貨人': '',
-            '訂單單號 (=接單系統的訂單單號)': order.order_id,
-            '品號': getProductById(item.id)?.product_id.toString() ?? '',
-            '品名': item.item,
-            '銷貨數量': getTotalERPQuantity(item.quantity, item.id),
-            '贈品量': getGiftQuantity(item),
-            '備品量': '0',
-            '單價': getUnitPrice(item).toString(),
-            '是否匯款': getPaymentStatus(order),
-          });
-        });
-        if (order.shipping_fee && order.shipping_fee > 0) {
-          data.push({
-            '發票型態代號': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '2301' : '2302',
-            '發票型態': '',
-            '付款條件代號': '',
-            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
-            '單據日期': formatDate(new Date(order.created_at)),
-            '客戶代號': order.customer_id,
-            '客戶簡稱': order.customer?.name || '',
-            '物流人員代號': '',
-            '業務人員名稱': '',
-            '備註': '',
-            '送貨地址': order.customer?.shipping_address || '',
-            '聯絡電話(一)': order.customer?.contact_phone_1 || '',
-            '聯絡電話(二)': order.customer?.contact_phone_2 || '',
-            '收貨人': '',
-            '訂單單號 (=接單系統的訂單單號)': order.order_id,
-            '品號': '',
-            '品名': '運費',
-            '銷貨數量': '1',
-            '贈品量': '',
-            '備品量': '',
-            '單價': order.shipping_fee.toString(),
-            '是否匯款': getPaymentStatus(order),
-          });
-        }
-        if (order.service_fee && order.service_fee > 0) {
-          data.push({
-            '發票型態代號': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '2301' : '2302',
-            '發票型態': '',
-            '付款條件代號': '',
-            '付款條件': order.payment_option === PaymentOption.MONTHLY_PAYMENT ? '月結' : '非月結',
-            '單據日期': formatDate(new Date(order.created_at)),
-            '客戶代號': order.customer_id,
-            '客戶簡稱': order.customer?.name || '',
-            '物流人員代號': '',
-            '業務人員名稱': '',
-            '備註': '',
-            '送貨地址': order.customer?.shipping_address || '',
-            '聯絡電話(一)': order.customer?.contact_phone_1 || '',
-            '聯絡電話(二)': order.customer?.contact_phone_2 || '',
-            '收貨人': '',
-            '訂單單號 (=接單系統的訂單單號)': order.order_id,
-            '品號': '',
-            '品名': '收款手續費',
-            '銷貨數量': '1',
-            '贈品量': '',
-            '備品量': '',
-            '單價': order.service_fee.toString(),
-            '是否匯款': getPaymentStatus(order),
-          });
-        }
-      }
-    });
-    const csv = generateCsv(csvConfig)(data);
-    download(csvConfig)(csv);
+    exportOrders(orders.filter((order) => selectedRows.includes(order.order_id)), products);
     logger.info('Export orders', {
       action: LogAction.EXPORT_ORDERS,
       user: {
@@ -243,8 +122,81 @@ export default function OrdersPage() {
     });
   };
 
+  const performConfirmAction = () => {
+    switch (confirmAction) {
+      case ActionType.CHANGE_PAYMENT_PAID:
+        updatePaymentStatus(selectedRows, PaymentState.PAID);
+        break;
+      case ActionType.CHANGE_ORDER_SHIPPED:
+        updateOrderStatus(selectedRows, OrderState.SHIPPED);
+        break;
+      case ActionType.CHANGE_ORDER_COMPLETED:
+        updateOrderStatus(selectedRows, OrderState.COMPLETED);
+        break;
+      case ActionType.CHANGE_ORDER_CANCELLED:
+        updateOrderStatus(selectedRows, OrderState.CANCELLED);
+        break;
+    }
+    reload();
+    setSelectedRows([]);
+    closeConfirmModal();
+  };
+
+  const saveFilter = (name:string, value:boolean) => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(name, value.toString());
+      // console.log(testDataChecked, localStorage.getItem('filterTestData'));
+    }
+  };
+
   useEffect(() => {
-    const rs = orders.map((row:any) => {
+    if (orders.length === 0) {
+      return;
+    }
+    const rs = orders.filter((o) => {
+      if (!cancelledChecked && o.state === OrderState.CANCELLED) {
+        return false;
+      }
+      if (!pendingPaymentChecked
+        && (o.payment_option === PaymentOption.BANK_TRANSFER
+        && (
+          o.payment_status === PaymentState.PENDING
+          || o.payment_status === PaymentState.VERIFYING
+        ))) {
+        return false;
+      }
+      if (!pendingShippingChecked
+        && (
+          (o.payment_option === PaymentOption.BANK_TRANSFER
+            && o.payment_status === PaymentState.PAID
+            && o.state === OrderState.CONFIRMED)
+          || (o.payment_option === PaymentOption.MONTHLY_PAYMENT
+            && o.state === OrderState.CONFIRMED)
+          || (o.payment_option === PaymentOption.PAY_ON_RECEIVE
+            && o.state === OrderState.CONFIRMED)
+        )) {
+        return false;
+      }
+      if (!shippedChecked
+        && (
+          o.state === OrderState.SHIPPED
+          || o.state === OrderState.DELIVERED
+          || o.state === OrderState.COMPLETED
+        )) {
+        return false;
+      }
+      if (!pendingConfirmChecked
+        && (o.state === OrderState.NONE || o.state === OrderState.CREATED)) {
+        return false;
+      }
+      if (!testDataChecked && o.customer && o.customer.name && o.customer.name.includes('測試')) {
+        return false;
+      }
+      if (selectedCustomer && o.customer_id !== selectedCustomer) {
+        return false;
+      }
+      return true;
+    }).map((row:any) => {
       if (!row.items) {
         return [];
       }
@@ -325,12 +277,7 @@ export default function OrdersPage() {
               order_id={row.order_id}
               onAction={() => {
                 getOrders(
-                  cancelledChecked,
-                  pendingPaymentChecked,
-                  pendingShippingChecked,
-                  shippedChecked,
                   dateRange,
-                  selectedCustomer
                 ).then((data) => { setOrders(data); });
               }}
             />
@@ -339,62 +286,23 @@ export default function OrdersPage() {
       ));
     });
     setRows(rs);
-  }, [orders, selectedRows, products]);
-
-/*
-  const getOrders = async () => {
-    let func = supabase
-      .from('orders')
-      .select(`
-        *,
-        customers (customer_id, name, contact_phone_1, contact_phone_2, shipping_address),
-        messages (message_id, user_name, user_profile_url, message)
-      `);
-    // 是否包含已取消
-    if (!cancelledChecked) {
-      // filters.push('state.neq.cancelled');
-      func = func.neq('state', OrderState.CANCELLED);
-    }
-    // 是否包含待付款
-    if (!pendingPaymentChecked) {
-      // !(payment_option = 'bankTransfer' AND payment_status = 'pending')
-      // => payment_option != 'bankTransfer' or payment_status != 'pending'
-      func = func.or('payment_option.neq.bankTransfer,payment_status.neq.pending');
-    }
-    // 是否包含待出貨
-    if (!pendingShippingChecked) {
-      // !(payment_option = 'bankTransfer' AND payment_status = 'paid' AND state = 'confirmed') and
-      // !(payment_option = 'monthlyPayment' AND state = 'confirmed') and
-      // !(payment_option = 'payOnReceive' AND state = 'confirmed')
-      func = func.or('payment_option.neq.bankTransfer,payment_status.neq.paid,state.neq.confirmed')
-        .or('payment_option.neq.monthlyPayment,state.neq.confirmed')
-        .or('payment_option.neq.payOnReceive,state.neq.confirmed');
-    }
-    // 不包含已出貨
-    if (!shippedChecked) {
-      // filters.push('or(state.eq.shipped,state.eq.delivered)');
-      func = func.neq('state', OrderState.SHIPPED).neq('state', OrderState.DELIVERED);
-    }
-
-    if (dateRange[0]) {
-      func = func.gte('created_at', dateRange[0]!.toISOString());
-    }
-    if (dateRange[1]) {
-      func = func.lte('created_at', dateRange[1]!.toISOString());
-    }
-    if (selectedCustomer && selectedCustomer !== '') {
-      func.eq('customer_id', selectedCustomer);
-    }
-    func = func.order('created_at', { ascending: false });
-
-    const { data } = await func;
-
-    if (data) {
-      setOrders(data);
-    }
-  };*/
+  }, [
+    orders,
+    selectedRows,
+    products,
+    cancelledChecked,
+    pendingPaymentChecked,
+    pendingShippingChecked,
+    shippedChecked,
+    selectedCustomer,
+    pendingConfirmChecked,
+    testDataChecked,
+  ]);
 
   const orderStatus = (order:OrderWithCustomer) => {
+    if (order.state === OrderState.NONE || order.state === OrderState.CREATED) {
+      return (<Badge fullWidth color="gray" size="lg">未確認</Badge>);
+    }
     if (order.state === OrderState.SHIPPED) {
       return (<Badge fullWidth color="green" size="lg">已出貨</Badge>);
     }
@@ -415,7 +323,7 @@ export default function OrdersPage() {
       if (order.account_number && order.account_number.length > 1) {
         return (<Badge fullWidth color="yellow" size="lg">待確認付款</Badge>);
       }
-      return (<Badge fullWidth color="red" size="lg">待付款</Badge>);
+      return (<Badge fullWidth color="yellow" size="lg">待付款</Badge>);
     }
 
     // 月結
@@ -426,25 +334,34 @@ export default function OrdersPage() {
     return '';
   };
 
-  const [cancelledChecked, setCancelledChecked] = useState(false);
-  const [pendingShippingChecked, setPendingShippingChecked] = useState(true);
-  const [pendingPaymentChecked, setPendingPaymentChecked] = useState(true);
-  const [shippedChecked, setShippedChecked] = useState(true);
+  useEffect(() => {
+    reload();
+  }, [dateRange]);
 
   useEffect(() => {
-    if (loginUser) {
-      getFilteredOrders();
-    }
+    reloadOrders();
   }, [
     cancelledChecked,
+    pendingPaymentChecked,
     pendingShippingChecked,
     shippedChecked,
-    pendingPaymentChecked,
     selectedCustomer,
-    dateRange,
+    pendingConfirmChecked,
+    testDataChecked,
   ]);
 
-  const getFilteredOrders = async () => {
+  const reloadOrders = async () => {
+    const data = await getOrders(dateRange);
+    if (data && typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('orders', JSON.stringify(data));
+    }
+    setOrders(data);
+  };
+
+  const reload = async () => {
+    if (!loginUser) {
+      return;
+    }
     nprogress.start();
     getCustomers().then((data) => {
       const rs = data.map((row) => ({
@@ -459,26 +376,49 @@ export default function OrdersPage() {
       }
       setProducts(data);
     });
-    getOrders(
-      cancelledChecked,
-      pendingPaymentChecked,
-      pendingShippingChecked,
-      shippedChecked,
-      dateRange,
-      selectedCustomer
-    ).then((data) => {
-      if (data && typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem('orders', JSON.stringify(data));
-      }
-      setOrders(data);
+
+    reloadOrders().then(() => {
       nprogress.complete();
     }).catch((err) => {
-      console.error(err);
+      Notifications.show({
+        title: '錯誤',
+        message: `載入訂單失敗: ${err}`,
+        color: 'red',
+      });
       nprogress.complete();
     });
   };
-  useEffect(() => {
-    let interval:NodeJS.Timeout;
+
+  const loadFilters = () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      let v = localStorage.getItem('filterShipped');
+      if (v !== undefined && v !== null) {
+        setShippedChecked(v === 'true');
+      }
+      v = localStorage.getItem('filterPendingShipping');
+      if (v !== undefined && v !== null) {
+        setPendingShippingChecked(v === 'true');
+      }
+      v = localStorage.getItem('filterPendingPayment');
+      if (v !== undefined && v !== null) {
+        setPendingPaymentChecked(v === 'true');
+      }
+      v = localStorage.getItem('filterCancelled');
+      if (v !== undefined && v !== null) {
+        setCancelledChecked(v === 'true');
+      }
+      v = localStorage.getItem('filterPendingConfirm');
+      if (v !== undefined && v !== null) {
+        setPendingConfirmChecked(v === 'true');
+      }
+      v = localStorage.getItem('filterTestData');
+      if (v !== undefined && v !== null) {
+        setTestDataChecked(v === 'true');
+      }
+    }
+  };
+
+  const loadLocalData = () => {
     if (typeof window !== 'undefined' && window.localStorage) {
       const localUser = localStorage.getItem('user');
       if (localUser) {
@@ -493,15 +433,21 @@ export default function OrdersPage() {
         }
       }
     }
+  };
+
+  useEffect(() => {
+    let interval:NodeJS.Timeout;
+    loadLocalData();
+    loadFilters();
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setLoginUser(user);
         if (typeof window !== 'undefined' && window.localStorage) {
           localStorage.setItem('user', JSON.stringify(user));
         }
-        getFilteredOrders();
+        reload();
 
-        interval = setInterval(() => getFilteredOrders(), 5 * 60 * 1000);
+        interval = setInterval(() => reload(), 5 * 60 * 1000);
         return;
       }
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -516,7 +462,7 @@ export default function OrdersPage() {
 
   const orderTable = () => (
       <Table.ScrollContainer minWidth={700}>
-        <Table miw={700} highlightOnHover>
+        <Table miw={700}>
           <Table.Thead className={classes.header}>
             <Table.Tr>
               <Table.Th>
@@ -533,14 +479,14 @@ export default function OrdersPage() {
               <Table.Th>銷貨日期</Table.Th>
               <Table.Th>時間</Table.Th>
               <Table.Th>訂單編號</Table.Th>
-              <Table.Th>客戶代號</Table.Th>
+              <Table.Th style={{ width: '80px' }}>客戶代號</Table.Th>
               <Table.Th>客戶簡稱</Table.Th>
               <Table.Th>品號</Table.Th>
               <Table.Th>品名</Table.Th>
-              <Table.Th>銷貨數量</Table.Th>
-              <Table.Th>銷售單價</Table.Th>
-              <Table.Th>付款方式</Table.Th>
-              <Table.Th>訂單總額</Table.Th>
+              <Table.Th style={{ width: '80px' }}>銷貨數量</Table.Th>
+              <Table.Th style={{ width: '100px' }}>銷售單價</Table.Th>
+              <Table.Th style={{ width: '130px' }}>付款方式</Table.Th>
+              <Table.Th style={{ width: '100px' }}>訂單總額</Table.Th>
               <Table.Th>訂單狀態</Table.Th>
               <Table.Th></Table.Th>
             </Table.Tr>
@@ -555,33 +501,139 @@ export default function OrdersPage() {
       <Notifications />
       <Box>
         <div className="flex flex-row m-5 content-center justify-between">
+          {selectedRows.length === 0 ? (
           <Group gap="md">
             <div className="pr-3">篩選條件:</div>
             <Checkbox
               size="sm"
               checked={shippedChecked}
               label="已出貨"
-              onChange={(event) => setShippedChecked(event.currentTarget.checked)}>
+              onChange={(event) => {
+                setShippedChecked(event.currentTarget.checked);
+                saveFilter('filterShipped', event.currentTarget.checked);
+              }}
+            >
             </Checkbox>
             <Checkbox
               size="sm"
               checked={pendingShippingChecked}
               label="待出貨"
-              onChange={(event) => setPendingShippingChecked(event.currentTarget.checked)}>
+              onChange={(event) => {
+                setPendingShippingChecked(event.currentTarget.checked);
+                saveFilter('filterPendingShipping', event.currentTarget.checked);
+              }}
+            >
             </Checkbox>
             <Checkbox
               size="sm"
               checked={pendingPaymentChecked}
               label="待付款"
-              onChange={(event) => setPendingPaymentChecked(event.currentTarget.checked)}>
+              onChange={(event) => {
+                setPendingPaymentChecked(event.currentTarget.checked);
+                saveFilter('filterPendingPayment', event.currentTarget.checked);
+              }}
+            >
             </Checkbox>
             <Checkbox
               size="sm"
               checked={cancelledChecked}
               label="已取消"
-              onChange={(event) => setCancelledChecked(event.currentTarget.checked)}>
+              onChange={(event) => {
+                setCancelledChecked(event.currentTarget.checked);
+                saveFilter('filterCancelled', event.currentTarget.checked);
+              }}
+            >
+            </Checkbox>
+            <Checkbox
+              size="sm"
+              checked={pendingConfirmChecked}
+              label="未確認"
+              onChange={(event) => {
+                setPendingConfirmChecked(event.currentTarget.checked);
+                saveFilter('filterPendingConfirm', event.currentTarget.checked);
+              }}
+            >
+            </Checkbox>
+            <Checkbox
+              size="sm"
+              checked={testDataChecked}
+              label="測試資料"
+              onChange={(event) => {
+                setTestDataChecked(event.currentTarget.checked);
+                saveFilter('filterTestData', event.currentTarget.checked);
+              }}
+            >
             </Checkbox>
           </Group>
+          ) : (
+          <Group gap={10}>
+            <div className="pr-3">批次動作:</div>
+            <Button
+              variant="outline"
+              size="xs"
+              leftSection={<IconCash size={14} />}
+              onClick={() => {
+                setConfirmAction(ActionType.CHANGE_PAYMENT_PAID);
+                setConfirmMessage('確認要將選取的訂單轉為已付款嗎？');
+                openConfirmModal();
+              }}
+            >
+              轉已付款
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              leftSection={<IconTruck size={14} />}
+              onClick={() => {
+                setConfirmAction(ActionType.CHANGE_ORDER_SHIPPED);
+                setConfirmMessage('確認要將選取的訂單轉為已出貨嗎？');
+                openConfirmModal();
+              }}
+            >
+              轉已出貨
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              leftSection={<IconChecks size={14} />}
+              onClick={() => {
+                setConfirmAction(ActionType.CHANGE_ORDER_COMPLETED);
+                setConfirmMessage('確認要將選取的訂單轉為已完成嗎？');
+                openConfirmModal();
+              }}
+            >
+              完成訂單
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              leftSection={<IconCalculatorOff size={14} />}
+              onClick={() => {
+                setConfirmAction(ActionType.CHANGE_ORDER_CANCELLED);
+                setConfirmMessage('確認要將選取的訂單轉為已取消嗎？');
+                openConfirmModal();
+              }}
+            >
+              取消訂單
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              leftSection={<IconSpeakerphone size={14} />}
+              onClick={() => { setMessageModalOpened(true); }}
+            >
+              通知
+            </Button>
+            <Button
+              variant="outline"
+              size="xs"
+              leftSection={<IconDownload size={14} />}
+              onClick={() => exportSelectedOrders()}
+            >
+              匯出
+            </Button>
+          </Group>
+          )}
           <Group>
             <DatePickerInput
               size="sm"
@@ -600,16 +652,21 @@ export default function OrdersPage() {
               placeholder="選擇客戶"
               onChange={(customer_id) => { setSelectedCustomer(customer_id); }}
             />
-            <Button
-              disabled={selectedRows.length === 0}
-              leftSection={<IconDownload size={14} />}
-              onClick={() => exportOrders()}
-            >匯出
-            </Button>
           </Group>
         </div>
         { orderTable() }
       </Box>
+      <SendMessageModal
+        opened={messageModalOpened}
+        onClose={() => setMessageModalOpened(false)}
+        orders={selectedRows.map((order_id) => ({ order_id, customer_id: orders.find((order) => order.order_id === order_id)?.customer_id || '' }))}
+      />
+      <ConfirmModal
+        opened={confirmModalOpened}
+        onClose={closeConfirmModal}
+        onConfirm={performConfirmAction}
+        title={confirmMessage || ''}
+      />
     </MantineProvider>
   );
 }

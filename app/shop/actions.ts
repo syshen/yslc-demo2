@@ -63,7 +63,6 @@ export const getOrderById = async (order_id:string) => {
 };
 
 export const shopCarts = async (
-  env: string,
   order_id:string,
   carts: Cart[],
   customer_id:string,
@@ -71,12 +70,7 @@ export const shopCarts = async (
 ) => {
   'use server';
 
-  let url = '';
-  if (env === 'staging') {
-    url = `${process.env.NEXT_PUBLIC_BACKEND_TEST_URL}yslc/shop`;
-  } else {
-    url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/shop`;
-  }
+  const url = `${process.env.BACKEND_URL}yslc/shop`;
   const resp = await fetch(url, {
     method: 'POST',
     headers: {

@@ -13,6 +13,7 @@ import {
 import { createClient } from '@/utils/supabase/client';
 import { Customer } from '@/utils/db';
 import { logger, LogAction } from '@/utils/logger';
+import { notify } from '@/utils/notify';
 
 // a js code to generate a file name with date and time, like 20240510123000.png
 function generateFileName() {
@@ -33,21 +34,21 @@ export function CustomerMessageModal(
   const [file, setFile] = useState<File | null>(null);
   const sendMessage = async () => {
     setLoading(true);
-    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/message`;
-    const payload:
-    {
-      action: string;
-      message: string;
-      customers: { customer_id: string, line_id: string }[];
-      image?: string;
-    } = {
-      action: 'broadcast',
-      message,
-      customers: customers.map((customer) => (
-        { customer_id: customer.customer_id, line_id: customer.line_id || '' }
-      )).filter((customer: { line_id: string }) => customer.line_id !== ''),
-    };
+
     try {
+      const payload:
+      {
+        action: string;
+        message: string;
+        customers: { customer_id: string, line_id: string }[];
+        image?: string;
+      } = {
+        action: 'broadcast',
+        message,
+        customers: customers.map((customer) => (
+          { customer_id: customer.customer_id, line_id: customer.line_id || '' }
+        )).filter((customer: { line_id: string }) => customer.line_id !== ''),
+      };
       if (file !== null) {
         const fileName = generateFileName();
         const response = await supabase.storage.from('images').upload(fileName, file);
@@ -57,17 +58,7 @@ export function CustomerMessageModal(
         const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL}${response.data.path}`;
         payload.image = imageUrl;
       }
-      const response = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: {
-          'Content-Type': 'application/json',
-          JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
-        },
-      });
-      if (response.status !== 200) {
-        throw new Error(response.statusText);
-      }
+      await notify(payload);
       setLoading(false);
       Notifications.show({
         title: '通知訊息',

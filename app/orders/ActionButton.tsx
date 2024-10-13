@@ -20,6 +20,7 @@ import { createClient } from '@/utils/supabase/client';
 import { OrderState, PaymentState } from '@/utils/types';
 import { updateOrderStatus, updatePaymentStatus } from './actions';
 import { logger, LogAction } from '@/utils/logger';
+import { notify } from '@/utils/notify';
 
 export function ActionButton(
   { customer_id, order_id, onAction }
@@ -36,7 +37,7 @@ export function ActionButton(
   const changeStatus = async (status: OrderState | PaymentState) => {
     try {
       if (status === PaymentState.PAID) {
-        await updatePaymentStatus(order_id, PaymentState.PAID);
+        await updatePaymentStatus([order_id], PaymentState.PAID);
         logger.info(`Order ${order_id} payment status changed to ${PaymentState.PAID}`, {
           action: LogAction.CHANGE_STATUS,
           user: {
@@ -52,7 +53,7 @@ export function ActionButton(
           },
         });
       } else {
-        await updateOrderStatus(order_id, status as OrderState);
+        await updateOrderStatus([order_id], status as OrderState);
         logger.info(`Order ${order_id} status changed to ${status}`, {
           action: LogAction.CHANGE_STATUS,
           user: {
@@ -76,24 +77,12 @@ export function ActionButton(
 
   const notifyCustomer = async (status: string, payload?:string) => {
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}yslc/message`;
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          JIDOU_API_KEY: `${process.env.NEXT_PUBLIC_BACKEND_AUTH_HEADER}`,
-        },
-        body: JSON.stringify({
-          action: status,
-          order_id,
-          customer_id,
-          payload,
-        }),
+      await notify({
+        action: status,
+        order_id,
+        customer_id,
+        payload,
       });
-
-      if (resp.status !== 200) {
-        throw new Error(resp.statusText);
-      }
       Notifications.show({
         title: '通知訊息',
         message: '已通知客戶',

@@ -7,7 +7,7 @@ import dayjs from 'dayjs';
 import {
   db,
   OrderState,
-  PaymentOption,
+  // PaymentOption,
   PaymentState,
   OrderWithCustomer,
 } from '@/utils/db';
@@ -34,29 +34,24 @@ export async function getCustomers() {
   return results;
 }
 
-export async function updateOrderStatus(order_id:string, state:OrderState) {
+export async function updateOrderStatus(order_ids:string[], state:OrderState) {
   'use server';
 
   await db.updateTable('orders').set({
     state,
-  }).where('order_id', '=', order_id).execute();
+  }).where('order_id', 'in', order_ids).execute();
 }
 
-export async function updatePaymentStatus(order_id:string, state:PaymentState) {
+export async function updatePaymentStatus(order_ids:string[], state:PaymentState) {
   'use server';
 
   await db.updateTable('orders').set({
     payment_status: state,
-  }).where('order_id', '=', order_id).execute();
+  }).where('order_id', 'in', order_ids).execute();
 }
 
 export async function getOrders(
-  includeCancelled:boolean,
-  includePendingPayment:boolean,
-  includePendingShipping:boolean,
-  includeShipped:boolean,
-  dateRanges:[Date | null, Date | null],
-  selectedCustomer:string | null): Promise<OrderWithCustomer[]> {
+  dateRanges:[Date | null, Date | null]): Promise<OrderWithCustomer[]> {
   'use server';
 
   if (dateRanges[1] !== null) {
@@ -99,6 +94,7 @@ export async function getOrders(
           .whereRef('orders.account_message_id', '=', 'messages.message_id')
       ).as('account_message'),
     ])
+    /*
     .$if(!includeCancelled, (eb) => eb.where('state', '!=', OrderState.CANCELLED))
     .$if(!includePendingPayment, (eb) => eb.where((fb) => fb.or([
       fb('payment_option', '!=', PaymentOption.BANK_TRANSFER),
@@ -118,44 +114,12 @@ export async function getOrders(
       fb('state', '!=', OrderState.CONFIRMED),
     ])))
     .$if(!includeShipped, (eb) => eb.where('state', '!=', OrderState.SHIPPED)).where('state', '!=', OrderState.DELIVERED)
+    */
     .$if(dateRanges[0] !== null, (eb) => eb.where('created_at', '>=', dateRanges[0]))
     .$if(dateRanges[1] !== null, (eb) => eb.where('created_at', '<=', dateRanges[1]))
-    .$if(selectedCustomer !== null, (eb) => eb.where('customer_id', '=', selectedCustomer))
+    // .$if(selectedCustomer !== null, (eb) => eb.where('customer_id', '=', selectedCustomer))
     .orderBy('created_at', 'desc');
-/*
-  if (!includeCancelled) {
-    builder = builder
-      .where('state', '!=', OrderState.CANCELLED);
-  }
-  if (!includePendingPayment) {
-    builder = builder
-      .where('payment_option', '!=', PaymentOption.BANK_TRANSFER)
-      .where('payment_status', '!=', PaymentState.PAID);
-  }
-  if (!includePendingShipping) {
-    builder = builder
-      .where('payment_option', '!=', PaymentOption.BANK_TRANSFER)
-      .where('payment_status', '!=', PaymentState.PAID)
-      .where('state', '!=', OrderState.CONFIRMED);
-  }
-  if (!includeShipped) {
-    builder = builder
-      .where('state', '!=', OrderState.SHIPPED);
-  }
-  if (selectedCustomer) {
-    builder = builder
-      .where('customer_id', '=', selectedCustomer);
-  }
 
-  if (dateRanges[0]) {
-    builder = builder.where('created_at', '>=', dateRanges[0]);
-  }
-  if (dateRanges[1]) {
-    builder = builder.where('created_at', '<=', dateRanges[1]);
-  }
-
-  builder = builder.orderBy('created_at', 'desc');
-  */
   // const sql = builder.compile();
   // console.log(sql);
   const results = await builder.execute();
