@@ -179,7 +179,7 @@ function OrderInfo() {
 
   useEffect(() => {
     liff.init({
-      liffId: '2006159272-j3vD3Kvk',
+      liffId: process.env.NEXT_PUBLIC_ORDER_LIFF_ID || '',
     });
     setLoading(true);
     getOrder();

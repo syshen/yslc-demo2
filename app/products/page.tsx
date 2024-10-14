@@ -21,7 +21,7 @@ import { createClient } from '@/utils/supabase/client';
 import classes from './products.module.css';
 import { ProductWithCategory, Category } from '@/utils/db';
 import { getAllProducts, updateProduct, getCategories } from './actions';
-import { BatchImportButton } from '@/components/buttons/BatchImportButton';
+// import { BatchImportButton } from '@/components/buttons/BatchImportButton';
 import { ProductModal } from './ProductModal';
 
 export default function ProductsPage() {
@@ -232,6 +232,7 @@ export default function ProductsPage() {
                 >
                   新增產品
                 </Button>
+                {/*
                 <BatchImportButton
                   label="匯入商品"
                   description="匯入資料的格式必須是 CSV，你可以由 Excel 去轉換成 CSV。裡面要包含一些必要的欄位，像是 品名、品號、單位、標準售價、規格。"
@@ -240,6 +241,7 @@ export default function ProductsPage() {
                     getProducts();
                   }}
                 />
+                */}
               </Group>
             </Group>
           </header>

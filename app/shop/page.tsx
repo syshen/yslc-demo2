@@ -45,7 +45,6 @@ function Shop() {
   interface Cart {
     [id:string]: number
   }
-  const env:string = searchParams.get('env') || 'staging';
   const customer_id:string = searchParams.get('cid') || '';
   const order_id:string = searchParams.get('oid') || '';
   // list=1011:1,2003:2
@@ -209,9 +208,10 @@ function Shop() {
       return false;
     }
     if (o.state === OrderState.CANCELLED
-    || o.state === OrderState.COMPLETED
-    || o.state === OrderState.SHIPPED
-    || o.state === OrderState.DELIVERED) {
+      || o.state === OrderState.CONFIRMED
+      || o.state === OrderState.COMPLETED
+      || o.state === OrderState.SHIPPED
+      || o.state === OrderState.DELIVERED) {
       return true;
     }
     if (o.payment_status === PaymentState.PAID) {
@@ -233,7 +233,7 @@ function Shop() {
   useEffect(() => {
     setLoading(true);
     liff.init({
-      liffId: '2006159272-exyY23yE',
+      liffId: process.env.NEXT_PUBLIC_SHOP_LIFF_ID || '',
     }).then(() => {
       setLiffCtx(liff);
     });
@@ -303,7 +303,6 @@ function Shop() {
                   onClick={() => {
                     setSending(true);
                     shopCarts(
-                      env,
                       orderId,
                       Object.entries(cart)
                         .map(([key, value]) => ({ id: Number(key), quantity: value }))
@@ -338,7 +337,6 @@ function Shop() {
               onClick={() => {
                 setSending(true);
                 shopCarts(
-                  env,
                   orderId,
                   Object.entries(cart)
                       .map(([key, value]) => ({ id: Number(key), quantity: value }))
