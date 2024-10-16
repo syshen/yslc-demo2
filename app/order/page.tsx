@@ -1,275 +1,55 @@
-'use client';
+'use server';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, notFound } from 'next/navigation';
-// import { useRouter } from 'next/router';
-import {
-  MantineProvider,
-  Image,
-  Flex,
-  Box,
-  Group,
-  Text,
-  Badge,
-  Stack,
-  Loader,
-} from '@mantine/core';
-import {
-  IconCalendarEvent,
-  IconUserCircle,
-  IconNumber,
-  IconChefHat,
-} from '@tabler/icons-react';
-import liff from '@line/liff';
-import { OrderState, PaymentOption, TAX_RATE, PaymentState } from '@/utils/types';
-import { logger, LogAction } from '@/utils/logger';
-import { OrderItemExtended } from '@/utils/db';
-import { OrderView } from '@/utils/database';
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import { OrderInfoPage } from './OrderInfoPage';
 import { getOrderById } from './actions';
+import { OrderView } from '@/utils/database';
 
-export default function OrderPage() {
-  return (
-    <Suspense><OrderInfo /></Suspense>
-  );
-}
+function decodeToDictionary(encodedStr: string): Record<string, string> {
+  // Step 1: URL decode the input string
+  const decodedStr = decodeURIComponent(encodedStr);
 
-function OrderInfo() {
-  const searchParams = useSearchParams();
-  const [order, setOrder] = useState<OrderView>();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [tax, setTax] = useState<number>(TAX_RATE);
-  const [serviceFee, setServiceFee] = useState<number>(0);
-  const [shippingFee, setShippingFee] = useState<number>(0);
-  const [unTaxTotal, setUnTaxTotal] = useState<number>(0);
+  // Step 2: Split the string by '&' to get key-value pairs
+  const keyValuePairs = decodedStr.split('&');
 
-  const order_id:string = searchParams.get('oid') || '';
-
-  const getOrder = async () => {
-    const o = await getOrderById(order_id);
-    if (o === null || o === undefined) {
-      // 404 not found
-      notFound();
+  // Step 3: Iterate over each key-value pair and build the dictionary
+  const dictionary: Record<string, string> = {};
+  keyValuePairs.forEach(pair => {
+    const [key, value] = pair.split('=');
+    if (key) {
+      dictionary[key] = value;
     }
-    setOrder(o);
-  };
-
-  useEffect(() => {
-    if (!order) {
-      setLoading(false);
-      return;
-    }
-
-    setTax(order.tax ?? TAX_RATE);
-    setShippingFee(order.shipping_fee ?? 0);
-    setServiceFee(order.service_fee ?? 0);
-    if (order) {
-      let t = 0;
-
-      order.items.forEach((item) => {
-        t += item.subtotal;
-      });
-      setUnTaxTotal(t);
-    }
-    setLoading(false);
-  }, [order]);
-
-  const getStatus = (state:string) => {
-    if (!order) {
-      return '';
-    }
-    switch (state) {
-      case OrderState.CANCELLED:
-        return (<Badge fullWidth color="red" size="lg">已取消</Badge>);
-      case OrderState.SHIPPED:
-        return (<Badge fullWidth color="green" size="lg">已出貨</Badge>);
-      case OrderState.COMPLETED:
-        return (<Badge fullWidth color="green" size="lg">訂單已完成</Badge>);
-    }
-    if (order.payment_option === PaymentOption.BANK_TRANSFER) {
-      if (order.payment_status === PaymentState.PAID) {
-        return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
-      }
-      if (order.account_number && order.account_number.length > 1) {
-        return (<Badge fullWidth color="yellow" size="lg">待確認付款</Badge>);
-      }
-      return (<Badge fullWidth color="red" size="lg">待付款</Badge>);
-    }
-
-    // 月結
-    // 貨到付款
-    if (order.state === OrderState.CONFIRMED) {
-      return (<Badge fullWidth color="yellow" size="lg">待出貨</Badge>);
-    }
-    return '';
-  };
-
-  const getPaymentOption = (option:string | undefined | null) => {
-    switch (option) {
-      case PaymentOption.MONTHLY_PAYMENT:
-        return '月結';
-      case PaymentOption.PAY_ON_RECEIVE:
-        return '貨到付款';
-      case PaymentOption.BANK_TRANSFER:
-        return '銀行轉帳';
-    }
-    return '';
-  };
-
-  const userProfile = () => {
-    if (!order) {
-      return '';
-    }
-    if (order.line_user_info) {
-      return (
-      <Group>
-        <IconUserCircle color="gray" />
-        <Text size="sm">{order.line_user_info.displayName}</Text>
-        <Image
-          w={20}
-          radius="100%"
-          src={order.line_user_info.pictureUrl}
-        />
-      </Group>);
-    }
-    return '';
-  };
-  const customerInfo = () => {
-    if (order?.customer) {
-      return (
-        <Group>
-          <IconChefHat color="gray" />
-          <Flex direction="column">
-            <Text size="sm">{order.customer.name}</Text>
-            {/* <Text size="sm">{customer.shipping_address}</Text> */}
-          </Flex>
-        </Group>
-      );
-    }
-    return '';
-  };
-
-  /**
-   * Return the name of the product, with spec if available.
-   * If the product is not found, return the item name.
-   * @param {Object} item an item in the order
-   * @return {string} a string that describes the item
-   */
-  const itemInfo = (item:OrderItemExtended) => {
-    // const product = findProduct(item.id);
-    if (item.spec) {
-      return `${item.item} (${item.spec})`;
-    }
-    return `${item.item}`;
-  };
-
-  logger.info(`View order page for order: ${order_id}`, {
-    action: LogAction.VIEW_PAGE,
-    page: 'order',
-    order: {
-      order_id,
-    },
   });
 
-  const orderQuantity = (item:OrderItemExtended) => {
-    if (item.gift) {
-      return `${item.quantity} + ${item.gift} ${item.unit}`;
+  return dictionary;
+}
+
+export default async function OrderPage(
+  { searchParams }:
+  {
+    searchParams: { 'liff.state'?: string, oid?: string }
+  }) {
+  let order_id = searchParams.oid;
+
+  if (searchParams['liff.state'] !== undefined) {
+    let state = searchParams['liff.state'];
+    if (state.startsWith('?')) {
+      state = state.substring(1);
     }
-    return `${item.quantity} ${item.unit}`;
-  };
+    const stateParams = decodeToDictionary(state);
+    order_id = stateParams.oid || '';
+  }
 
-  useEffect(() => {
-    liff.init({
-      liffId: process.env.NEXT_PUBLIC_ORDER_LIFF_ID || '',
-    });
-    setLoading(true);
-    getOrder();
-  }, []);
-
-  const pageLoading = () => (
-    <Box className="flex justify-center">
-      <Loader color="blue" type="dots" className="py-20"></Loader>
-    </Box>
-  );
+  if (!order_id) {
+    return notFound();
+  }
+  const o = await getOrderById(order_id as string) as OrderView | null | undefined;
+  if (o === null || o === undefined) {
+    return notFound();
+  }
 
   return (
-    <MantineProvider>
-      { loading ? pageLoading() : (
-      <Flex direction="column" className="w-full border p-6 border-gray-200">
-        <Stack className="pb-6">
-          <h2
-            className="font-manrope font-bold text-3xl leading-10">
-            商品訂購單
-          </h2>
-          <Group>
-              <Text size="sm" className="leading-10">詠鑠生活股份有限公司</Text>
-          </Group>
-        </Stack>
-        <Flex direction="row" className="border-b py-5">
-          <Flex direction="column" className="flex-1 gap-2">
-            { customerInfo() }
-            { userProfile()}
-            <Group>
-              <IconCalendarEvent color="gray" />
-              <Text size="sm">{order?.created_at ? new Date(order.created_at).toLocaleDateString() : ''} {order?.created_at ? new Date(order.created_at).toLocaleTimeString() : ''}</Text>
-            </Group>
-            <Group>
-              <IconNumber color="gray" />
-              <Text size="sm">{order?.order_id ?? ''}</Text>
-            </Group>
-          </Flex>
-          <Box>
-            {order ? getStatus(order.state) : ''}
-          </Box>
-        </Flex>
-        <div className="data py-6 border-b border-gray-200">
-          {order?.pitems.map((item) => (
-            <div key={item.item} className="flex items-center justify-between gap-4 mb-5">
-              <div className="flex flex-col">
-                <p className="font-normal text-lg leading-8 transition-all duration-500">{itemInfo(item)}</p>
-                <p className="font-noraml text-lg leading-8 transition-all duration-500">數量: {orderQuantity(item)}</p>
-              </div>
-              <Text
-                hidden={order.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT)}
-                className="font-medium text-lg leading-8">{Number(item.subtotal).toLocaleString()}
-              </Text>
-            </div>
-          ))}
-        </div>
-        { order?.payment_option?.includes(PaymentOption.MONTHLY_PAYMENT) ? '' : (
-        <Flex
-          direction="column"
-          gap="md"
-          align="flex-start"
-        >
-          <div className="w-full total flex items-center justify-between pt-3">
-            <p className="font-normal text-lg leading-8">未稅價</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(unTaxTotal).toLocaleString()}</h5>
-          </div>
-          <div className="w-full total flex items-center justify-between pt-3">
-            <p className="font-normal text-lg leading-8">運費</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(shippingFee).toLocaleString()}</h5>
-          </div>
-          <div className="w-full total flex items-center justify-between pt-3">
-            <p className="font-normal text-lg leading-8">貨到付款手續費</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(serviceFee).toLocaleString()}</h5>
-          </div>
-          <div className="w-full total flex items-center justify-between pt-3">
-            <p className="font-normal text-lg leading-8">稅金 (5%)</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal) * tax)).toLocaleString()}</h5>
-          </div>
-          <div className="w-full total flex items-center justify-between pt-3">
-            <p className="font-normal text-lg leading-8">總金額</p>
-            <h5 className="font-manrope font-bold text-lg leading-9">{Number(Math.round((unTaxTotal * (1 + tax)) + shippingFee + serviceFee)).toLocaleString()} 元</h5>
-          </div>
-        </Flex>
-        )}
-        <div className="w-full total flex items-center justify-between pt-3">
-          <p className="font-normal text-lg leading-8">付款方式</p>
-          <h5 className="font-manrope font-normal text-lg leading-9">{order ? getPaymentOption(order.payment_option) : ''}</h5>
-        </div>
-
-      </Flex>
-      ) }
-    </MantineProvider>
+    <Suspense><OrderInfoPage order_id={order_id as string} order={o} /></Suspense>
   );
 }

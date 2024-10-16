@@ -13,6 +13,13 @@ export function SendMessageModal(
 ) {
   const [message, setMessage] = useState('');
 
+  const oldOnClose = others.onClose;
+  const closeModal = () => {
+    setMessage('');
+    oldOnClose();
+  };
+  others.onClose = closeModal;
+
   const notifyCustomer = async (sendingMessage:string) => {
     const promises = orders.map(async (order) => {
       let m = sendingMessage.replace('{{order_id}}', order.order_id);

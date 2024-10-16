@@ -359,9 +359,6 @@ export default function OrdersPage() {
   };
 
   const reload = async () => {
-    if (!loginUser) {
-      return;
-    }
     nprogress.start();
     getCustomers().then((data) => {
       const rs = data.map((row) => ({
