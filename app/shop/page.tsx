@@ -38,7 +38,11 @@ export default async function ShopPage({ searchParams }:
   let list:string = searchParams.list || '';
 
   if (searchParams['liff.state'] !== undefined) {
-    const stateParams = decodeToDictionary(searchParams['liff.state'].replace('%3F', ''));
+    let state = searchParams['liff.state'];
+    if (state.startsWith('?')) {
+      state = state.substring(1);
+    }
+    const stateParams = decodeToDictionary(state);
     customer_id = stateParams.cid || '';
     order_id = stateParams.oid || '';
     list = stateParams.list || '';

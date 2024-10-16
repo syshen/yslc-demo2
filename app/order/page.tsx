@@ -33,7 +33,11 @@ export default async function OrderPage(
   let order_id = searchParams.oid;
 
   if (searchParams['liff.state'] !== undefined) {
-    const stateParams = decodeToDictionary(searchParams['liff.state'].replace('%3F', ''));
+    let state = searchParams['liff.state'];
+    if (state.startsWith('?')) {
+      state = state.substring(1);
+    }
+    const stateParams = decodeToDictionary(state);
     order_id = stateParams.oid || '';
   }
 
