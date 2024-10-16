@@ -10,20 +10,44 @@ interface Cart {
   [id:string]: number
 }
 
+function decodeToDictionary(encodedStr: string): Record<string, string> {
+  // Step 1: URL decode the input string
+  const decodedStr = decodeURIComponent(encodedStr);
+
+  // Step 2: Split the string by '&' to get key-value pairs
+  const keyValuePairs = decodedStr.split('&');
+
+  // Step 3: Iterate over each key-value pair and build the dictionary
+  const dictionary: Record<string, string> = {};
+  keyValuePairs.forEach(pair => {
+    const [key, value] = pair.split('=');
+    if (key) {
+      dictionary[key] = value;
+    }
+  });
+
+  return dictionary;
+}
+
 export default async function ShopPage({ searchParams }:
 {
-  searchParams: { oid?: string, cid?: string, list?: string }
+  searchParams: { 'liff.state'?: string, oid?: string, cid?: string, list?: string }
 }) {
-  if (searchParams.cid === undefined) {
-    return notFound();
-  }
-  if (searchParams.oid === undefined) {
-    return notFound();
-  }
-  const customer_id:string = searchParams.cid || '';
+  let customer_id:string = searchParams.cid || '';
   let order_id:string = searchParams.oid || '';
+  let list:string = searchParams.list || '';
+
+  if (searchParams['liff.state'] !== undefined) {
+    const stateParams = decodeToDictionary(searchParams['liff.state'].replace('%3F', ''));
+    customer_id = stateParams.cid || '';
+    order_id = stateParams.oid || '';
+    list = stateParams.list || '';
+  }
+  if (customer_id === '') {
+    return notFound();
+  }
   // list=1011:1,2003:2
-  const productList = searchParams.list?.split(',').map((item) => ({
+  const productList = list.split(',').map((item) => ({
     id: item.split(':')[0],
     quantity: item.split(':')[1],
   }));
